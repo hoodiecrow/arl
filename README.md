@@ -11,6 +11,28 @@ Move around with keypad
 ```
 (5 is rest)
 
+# Actions
+None of them do anything except show a text line yet, lol
+
+- `c` close
+- `d` drop
+- `e` eat
+- `E` equip
+- `g` get
+- `i` show inventory
+- `l` look
+- `q` drink
+- `r` read
+- `u` use
+- `w` wear
+- `z` zap
+- `,` pick up
+- `<` climb a stair
+- `>` go down a stair
+- `@` show character screen
+- `CTRL-S` save game
+- `F1` show help screen
+
 # Time management
 To keep it simple for now, time management is Player-centric. The rest of the world acts when the player moves (including resting). Maybe some other actions will let the world act as well.
 
