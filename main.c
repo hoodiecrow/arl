@@ -33,6 +33,7 @@ int main()
 
     curs_set(0);
     mvwaddch(room, 4, 9, 'a');
+    mvwaddch(room, 2, 4, '%');
     mvwaddch(room, 12, 3, 'b');
     int x = 10;
     int y =  5;
@@ -40,12 +41,14 @@ int main()
     wrefresh(room);
     int ch;
     chtype floor;
+    chtype under = ' '; // what object, if any, is under character's feet
     do {
         ch = wgetch(room);
         if(ch == '1') {
             floor = mvwinch(room, y+1, x-1);
-            if (floor == ' ') {
-                mvwaddch(room, y, x, ' ');
+            if (floor == ' ' || ispunct(floor)) {
+                mvwaddch(room, y, x, under);
+                under = floor;
                 mvwaddch(room, ++y, --x, '@');
                 move(1, 0);
                 clrtoeol();
@@ -55,8 +58,9 @@ int main()
             }
         } else if(ch == '2') {
             floor = mvwinch(room, y+1, x);
-            if (floor == ' ') {
-                mvwaddch(room, y, x, ' ');
+            if (floor == ' ' || ispunct(floor)) {
+                mvwaddch(room, y, x, under);
+                under = floor;
                 mvwaddch(room, ++y, x, '@');
                 move(1, 0);
                 clrtoeol();
@@ -66,8 +70,9 @@ int main()
             }
         } else if(ch == '3') {
             floor = mvwinch(room, y+1, x+1);
-            if (floor == ' ') {
-                mvwaddch(room, y, x, ' ');
+            if (floor == ' ' || ispunct(floor)) {
+                mvwaddch(room, y, x, under);
+                under = floor;
                 mvwaddch(room, ++y, ++x, '@');
                 move(1, 0);
                 clrtoeol();
@@ -77,8 +82,9 @@ int main()
             }
         } else if(ch == '4') {
             floor = mvwinch(room, y, x-1);
-            if (floor == ' ') {
-                mvwaddch(room, y, x, ' ');
+            if (floor == ' ' || ispunct(floor)) {
+                mvwaddch(room, y, x, under);
+                under = floor;
                 mvwaddch(room, y, --x, '@');
                 move(1, 0);
                 clrtoeol();
@@ -92,8 +98,9 @@ int main()
                 clrtoeol();
         } else if(ch == '6') {
             floor = mvwinch(room, y, x+1);
-            if (floor == ' ') {
-                mvwaddch(room, y, x, ' ');
+            if (floor == ' ' || ispunct(floor)) {
+                mvwaddch(room, y, x, under);
+                under = floor;
                 mvwaddch(room, y, ++x, '@');
                 move(1, 0);
                 clrtoeol();
@@ -103,8 +110,9 @@ int main()
             }
         } else if(ch == '7') {
             floor = mvwinch(room, y-1, x-1);
-            if (floor == ' ') {
-                mvwaddch(room, y, x, ' ');
+            if (floor == ' ' || ispunct(floor)) {
+                mvwaddch(room, y, x, under);
+                under = floor;
                 mvwaddch(room, --y, --x, '@');
                 move(1, 0);
                 clrtoeol();
@@ -114,8 +122,9 @@ int main()
             }
         } else if(ch == '8') {
             floor = mvwinch(room, y-1, x);
-            if (floor == ' ') {
-                mvwaddch(room, y, x, ' ');
+            if (floor == ' ' || ispunct(floor)) {
+                mvwaddch(room, y, x, under);
+                under = floor;
                 mvwaddch(room, --y, x, '@');
                 move(1, 0);
                 clrtoeol();
@@ -125,8 +134,9 @@ int main()
             }
         } else if(ch == '9') {
             floor = mvwinch(room, y-1, x+1);
-            if (floor == ' ') {
-                mvwaddch(room, y, x, ' ');
+            if (floor == ' ' || ispunct(floor)) {
+                mvwaddch(room, y, x, under);
+                under = floor;
                 mvwaddch(room, --y, ++x, '@');
                 move(1, 0);
                 clrtoeol();
@@ -174,7 +184,7 @@ int main()
             mvaddstr(1, 0, "picked up <item>");
             clrtoeol();
         } else if(ch == '<') {
-            mvaddstr(1, 0, "you climbed a stair");
+            mvaddstr(1, 0, "you climbed up a stair");
             clrtoeol();
         } else if(ch == '>') {
             mvaddstr(1, 0, "you went down a stair");
