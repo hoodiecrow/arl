@@ -12,7 +12,7 @@ Move around with keypad
 (5 is rest)
 
 # Actions
-None of them do anything yet except show a text line, lol
+None of them (except Q) do anything yet except show a text line, lol
 
 - `c` close
 - `d` drop
@@ -32,6 +32,7 @@ None of them do anything yet except show a text line, lol
 - `@` show character screen
 - `CTRL-S` save game
 - `F1` show help screen
+- `Q` quit
 
 # Time management
 To keep it simple for now, time management is Player-centric. The rest of the world acts when the player moves (including resting). Maybe some other actions will let the world act as well.
