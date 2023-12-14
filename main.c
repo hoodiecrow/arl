@@ -51,6 +51,10 @@ int main()
             mvaddch(y, x, '@');
             mvaddstr(1, 0, "equip what?");
             clrtoeol();
+        } else if(ch == 'g') {
+            mvaddch(y, x, '@');
+            mvaddstr(1, 0, "get what?");
+            clrtoeol();
         } else if(ch == 'i') {
             mvaddch(y, x, '@');
             mvaddstr(1, 0, "inventory");
@@ -75,9 +79,29 @@ int main()
             mvaddch(y, x, '@');
             mvaddstr(1, 0, "wear what?");
             clrtoeol();
+        } else if(ch == 'z') {
+            mvaddch(y, x, '@');
+            mvaddstr(1, 0, "zap in which direction?");
+            clrtoeol();
+        } else if(ch == ',') {
+            mvaddch(y, x, '@');
+            mvaddstr(1, 0, "picked up <item>");
+            clrtoeol();
+        } else if(ch == '<') {
+            mvaddch(y, x, '@');
+            mvaddstr(1, 0, "you climbed a stair");
+            clrtoeol();
+        } else if(ch == '>') {
+            mvaddch(y, x, '@');
+            mvaddstr(1, 0, "you went down a stair");
+            clrtoeol();
         } else if(ch == '@') {
             mvaddch(y, x, '@');
             mvaddstr(1, 0, "character screen");
+            clrtoeol();
+        } else if(ch == KEY_F(1)) {
+            mvaddch(y, x, '@');
+            mvaddstr(1, 0, "help screen");
             clrtoeol();
         // more keys at roguebasin
         } else 
