@@ -14,6 +14,6 @@ Move around with keypad
 ## My resources
 
 - https://www.roguebasin.com/index.php/How_to_Write_a_Roguelike_in_15_Steps
-- https://invisible-island.net/ncurses/man/
+- https://invisible-island.net/ncurses/man/ncurses.3x.html
 - https://invisible-island.net/ncurses/NCURSES-Programming-HOWTO.html
 - https://invisible-island.net/cdk/manpage/cdk.3.html
