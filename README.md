@@ -11,6 +11,9 @@ Move around with keypad
 ```
 (5 is rest)
 
+# Time management
+To keep it simple for now, time management is Player-centric. The rest of the world acts when the player moves (including resting). Maybe some other actions will let the world act as well.
+
 ## My resources
 
 - https://www.roguebasin.com/index.php/How_to_Write_a_Roguelike_in_15_Steps
