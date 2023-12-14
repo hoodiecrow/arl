@@ -57,7 +57,6 @@ Still figuring these out...
 - `=`
 - `>` stair (down)
 - `?`
-- `@`
 - `[`
 - `\`
 - `]`
