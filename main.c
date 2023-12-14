@@ -1,5 +1,6 @@
 // https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/index.html
 #include <ncurses.h>
+#include <ctype.h>
 
 WINDOW *create_newwin(int height, int width, int starty, int startx) {
     WINDOW *local_win;
@@ -14,7 +15,7 @@ WINDOW *create_newwin(int height, int width, int starty, int startx) {
 int main()
 {	
 	initscr();
-	cbreak();
+	raw();
 	noecho();
 
     intrflush(stdscr, FALSE);
@@ -27,9 +28,12 @@ int main()
     int starty = (LINES - height) / 2;  /* Calculating for a center placement */
     int startx = (COLS - width) / 2;
     WINDOW *room = create_newwin(height, width, starty, startx);
+    intrflush(room, FALSE);
     keypad(room, TRUE);
 
     curs_set(0);
+    mvwaddch(room, 4, 9, 'a');
+    mvwaddch(room, 12, 3, 'b');
     int x = 10;
     int y =  5;
     mvwaddch(room, y, x, '@');
@@ -43,50 +47,92 @@ int main()
             if (floor == ' ') {
                 mvwaddch(room, y, x, ' ');
                 mvwaddch(room, ++y, --x, '@');
+                move(1, 0);
+                clrtoeol();
+            } else if (isalpha(floor)) {
+                mvaddstr(1, 0, "bash!");
+                clrtoeol();
             }
         } else if(ch == '2') {
             floor = mvwinch(room, y+1, x);
             if (floor == ' ') {
                 mvwaddch(room, y, x, ' ');
                 mvwaddch(room, ++y, x, '@');
+                move(1, 0);
+                clrtoeol();
+            } else if (isalpha(floor)) {
+                mvaddstr(1, 0, "bash!");
+                clrtoeol();
             }
         } else if(ch == '3') {
             floor = mvwinch(room, y+1, x+1);
             if (floor == ' ') {
                 mvwaddch(room, y, x, ' ');
                 mvwaddch(room, ++y, ++x, '@');
+                move(1, 0);
+                clrtoeol();
+            } else if (isalpha(floor)) {
+                mvaddstr(1, 0, "bash!");
+                clrtoeol();
             }
         } else if(ch == '4') {
             floor = mvwinch(room, y, x-1);
             if (floor == ' ') {
                 mvwaddch(room, y, x, ' ');
                 mvwaddch(room, y, --x, '@');
+                move(1, 0);
+                clrtoeol();
+            } else if (isalpha(floor)) {
+                mvaddstr(1, 0, "bash!");
+                clrtoeol();
             }
         } else if(ch == '5') {
             mvwaddch(room, y, x, '@');
+                move(1, 0);
+                clrtoeol();
         } else if(ch == '6') {
             floor = mvwinch(room, y, x+1);
             if (floor == ' ') {
                 mvwaddch(room, y, x, ' ');
                 mvwaddch(room, y, ++x, '@');
+                move(1, 0);
+                clrtoeol();
+            } else if (isalpha(floor)) {
+                mvaddstr(1, 0, "bash!");
+                clrtoeol();
             }
         } else if(ch == '7') {
             floor = mvwinch(room, y-1, x-1);
             if (floor == ' ') {
                 mvwaddch(room, y, x, ' ');
                 mvwaddch(room, --y, --x, '@');
+                move(1, 0);
+                clrtoeol();
+            } else if (isalpha(floor)) {
+                mvaddstr(1, 0, "bash!");
+                clrtoeol();
             }
         } else if(ch == '8') {
             floor = mvwinch(room, y-1, x);
             if (floor == ' ') {
                 mvwaddch(room, y, x, ' ');
                 mvwaddch(room, --y, x, '@');
+                move(1, 0);
+                clrtoeol();
+            } else if (isalpha(floor)) {
+                mvaddstr(1, 0, "bash!");
+                clrtoeol();
             }
         } else if(ch == '9') {
             floor = mvwinch(room, y-1, x+1);
             if (floor == ' ') {
                 mvwaddch(room, y, x, ' ');
                 mvwaddch(room, --y, ++x, '@');
+                move(1, 0);
+                clrtoeol();
+            } else if (isalpha(floor)) {
+                mvaddstr(1, 0, "bash!");
+                clrtoeol();
             }
         } else if(ch == 'c') {
             mvaddstr(1, 0, "close what?");
@@ -135,6 +181,9 @@ int main()
             clrtoeol();
         } else if(ch == '@') {
             mvaddstr(1, 0, "character screen");
+            clrtoeol();
+        } else if(ch == 19) {
+            mvaddstr(1, 0, "save game");
             clrtoeol();
         } else if(ch == KEY_F(1)) {
             mvaddstr(1, 0, "help screen");
