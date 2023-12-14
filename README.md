@@ -63,7 +63,6 @@ Still figuring these out...
 - `]`
 - `^`
 - `_`
-- ```
 - `{`
 - `|`
 - `}`
