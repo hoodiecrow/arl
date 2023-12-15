@@ -49,8 +49,8 @@ Still figuring these out...
 - `+`
 - `-`
 - `/`
-- `:`
-- `;`
+- `:` ring
+- `;` amulet
 - `<` stair (up)
 - `=`
 - `>` stair (down)
