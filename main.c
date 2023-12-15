@@ -17,6 +17,7 @@ typedef struct THING {
     int xpos;
     const char* descr;
     bool inInventory;
+    bool isEdible;
     struct THING* next;
     int attack;
     int endurance;
@@ -59,6 +60,7 @@ int main() {
 
     curs_set(0);
     newThing(room, T_Item, '$', 2, 4);
+    newThing(room, T_Item, '*', 12, 9);
     newThing(room, T_Structure, '>', 4, 12);
     newThing(room, T_Sprite, 'a', 4, 9);
     newThing(room, T_Sprite, 'a', 14, 5);
@@ -201,19 +203,19 @@ int sprite_act(WINDOW* room, THING* sprite) {
         if (ch == 'c') {
             mvaddstr(1, 0, "close what?");
             clrtoeol();
-        } else if (ch == 'd') {
+        } else if (ch == 'e') {
             // 1st pass: count the items
             int itemcount = 0;
             for (THING* t = things; t != NULL; t = t->next) {
-                if (t->type == T_Item && t->inInventory)
+                if (t->type == T_Item && t->inInventory && t->isEdible)
                     itemcount++;
             }
             WINDOW* invlist = create_newwin(itemcount+3, 30, 2, 0);
             // 2nd pass: display the items
             int i = 1;
-            mvwprintw(invlist, i++, 2, "%s", "What do you want to drop:");
+            mvwprintw(invlist, i++, 2, "%s", "What do you want to eat:");
             for (THING* t = things; t != NULL; t = t->next) {
-                if (t->type == T_Item && t->inInventory) {
+                if (t->type == T_Item && t->inInventory && t->isEdible) {
                     mvwprintw(invlist, i, 2, "%d %s", i-1, t->descr);
                     i++;
                 }
@@ -226,18 +228,14 @@ int sprite_act(WINDOW* room, THING* sprite) {
             i = 1;
             int j = ch - '0';
             for (THING* t = things; t != NULL; t = t->next) {
-                if (t->type == T_Item && t->inInventory) {
+                if (t->type == T_Item && t->inInventory && t->isEdible) {
                     if (i == j) {
                         t->inInventory = false;
-                        sprite->under = t->badge;
                     } else {
                         i++;
                     }
                 }
             }
-        } else if (ch == 'e') {
-            mvaddstr(1, 0, "eat what?");
-            clrtoeol();
         } else if (ch == 'E') {
             mvaddstr(1, 0, "equip what?");
             clrtoeol();
@@ -320,6 +318,40 @@ int sprite_act(WINDOW* room, THING* sprite) {
                 }
             }
             clrtoeol();
+        } else if (ch == '.') {
+            // 1st pass: count the items
+            int itemcount = 0;
+            for (THING* t = things; t != NULL; t = t->next) {
+                if (t->type == T_Item && t->inInventory)
+                    itemcount++;
+            }
+            WINDOW* invlist = create_newwin(itemcount+3, 30, 2, 0);
+            // 2nd pass: display the items
+            int i = 1;
+            mvwprintw(invlist, i++, 2, "%s", "What do you want to drop:");
+            for (THING* t = things; t != NULL; t = t->next) {
+                if (t->type == T_Item && t->inInventory) {
+                    mvwprintw(invlist, i, 2, "%d %s", i-1, t->descr);
+                    i++;
+                }
+            }
+            wrefresh(invlist);
+            ch = wgetch(invlist);
+            werase(invlist);
+            destroy_win(invlist);
+            // 3rd pass: find the indicated item
+            i = 1;
+            int j = ch - '0';
+            for (THING* t = things; t != NULL; t = t->next) {
+                if (t->type == T_Item && t->inInventory) {
+                    if (i == j) {
+                        t->inInventory = false;
+                        sprite->under = t->badge;
+                    } else {
+                        i++;
+                    }
+                }
+            }
         } else if (ch == '<') {
             mvaddstr(1, 0, "you climbed up a stair");
             clrtoeol();
@@ -426,6 +458,7 @@ THING* newThing(WINDOW* win, ThingType type, chtype badge, int y, int x) {
     thing->badge = badge;
     thing->ypos = y;
     thing->xpos = x;
+    thing->isEdible = false;
     switch (badge) {
         case '$':
             thing->descr = "12 dollars";
@@ -435,6 +468,10 @@ THING* newThing(WINDOW* win, ThingType type, chtype badge, int y, int x) {
             break;
         case '>':
             thing->descr = "stair";
+            break;
+        case '*':
+            thing->descr = "leg of lamb";
+            thing->isEdible = true;
             break;
         case '@':
             thing->descr = "the player";
