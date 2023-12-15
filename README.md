@@ -16,7 +16,7 @@ Around half of them do anything at all except show a text line, lol
 
 - `c` close
 - `e` **eat**
-- `E` equip
+- `E` **equip**
 - `g` get
 - `i` **show inventory**
 - `l` **look**
