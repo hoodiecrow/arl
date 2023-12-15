@@ -14,6 +14,46 @@ WINDOW *create_newwin(int height, int width, int starty, int startx) {
     return local_win;
 }
 
+typedef struct OBJECT {
+    chtype badge;
+    int ypos;
+    int xpos;
+    const char* descr;
+    const char* singular;
+    int quantity;
+    const char* plural;
+    bool inInventory;
+    struct OBJECT* next;
+} OBJECT;
+
+OBJECT* objects = NULL;
+
+OBJECT* newobject(WINDOW* room, chtype badge, int y, int x) {
+    OBJECT* object = malloc(sizeof(OBJECT));
+    if (object == NULL) {
+        mvaddstr(1, 0, "Out of memory, press any key to exit");
+        getch();
+        exit(1);
+    }
+    object->badge = badge;
+    object->ypos = y;
+    object->xpos = x;
+    switch (badge) {
+        case '$':
+            object->descr = "dollar";
+            object->singular = "a";
+            object->quantity = 12;
+            object->plural = "s";
+            break;
+    }
+    object->inInventory = false;
+    object->next = objects;
+    objects = object;
+    mvwaddch(room, y, x, badge);
+    wrefresh(room);
+    return object;
+}
+
 typedef struct SPRITE {
     chtype badge;
     int ypos;
@@ -55,6 +95,7 @@ SPRITE* newsprite(WINDOW* room, chtype badge, int y, int x) {
 }
 
 int sprite_act(WINDOW* room, SPRITE* sprite);
+OBJECT* locateObject(int ypos, int xpos);
 
 int main()
 {	
@@ -78,8 +119,7 @@ int main()
     keypad(room, TRUE);
 
     curs_set(0);
-    mvwaddch(room, 2, 4, '%');
-    wrefresh(room);
+    newobject(room, '$', 2, 4);
     newsprite(room, 'a', 4, 9);
     newsprite(room, 'a', 14, 5);
     newsprite(room, 'b', 12, 3);
@@ -259,7 +299,20 @@ int sprite_act(WINDOW* room, SPRITE* sprite) {
             if (sprite->under == ' ') {
                 mvaddstr(1, 0, "there's nothing to pick up");
             } else {
-                mvaddstr(1, 0, "picked up <item>");
+                OBJECT* o = locateObject(sprite->ypos, sprite->xpos);
+                if (o == NULL) {
+                    mvaddstr(1, 0, "there's nothing to pick up");
+                } else {
+                    if (o->quantity == 1) {
+                        mvprintw(1, 0, "picked up %s %s", o->singular, o->descr);
+                    } else {
+                        mvprintw(1, 0, "picked up %d %s%s", o->quantity, o->descr, o->plural);
+                    }
+                    sprite->under = ' ';
+                    o->inInventory = true;
+                    o->ypos = -1;
+                    o->xpos = -1;
+                }
             }
             clrtoeol();
         } else if (ch == '<') {
@@ -282,6 +335,18 @@ int sprite_act(WINDOW* room, SPRITE* sprite) {
             ;
     }
     return ch;
+}
+
+OBJECT* locateObject(int ypos, int xpos) {
+    OBJECT* object = objects;
+    while (object != NULL) {
+        if (ypos == object->ypos && xpos == object->xpos) {
+            return object;
+        } else {
+            object = object->next;
+        }
+    }
+    return NULL;
 }
 
 // objects !  " # $ % & ' () * + , - .  / : ; < = > ?  [ \ ] ^ _ { | } ~
