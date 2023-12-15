@@ -47,6 +47,20 @@ OBJECT* newobject(WINDOW* room, chtype badge, int y, int x) {
             object->quantity = 12;
             object->plural = "s";
             break;
+        case '<':
+            object->fixed = true;
+            object->descr = "stair";
+            object->singular = "a";
+            object->quantity = 1;
+            object->plural = "s";
+            break;
+        case '>':
+            object->fixed = true;
+            object->descr = "stair";
+            object->singular = "a";
+            object->quantity = 1;
+            object->plural = "s";
+            break;
     }
     object->inInventory = false;
     object->next = objects;
@@ -133,6 +147,7 @@ int main()
 
     curs_set(0);
     newobject(room, '$', 2, 4);
+    newobject(room, '>', 4, 12);
     newsprite(room, 'a', 4, 9);
     newsprite(room, 'a', 14, 5);
     newsprite(room, 'b', 12, 3);
