@@ -18,6 +18,7 @@ typedef struct OBJECT {
     chtype badge;
     int ypos;
     int xpos;
+    bool fixed;
     const char* descr;
     const char* singular;
     int quantity;
@@ -40,6 +41,7 @@ OBJECT* newobject(WINDOW* room, chtype badge, int y, int x) {
     object->xpos = x;
     switch (badge) {
         case '$':
+            object->fixed = false;
             object->descr = "dollar";
             object->singular = "a";
             object->quantity = 12;
@@ -307,6 +309,8 @@ int sprite_act(WINDOW* room, SPRITE* sprite) {
                 OBJECT* o = locateObject(sprite->ypos, sprite->xpos);
                 if (o == NULL) {
                     mvaddstr(1, 0, "there's nothing to pick up");
+                } else if (o->fixed) {
+                    mvaddstr(1, 0, "you can't pick that up");
                 } else {
                     if (o->quantity == 1) {
                         mvprintw(1, 0, "picked up %s %s", o->singular, o->descr);
