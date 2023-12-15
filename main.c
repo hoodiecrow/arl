@@ -59,6 +59,8 @@ typedef struct SPRITE {
     int ypos;
     int xpos;
     const char *descr;
+    int attack;
+    int endurance;
     chtype under;
     struct SPRITE* next;
 } SPRITE;
@@ -78,12 +80,18 @@ SPRITE* newsprite(WINDOW* room, chtype badge, int y, int x) {
     switch (badge) {
         case '@':
             sprite->descr = "the player";
+            sprite->attack = 5;
+            sprite->endurance = 5;
             break;
         case 'a':
             sprite->descr = "carnivorous ape";
+            sprite->attack = 4;
+            sprite->endurance = 3;
             break;
         case 'b':
             sprite->descr = "barbarian";
+            sprite->attack = 3;
+            sprite->endurance = 4;
             break;
     }
     sprite->under = ' ';
@@ -96,6 +104,9 @@ SPRITE* newsprite(WINDOW* room, chtype badge, int y, int x) {
 
 int sprite_act(WINDOW* room, SPRITE* sprite);
 OBJECT* locateObject(int ypos, int xpos);
+SPRITE* locateSprite(int ypos, int xpos);
+
+void combat(WINDOW* room, SPRITE* sprite, int atY, int atX);
 
 int main()
 {	
@@ -153,6 +164,8 @@ int sprite_act(WINDOW* room, SPRITE* sprite) {
     chtype floor;
     int y = getmaxy(room);
     int x = getmaxx(room);
+    if (sprite->endurance <= 0)
+        return 0;
     if (sprite->badge == '@') {
         ch = wgetch(room);
     } else {
@@ -163,8 +176,7 @@ int sprite_act(WINDOW* room, SPRITE* sprite) {
         if (sprite->xpos > 1 && sprite->ypos < y-2) {
             floor = mvwinch(room, sprite->ypos+1, sprite->xpos-1);
             if (floor == '@' || isalpha(floor)) {
-                mvaddstr(1, 0, "bash!");
-                clrtoeol();
+                combat(room, sprite, sprite->ypos+1, sprite->xpos-1);
             } else if (floor == ' ' || ispunct(floor)) {
                 mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
                 sprite->under = floor;
@@ -175,8 +187,7 @@ int sprite_act(WINDOW* room, SPRITE* sprite) {
         if (sprite->ypos < y-2) {
             floor = mvwinch(room, sprite->ypos+1, sprite->xpos);
             if (floor == '@' || isalpha(floor)) {
-                mvaddstr(1, 0, "bash!");
-                clrtoeol();
+                combat(room, sprite, sprite->ypos+1, sprite->xpos);
             } else if (floor == ' ' || ispunct(floor)) {
                 mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
                 sprite->under = floor;
@@ -187,8 +198,7 @@ int sprite_act(WINDOW* room, SPRITE* sprite) {
         if (sprite->xpos < x-2 && sprite->ypos < y-2) {
             floor = mvwinch(room, sprite->ypos+1, sprite->xpos+1);
             if (floor == '@' || isalpha(floor)) {
-                mvaddstr(1, 0, "bash!");
-                clrtoeol();
+                combat(room, sprite, sprite->ypos+1, sprite->xpos+1);
             } else if (floor == ' ' || ispunct(floor)) {
                 mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
                 sprite->under = floor;
@@ -199,8 +209,7 @@ int sprite_act(WINDOW* room, SPRITE* sprite) {
         if (sprite->xpos > 1) {
             floor = mvwinch(room, sprite->ypos, sprite->xpos-1);
             if (floor == '@' || isalpha(floor)) {
-                mvaddstr(1, 0, "bash!");
-                clrtoeol();
+                combat(room, sprite, sprite->ypos, sprite->xpos-1);
             } else if (floor == ' ' || ispunct(floor)) {
                 mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
                 sprite->under = floor;
@@ -213,8 +222,7 @@ int sprite_act(WINDOW* room, SPRITE* sprite) {
         if (sprite->xpos < x-2) {
             floor = mvwinch(room, sprite->ypos, sprite->xpos+1);
             if (floor == '@' || isalpha(floor)) {
-                mvaddstr(1, 0, "bash!");
-                clrtoeol();
+                combat(room, sprite, sprite->ypos, sprite->xpos+1);
             } else if (floor == ' ' || ispunct(floor)) {
                 mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
                 sprite->under = floor;
@@ -225,8 +233,7 @@ int sprite_act(WINDOW* room, SPRITE* sprite) {
         if (sprite->xpos > 1 && sprite->ypos > 1) {
             floor = mvwinch(room, sprite->ypos-1, sprite->xpos-1);
             if (floor == '@' || isalpha(floor)) {
-                mvaddstr(1, 0, "bash!");
-                clrtoeol();
+                combat(room, sprite, sprite->ypos-1, sprite->xpos-1);
             } else if (floor == ' ' || ispunct(floor)) {
                 mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
                 sprite->under = floor;
@@ -237,8 +244,7 @@ int sprite_act(WINDOW* room, SPRITE* sprite) {
         if (sprite->ypos > 1) {
             floor = mvwinch(room, sprite->ypos-1, sprite->xpos);
             if (floor == '@' || isalpha(floor)) {
-                mvaddstr(1, 0, "bash!");
-                clrtoeol();
+                combat(room, sprite, sprite->ypos-1, sprite->xpos);
             } else if (floor == ' ' || ispunct(floor)) {
                 mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
                 sprite->under = floor;
@@ -249,8 +255,7 @@ int sprite_act(WINDOW* room, SPRITE* sprite) {
         if (sprite->xpos < x-2 && sprite->ypos > 1) {
             floor = mvwinch(room, sprite->ypos-1, sprite->xpos+1);
             if (floor == '@' || isalpha(floor)) {
-                mvaddstr(1, 0, "bash!");
-                clrtoeol();
+                combat(room, sprite, sprite->ypos-1, sprite->xpos+1);
             } else if (floor == ' ' || ispunct(floor)) {
                 mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
                 sprite->under = floor;
@@ -347,6 +352,35 @@ OBJECT* locateObject(int ypos, int xpos) {
         }
     }
     return NULL;
+}
+
+SPRITE* locateSprite(int ypos, int xpos) {
+    SPRITE* sprite = sprites;
+    while (sprite != NULL) {
+        if (ypos == sprite->ypos && xpos == sprite->xpos) {
+            return sprite;
+        } else {
+            sprite = sprite->next;
+        }
+    }
+    return NULL;
+}
+
+void combat(WINDOW* room, SPRITE* sprite, int atY, int atX) {
+    SPRITE* s = locateSprite(atY, atX);
+    int combatRoll = rand() % 6 + 1;
+    if (combatRoll < sprite->attack) {
+        mvaddstr(1, 0, "hit!");
+        s->endurance--;
+        if (s->endurance <= 0) {
+            // s is killed
+            s->badge = '%';
+            mvwaddch(room, atY, atX, s->badge);
+        }
+    } else {
+        mvaddstr(1, 0, "miss!");
+    }
+    clrtoeol();
 }
 
 // objects !  " # $ % & ' () * + , - .  / : ; < = > ?  [ \ ] ^ _ { | } ~
