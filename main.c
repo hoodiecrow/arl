@@ -14,6 +14,8 @@ WINDOW *create_newwin(int height, int width, int starty, int startx) {
     return local_win;
 }
 
+void destroy_win(WINDOW *local_win);
+
 typedef struct OBJECT {
     chtype badge;
     int ypos;
@@ -21,7 +23,7 @@ typedef struct OBJECT {
     bool fixed;
     const char* descr;
     const char* singular;
-    int quantity;
+    int qty;
     const char* plural;
     bool inInventory;
     struct OBJECT* next;
@@ -44,21 +46,21 @@ OBJECT* newobject(WINDOW* room, chtype badge, int y, int x) {
             object->fixed = false;
             object->descr = "dollar";
             object->singular = "a";
-            object->quantity = 12;
+            object->qty = 12;
             object->plural = "s";
             break;
         case '<':
             object->fixed = true;
             object->descr = "stair";
             object->singular = "a";
-            object->quantity = 1;
+            object->qty = 1;
             object->plural = "s";
             break;
         case '>':
             object->fixed = true;
             object->descr = "stair";
             object->singular = "a";
-            object->quantity = 1;
+            object->qty = 1;
             object->plural = "s";
             break;
     }
@@ -71,6 +73,7 @@ OBJECT* newobject(WINDOW* room, chtype badge, int y, int x) {
 }
 
 typedef struct SPRITE {
+    WINDOW* room;
     chtype badge;
     int ypos;
     int xpos;
@@ -81,15 +84,18 @@ typedef struct SPRITE {
     struct SPRITE* next;
 } SPRITE;
 
+void present(SPRITE* sprite);
+
 SPRITE* sprites = NULL;
 
-SPRITE* newsprite(WINDOW* room, chtype badge, int y, int x) {
+SPRITE* newsprite(WINDOW* win, chtype badge, int y, int x) {
     SPRITE* sprite = malloc(sizeof(SPRITE));
     if (sprite == NULL) {
         mvaddstr(1, 0, "Out of memory, press any key to exit");
         getch();
         exit(1);
     }
+    sprite->room = win;
     sprite->badge = badge;
     sprite->ypos = y;
     sprite->xpos = x;
@@ -113,8 +119,7 @@ SPRITE* newsprite(WINDOW* room, chtype badge, int y, int x) {
     sprite->under = ' ';
     sprite->next = sprites;
     sprites = sprite;
-    mvwaddch(room, y, x, badge);
-    wrefresh(room);
+    present(sprite);
     return sprite;
 }
 
@@ -123,7 +128,7 @@ OBJECT* locateObject(int ypos, int xpos);
 SPRITE* locateSprite(int ypos, int xpos);
 void stepSprite(WINDOW* room, SPRITE* sprite, chtype floor, int yincr, int xincr);
 
-void combat(WINDOW* room, SPRITE* sprite, int atY, int atX);
+void combat(SPRITE* sprite, int atY, int atX);
 
 int main()
 {	
@@ -189,78 +194,96 @@ int sprite_act(WINDOW* room, SPRITE* sprite) {
     } else {
         ch = 49 + rand() % 8;
     }
+    int toY;
+    int toX;
     if (ch == '1') {
-        if (sprite->xpos > 1 && sprite->ypos < y-2) {
-            floor = mvwinch(room, sprite->ypos+1, sprite->xpos-1);
+        toY = sprite->ypos+1;
+        toX = sprite->xpos-1;
+        if (sprite->ypos < y-2 && sprite->xpos > 1) {
+            floor = mvwinch(room, toY, toX);
             if (floor == '@' || isalpha(floor)) {
-                combat(room, sprite, sprite->ypos+1, sprite->xpos-1);
+                combat(sprite, toY, toX);
             } else if (floor == ' ' || ispunct(floor)) {
-                stepSprite(room, sprite, floor, +1, -1);
+                stepSprite(room, sprite, floor, toY, toX);
             }
         }
     } else if (ch == '2') {
+        toY = sprite->ypos+1;
+        toX = sprite->xpos;
         if (sprite->ypos < y-2) {
-            floor = mvwinch(room, sprite->ypos+1, sprite->xpos);
+            floor = mvwinch(room, toY, toX);
             if (floor == '@' || isalpha(floor)) {
-                combat(room, sprite, sprite->ypos+1, sprite->xpos);
+                combat(sprite, toY, toX);
             } else if (floor == ' ' || ispunct(floor)) {
-                stepSprite(room, sprite, floor, +1, 0);
+                stepSprite(room, sprite, floor, toY, toX);
             }
         }
     } else if (ch == '3') {
-        if (sprite->xpos < x-2 && sprite->ypos < y-2) {
-            floor = mvwinch(room, sprite->ypos+1, sprite->xpos+1);
+        toY = sprite->ypos+1;
+        toX = sprite->xpos+1;
+        if (sprite->ypos < y-2 && sprite->xpos < x-2) {
+            floor = mvwinch(room, toY, toX);
             if (floor == '@' || isalpha(floor)) {
-                combat(room, sprite, sprite->ypos+1, sprite->xpos+1);
+                combat(sprite, toY, toX);
             } else if (floor == ' ' || ispunct(floor)) {
-                stepSprite(room, sprite, floor, +1, +1);
+                stepSprite(room, sprite, floor, toY, toX);
             }
         }
     } else if (ch == '4') {
+        toY = sprite->ypos;
+        toX = sprite->xpos-1;
         if (sprite->xpos > 1) {
-            floor = mvwinch(room, sprite->ypos, sprite->xpos-1);
+            floor = mvwinch(room, toY, toX);
             if (floor == '@' || isalpha(floor)) {
-                combat(room, sprite, sprite->ypos, sprite->xpos-1);
+                combat(sprite, toY, toX);
             } else if (floor == ' ' || ispunct(floor)) {
-                stepSprite(room, sprite, floor, 0, -1);
+                stepSprite(room, sprite, floor, toY, toX);
             }
         }
     } else if (ch == '5') {
-        mvwaddch(room, sprite->ypos, sprite->xpos, sprite->badge);
+        present(sprite);
     } else if (ch == '6') {
+        toY = sprite->ypos;
+        toX = sprite->xpos+1;
         if (sprite->xpos < x-2) {
-            floor = mvwinch(room, sprite->ypos, sprite->xpos+1);
+            floor = mvwinch(room, toY, toX);
             if (floor == '@' || isalpha(floor)) {
-                combat(room, sprite, sprite->ypos, sprite->xpos+1);
+                combat(sprite, toY, toX);
             } else if (floor == ' ' || ispunct(floor)) {
-                stepSprite(room, sprite, floor, 0, +1);
+                stepSprite(room, sprite, floor, toY, toX);
             }
         }
     } else if (ch == '7') {
-        if (sprite->xpos > 1 && sprite->ypos > 1) {
-            floor = mvwinch(room, sprite->ypos-1, sprite->xpos-1);
+        toY = sprite->ypos-1;
+        toX = sprite->xpos-1;
+        if (sprite->ypos > 1 && sprite->xpos > 1) {
+            floor = mvwinch(room, toY, toX);
             if (floor == '@' || isalpha(floor)) {
-                combat(room, sprite, sprite->ypos-1, sprite->xpos-1);
+                combat(sprite, toY, toX);
             } else if (floor == ' ' || ispunct(floor)) {
-                stepSprite(room, sprite, floor, -1, -1);
+                stepSprite(room, sprite, floor, toY, toX);
             }
         }
     } else if (ch == '8') {
+        toY = sprite->ypos-1;
+        toX = sprite->xpos;
         if (sprite->ypos > 1) {
-            floor = mvwinch(room, sprite->ypos-1, sprite->xpos);
+            floor = mvwinch(room, toY, toX);
             if (floor == '@' || isalpha(floor)) {
-                combat(room, sprite, sprite->ypos-1, sprite->xpos);
+                combat(sprite, toY, toX);
             } else if (floor == ' ' || ispunct(floor)) {
-                stepSprite(room, sprite, floor, -1, 0);
+                stepSprite(room, sprite, floor, toY, toX);
             }
         }
     } else if (ch == '9') {
-        if (sprite->xpos < x-2 && sprite->ypos > 1) {
-            floor = mvwinch(room, sprite->ypos-1, sprite->xpos+1);
+        toY = sprite->ypos-1;
+        toX = sprite->xpos+1;
+        if (sprite->ypos > 1 && sprite->xpos < x-2) {
+            floor = mvwinch(room, toY, toX);
             if (floor == '@' || isalpha(floor)) {
-                combat(room, sprite, sprite->ypos-1, sprite->xpos+1);
+                combat(sprite, toY, toX);
             } else if (floor == ' ' || ispunct(floor)) {
-                stepSprite(room, sprite, floor, -1, +1);
+                stepSprite(room, sprite, floor, toY, toX);
             }
         }
     }
@@ -283,6 +306,29 @@ int sprite_act(WINDOW* room, SPRITE* sprite) {
         } else if (ch == 'i') {
             mvaddstr(1, 0, "inventory");
             clrtoeol();
+            // 1st pass: count the items
+            int itemcount = 0;
+            for (OBJECT* o = objects; o != NULL; o = o->next) {
+                if (o->inInventory)
+                    itemcount++;
+            }
+            WINDOW* invlist = create_newwin(itemcount+2, 25, 2, 0);
+            // 2nd pass: display the items
+            int i = 0;
+            for (OBJECT* o = objects; o != NULL; o = o->next) {
+                if (o->inInventory) {
+                    if (o->qty == 1) {
+                        mvwprintw(invlist, i, 2, "%s %s", o->singular, o->descr);
+                    } else {
+                        mvwprintw(invlist, i, 2, "%d %s%s", o->qty, o->descr, o->plural);
+                    }
+                }
+                i++;
+            }
+            wrefresh(invlist);
+            wgetch(invlist);
+            werase(invlist);
+            destroy_win(invlist);
         } else if (ch == 'l') {
             mvaddstr(1, 0, "look in which direction?");
             clrtoeol();
@@ -311,10 +357,10 @@ int sprite_act(WINDOW* room, SPRITE* sprite) {
                 } else if (o->fixed) {
                     mvaddstr(1, 0, "you can't pick that up");
                 } else {
-                    if (o->quantity == 1) {
+                    if (o->qty == 1) {
                         mvprintw(1, 0, "picked up %s %s", o->singular, o->descr);
                     } else {
-                        mvprintw(1, 0, "picked up %d %s%s", o->quantity, o->descr, o->plural);
+                        mvprintw(1, 0, "picked up %d %s%s", o->qty, o->descr, o->plural);
                     }
                     sprite->under = ' ';
                     o->inInventory = true;
@@ -369,13 +415,15 @@ SPRITE* locateSprite(int ypos, int xpos) {
     return NULL;
 }
 
-void stepSprite(WINDOW* room, SPRITE* sprite, chtype floor, int yincr, int xincr) {
+void stepSprite(WINDOW* room, SPRITE* sprite, chtype floor, int toY, int toX) {
     mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
     sprite->under = floor;
-    mvwaddch(room, sprite->ypos += yincr, sprite->xpos += xincr, sprite->badge);
+    sprite->ypos = toY;
+    sprite->xpos = toX;
+    present(sprite);
 }
 
-void combat(WINDOW* room, SPRITE* sprite, int atY, int atX) {
+void combat(SPRITE* sprite, int atY, int atX) {
     SPRITE* s = locateSprite(atY, atX);
     int combatRoll = rand() % 6 + 1;
     if (combatRoll < sprite->attack) {
@@ -384,7 +432,7 @@ void combat(WINDOW* room, SPRITE* sprite, int atY, int atX) {
         if (s->endurance <= 0) {
             // s is killed
             s->badge = '%';
-            mvwaddch(room, atY, atX, s->badge);
+            present(s);
         }
     } else {
         mvaddstr(1, 0, "miss!");
@@ -392,7 +440,19 @@ void combat(WINDOW* room, SPRITE* sprite, int atY, int atX) {
     clrtoeol();
 }
 
+void present(SPRITE* sprite) {
+    mvwaddch(sprite->room, sprite->ypos, sprite->xpos, sprite->badge);
+    wrefresh(sprite->room);
+}
+
 // objects !  " # $ % & ' () * + , - .  / : ; < = > ?  [ \ ] ^ _ { | } ~
 /*
 
  * */
+
+void destroy_win(WINDOW *local_win) {	
+	wborder(local_win, ' ', ' ', ' ',' ',' ',' ',' ',' ');
+	wrefresh(local_win);
+	delwin(local_win);
+}
+
