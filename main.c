@@ -42,6 +42,9 @@ SPRITE* newsprite(WINDOW* room, chtype badge, int y, int x) {
         case 'a':
             sprite->descr = "carnivorous ape";
             break;
+        case 'b':
+            sprite->descr = "barbarian";
+            break;
     }
     sprite->under = ' ';
     sprite->next = sprites;
@@ -76,10 +79,10 @@ int main()
 
     curs_set(0);
     mvwaddch(room, 2, 4, '%');
-    mvwaddch(room, 12, 3, 'b');
     wrefresh(room);
     newsprite(room, 'a', 4, 9);
     newsprite(room, 'a', 14, 5);
+    newsprite(room, 'b', 12, 3);
     int x = 10;
     int y =  5;
     newsprite(room, '@', y, x);
@@ -115,163 +118,163 @@ int sprite_act(WINDOW* room, SPRITE* sprite) {
     } else {
         ch = 49 + rand() % 8;
     }
-    if(ch == '1') {
+    if (ch == '1') {
         //mvprintw(1, 0, "maxy=%d, ypos=%d", y, sprite->ypos);
         if (sprite->xpos > 1 && sprite->ypos < y-2) {
             floor = mvwinch(room, sprite->ypos+1, sprite->xpos-1);
-            if (floor == ' ' || ispunct(floor)) {
+            if (floor == '@' || isalpha(floor)) {
+                mvaddstr(1, 0, "bash!");
+                clrtoeol();
+            } else if (floor == ' ' || ispunct(floor)) {
                 mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
                 sprite->under = floor;
                 mvwaddch(room, ++sprite->ypos, --sprite->xpos, sprite->badge);
-            } else if (isalpha(floor)) {
-                mvaddstr(1, 0, "bash!");
-                clrtoeol();
             }
         }
-    } else if(ch == '2') {
+    } else if (ch == '2') {
         if (sprite->ypos < y-2) {
             floor = mvwinch(room, sprite->ypos+1, sprite->xpos);
-            if (floor == ' ' || ispunct(floor)) {
+            if (floor == '@' || isalpha(floor)) {
+                mvaddstr(1, 0, "bash!");
+                clrtoeol();
+            } else if (floor == ' ' || ispunct(floor)) {
                 mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
                 sprite->under = floor;
                 mvwaddch(room, ++sprite->ypos, sprite->xpos, sprite->badge);
-                move(1, 0);
-                clrtoeol();
-            } else if (isalpha(floor)) {
-                mvaddstr(1, 0, "bash!");
-                clrtoeol();
             }
         }
-    } else if(ch == '3') {
+    } else if (ch == '3') {
         if (sprite->xpos < x-2 && sprite->ypos < y-2) {
             floor = mvwinch(room, sprite->ypos+1, sprite->xpos+1);
-            if (floor == ' ' || ispunct(floor)) {
+            if (floor == '@' || isalpha(floor)) {
+                mvaddstr(1, 0, "bash!");
+                clrtoeol();
+            } else if (floor == ' ' || ispunct(floor)) {
                 mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
                 sprite->under = floor;
                 mvwaddch(room, ++sprite->ypos, ++sprite->xpos, sprite->badge);
-                move(1, 0);
-                clrtoeol();
-            } else if (isalpha(floor)) {
-                mvaddstr(1, 0, "bash!");
-                clrtoeol();
             }
         }
-    } else if(ch == '4') {
+    } else if (ch == '4') {
         if (sprite->xpos > 1) {
             floor = mvwinch(room, sprite->ypos, sprite->xpos-1);
-            if (floor == ' ' || ispunct(floor)) {
+            if (floor == '@' || isalpha(floor)) {
+                mvaddstr(1, 0, "bash!");
+                clrtoeol();
+            } else if (floor == ' ' || ispunct(floor)) {
                 mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
                 sprite->under = floor;
                 mvwaddch(room, sprite->ypos, --sprite->xpos, sprite->badge);
-            } else if (isalpha(floor)) {
-                mvaddstr(1, 0, "bash!");
-                clrtoeol();
             }
         }
-    } else if(ch == '5') {
+    } else if (ch == '5') {
         mvwaddch(room, sprite->ypos, sprite->xpos, sprite->badge);
-    } else if(ch == '6') {
+    } else if (ch == '6') {
         if (sprite->xpos < x-2) {
             floor = mvwinch(room, sprite->ypos, sprite->xpos+1);
-            if (floor == ' ' || ispunct(floor)) {
+            if (floor == '@' || isalpha(floor)) {
+                mvaddstr(1, 0, "bash!");
+                clrtoeol();
+            } else if (floor == ' ' || ispunct(floor)) {
                 mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
                 sprite->under = floor;
                 mvwaddch(room, sprite->ypos, ++sprite->xpos, sprite->badge);
-            } else if (isalpha(floor)) {
-                mvaddstr(1, 0, "bash!");
-                clrtoeol();
             }
         }
-    } else if(ch == '7') {
+    } else if (ch == '7') {
         if (sprite->xpos > 1 && sprite->ypos > 1) {
             floor = mvwinch(room, sprite->ypos-1, sprite->xpos-1);
-            if (floor == ' ' || ispunct(floor)) {
+            if (floor == '@' || isalpha(floor)) {
+                mvaddstr(1, 0, "bash!");
+                clrtoeol();
+            } else if (floor == ' ' || ispunct(floor)) {
                 mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
                 sprite->under = floor;
                 mvwaddch(room, --sprite->ypos, --sprite->xpos, sprite->badge);
-            } else if (isalpha(floor)) {
-                mvaddstr(1, 0, "bash!");
-                clrtoeol();
             }
         }
-    } else if(ch == '8') {
+    } else if (ch == '8') {
         if (sprite->ypos > 1) {
             floor = mvwinch(room, sprite->ypos-1, sprite->xpos);
-            if (floor == ' ' || ispunct(floor)) {
+            if (floor == '@' || isalpha(floor)) {
+                mvaddstr(1, 0, "bash!");
+                clrtoeol();
+            } else if (floor == ' ' || ispunct(floor)) {
                 mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
                 sprite->under = floor;
                 mvwaddch(room, --sprite->ypos, sprite->xpos, sprite->badge);
-            } else if (isalpha(floor)) {
-                mvaddstr(1, 0, "bash!");
-                clrtoeol();
             }
         }
-    } else if(ch == '9') {
+    } else if (ch == '9') {
         if (sprite->xpos < x-2 && sprite->ypos > 1) {
             floor = mvwinch(room, sprite->ypos-1, sprite->xpos+1);
-            if (floor == ' ' || ispunct(floor)) {
+            if (floor == '@' || isalpha(floor)) {
+                mvaddstr(1, 0, "bash!");
+                clrtoeol();
+            } else if (floor == ' ' || ispunct(floor)) {
                 mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
                 sprite->under = floor;
                 mvwaddch(room, --sprite->ypos, ++sprite->xpos, sprite->badge);
-            } else if (isalpha(floor)) {
-                mvaddstr(1, 0, "bash!");
-                clrtoeol();
             }
         }
     }
     if (sprite->badge == '@') {
-        if(ch == 'c') {
+        if (ch == 'c') {
             mvaddstr(1, 0, "close what?");
             clrtoeol();
-        } else if(ch == 'd') {
+        } else if (ch == 'd') {
             mvaddstr(1, 0, "drop what?");
             clrtoeol();
-        } else if(ch == 'e') {
+        } else if (ch == 'e') {
             mvaddstr(1, 0, "eat what?");
             clrtoeol();
-        } else if(ch == 'E') {
+        } else if (ch == 'E') {
             mvaddstr(1, 0, "equip what?");
             clrtoeol();
-        } else if(ch == 'g') {
+        } else if (ch == 'g') {
             mvaddstr(1, 0, "get what?");
             clrtoeol();
-        } else if(ch == 'i') {
+        } else if (ch == 'i') {
             mvaddstr(1, 0, "inventory");
             clrtoeol();
-        } else if(ch == 'l') {
+        } else if (ch == 'l') {
             mvaddstr(1, 0, "look in which direction?");
             clrtoeol();
-        } else if(ch == 'q') {
+        } else if (ch == 'q') {
             mvaddstr(1, 0, "drink what?");
             clrtoeol();
-        } else if(ch == 'r') {
+        } else if (ch == 'r') {
             mvaddstr(1, 0, "read what?");
             clrtoeol();
-        } else if(ch == 'u') {
+        } else if (ch == 'u') {
             mvaddstr(1, 0, "use what?");
             clrtoeol();
-        } else if(ch == 'w') {
+        } else if (ch == 'w') {
             mvaddstr(1, 0, "wear what?");
             clrtoeol();
-        } else if(ch == 'z') {
+        } else if (ch == 'z') {
             mvaddstr(1, 0, "zap in which direction?");
             clrtoeol();
-        } else if(ch == ',') {
-            mvaddstr(1, 0, "picked up <item>");
+        } else if (ch == ',') {
+            if (sprite->under == ' ') {
+                mvaddstr(1, 0, "there's nothing to pick up");
+            } else {
+                mvaddstr(1, 0, "picked up <item>");
+            }
             clrtoeol();
-        } else if(ch == '<') {
+        } else if (ch == '<') {
             mvaddstr(1, 0, "you climbed up a stair");
             clrtoeol();
-        } else if(ch == '>') {
+        } else if (ch == '>') {
             mvaddstr(1, 0, "you went down a stair");
             clrtoeol();
-        } else if(ch == '@') {
+        } else if (ch == '@') {
             mvaddstr(1, 0, "character screen");
             clrtoeol();
-        } else if(ch == 19) {
+        } else if (ch == 19) {
             mvaddstr(1, 0, "save game");
             clrtoeol();
-        } else if(ch == KEY_F(1)) {
+        } else if (ch == KEY_F(1)) {
             mvaddstr(1, 0, "help screen");
             clrtoeol();
             // more keys at roguebasin
