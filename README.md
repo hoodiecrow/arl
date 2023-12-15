@@ -15,7 +15,6 @@ Move around with keypad
 Only a few, including Q, do anything yet except show a text line, lol
 
 - `c` close
-- `d` drop
 - `e` eat
 - `E` equip
 - `g` get
@@ -27,6 +26,7 @@ Only a few, including Q, do anything yet except show a text line, lol
 - `w` wear
 - `z` zap
 - `,` pick up
+- `.` drop
 - `<` climb a stair
 - `>` go down a stair
 - `@` show character screen
@@ -47,9 +47,7 @@ Still figuring these out...
 - `)` armour?
 - `*`
 - `+`
-- `,`
 - `-`
-- `.`
 - `/`
 - `:`
 - `;`
