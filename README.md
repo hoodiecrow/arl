@@ -15,24 +15,24 @@ Move around with keypad
 Only a few, including Q, do anything yet except show a text line, lol
 
 - `c` close
-- `e` eat
+- `e` **eat**
 - `E` equip
 - `g` get
-- `i` show inventory
-- `l` look
-- `q` drink
+- `i` **show inventory**
+- `l` **look**
+- `q` **drink**
 - `r` read
 - `u` use
 - `w` wear
 - `z` zap
-- `,` pick up
-- `.` drop
+- `,` **pick up**
+- `.` **drop**
 - `<` climb a stair
 - `>` go down a stair
 - `@` show character screen
 - `CTRL-S` save game
 - `F1` show help screen
-- `Q` quit
+- `Q` **quit**
 
 # Objects
 Still figuring these out...
