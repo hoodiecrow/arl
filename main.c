@@ -19,6 +19,7 @@ typedef struct THING {
     bool inInventory;
     bool isEdible;
     bool isPotable;
+    bool isEquippable;
     struct THING* next;
     int attack;
     int endurance;
@@ -61,6 +62,7 @@ int main() {
 
     curs_set(0);
     newThing(room, T_Item, '$', 2, 4);
+    newThing(room, T_Item, ':', 6, 10);
     newThing(room, T_Item, '*', 12, 9);
     newThing(room, T_Item, '!', 10, 10);
     newThing(room, T_Structure, '>', 4, 12);
@@ -234,14 +236,46 @@ int sprite_act(WINDOW* room, THING* sprite) {
                     if (i == j) {
                         t->inInventory = false;
                         //TODO effect
+                        break;
                     } else {
                         i++;
                     }
                 }
             }
         } else if (ch == 'E') {
-            mvaddstr(1, 0, "equip what?");
-            clrtoeol();
+            // 1st pass: count the items
+            int itemcount = 0;
+            for (THING* t = things; t != NULL; t = t->next) {
+                if (t->type == T_Item && t->inInventory && t->isEquippable)
+                    itemcount++;
+            }
+            WINDOW* invlist = create_newwin(itemcount+3, 30, 2, 0);
+            // 2nd pass: display the items
+            int i = 1;
+            mvwprintw(invlist, i++, 2, "%s", "What do you want to equip:");
+            for (THING* t = things; t != NULL; t = t->next) {
+                if (t->type == T_Item && t->inInventory && t->isEquippable) {
+                    mvwprintw(invlist, i, 2, "%d %s", i-1, t->descr);
+                    i++;
+                }
+            }
+            wrefresh(invlist);
+            ch = wgetch(invlist);
+            werase(invlist);
+            destroy_win(invlist);
+            // 3rd pass: find the indicated item
+            i = 1;
+            int j = ch - '0';
+            for (THING* t = things; t != NULL; t = t->next) {
+                if (t->type == T_Item && t->inInventory && t->isEquippable) {
+                    if (i == j) {
+                        //TODO effect
+                        break;
+                    } else {
+                        i++;
+                    }
+                }
+            }
         } else if (ch == 'g') {
             mvaddstr(1, 0, "get what?");
             clrtoeol();
@@ -317,6 +351,7 @@ int sprite_act(WINDOW* room, THING* sprite) {
                     if (i == j) {
                         t->inInventory = false;
                         //TODO effect
+                        break;
                     } else {
                         i++;
                     }
@@ -327,7 +362,7 @@ int sprite_act(WINDOW* room, THING* sprite) {
             int itemcount = 0;
             for (THING* t = things; t != NULL; t = t->next) {
                 if (t->type == T_Item && t->inInventory &&
-                        (t->badge == '~' || t-badge == '#'))
+                        (t->badge == '~' || t->badge == '#'))
                     itemcount++;
             }
             WINDOW* invlist = create_newwin(itemcount+3, 30, 2, 0);
@@ -336,7 +371,7 @@ int sprite_act(WINDOW* room, THING* sprite) {
             mvwprintw(invlist, i++, 2, "%s", "What do you want to read:");
             for (THING* t = things; t != NULL; t = t->next) {
                 if (t->type == T_Item && t->inInventory &&
-                        (t->badge == '~' || t-badge == '#')) {
+                        (t->badge == '~' || t->badge == '#')) {
                     mvwprintw(invlist, i, 2, "%d %s", i-1, t->descr);
                     i++;
                 }
@@ -350,10 +385,11 @@ int sprite_act(WINDOW* room, THING* sprite) {
             int j = ch - '0';
             for (THING* t = things; t != NULL; t = t->next) {
                 if (t->type == T_Item && t->inInventory &&
-                        (t->badge == '~' || t-badge == '#')) {
+                        (t->badge == '~' || t->badge == '#')) {
                     if (i == j) {
                         t->inInventory = false;
                         //TODO effect
+                        break;
                     } else {
                         i++;
                     }
@@ -391,6 +427,8 @@ int sprite_act(WINDOW* room, THING* sprite) {
                     if (i == j) {
                         t->inInventory = false;
                         //TODO effect
+                        //TODO previous garment/armour goes to inv or is dropped
+                        break;
                     } else {
                         i++;
                     }
@@ -446,6 +484,7 @@ int sprite_act(WINDOW* room, THING* sprite) {
                     if (i == j) {
                         t->inInventory = false;
                         sprite->under = t->badge;
+                        break;
                     } else {
                         i++;
                     }
@@ -559,6 +598,7 @@ THING* newThing(WINDOW* win, ThingType type, chtype badge, int y, int x) {
     thing->xpos = x;
     thing->isEdible = false;
     thing->isPotable = false;
+    thing->isEquippable = false;
     switch (badge) {
         case '$':
             thing->descr = "12 dollars";
@@ -572,6 +612,10 @@ THING* newThing(WINDOW* win, ThingType type, chtype badge, int y, int x) {
         case '*':
             thing->descr = "leg of lamb";
             thing->isEdible = true;
+            break;
+        case ':':
+            thing->descr = "gold ring";
+            thing->isEquippable = true;
             break;
         case '!':
             thing->descr = "orange potion";
