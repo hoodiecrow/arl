@@ -1,137 +1,44 @@
-// https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/index.html
 #include <ncurses.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <time.h>
 
-WINDOW *create_newwin(int height, int width, int starty, int startx) {
-    WINDOW *local_win;
+typedef enum {
+    T_Sprite,
+    T_Item,
+    T_Structure,
+} ThingType;
 
-    local_win = newwin(height, width, starty, startx);
-    box(local_win, 0 , 0);
-    wrefresh(local_win);
-
-    return local_win;
-}
-
-void destroy_win(WINDOW *local_win);
-
-typedef struct OBJECT {
+typedef struct THING {
+    ThingType type;
     chtype badge;
-    int ypos;
-    int xpos;
-    bool fixed;
-    const char* descr;
-    const char* singular;
-    int qty;
-    const char* plural;
-    bool inInventory;
-    struct OBJECT* next;
-} OBJECT;
-
-OBJECT* objects = NULL;
-
-OBJECT* newobject(WINDOW* room, chtype badge, int y, int x) {
-    OBJECT* object = malloc(sizeof(OBJECT));
-    if (object == NULL) {
-        mvaddstr(1, 0, "Out of memory, press any key to exit");
-        getch();
-        exit(1);
-    }
-    object->badge = badge;
-    object->ypos = y;
-    object->xpos = x;
-    switch (badge) {
-        case '$':
-            object->fixed = false;
-            object->descr = "dollar";
-            object->singular = "a";
-            object->qty = 12;
-            object->plural = "s";
-            break;
-        case '<':
-            object->fixed = true;
-            object->descr = "stair";
-            object->singular = "a";
-            object->qty = 1;
-            object->plural = "s";
-            break;
-        case '>':
-            object->fixed = true;
-            object->descr = "stair";
-            object->singular = "a";
-            object->qty = 1;
-            object->plural = "s";
-            break;
-    }
-    object->inInventory = false;
-    object->next = objects;
-    objects = object;
-    mvwaddch(room, y, x, badge);
-    wrefresh(room);
-    return object;
-}
-
-typedef struct SPRITE {
     WINDOW* room;
-    chtype badge;
     int ypos;
     int xpos;
-    const char *descr;
+    const char* descr;
+    bool inInventory;
+    struct THING* next;
     int attack;
     int endurance;
     chtype under;
-    struct SPRITE* next;
-} SPRITE;
+} THING;
 
-void present(SPRITE* sprite);
+THING* things = NULL;
 
-SPRITE* sprites = NULL;
+THING* newThing(WINDOW* win, ThingType type, chtype badge, int y, int x);
 
-SPRITE* newsprite(WINDOW* win, chtype badge, int y, int x) {
-    SPRITE* sprite = malloc(sizeof(SPRITE));
-    if (sprite == NULL) {
-        mvaddstr(1, 0, "Out of memory, press any key to exit");
-        getch();
-        exit(1);
-    }
-    sprite->room = win;
-    sprite->badge = badge;
-    sprite->ypos = y;
-    sprite->xpos = x;
-    switch (badge) {
-        case '@':
-            sprite->descr = "the player";
-            sprite->attack = 5;
-            sprite->endurance = 5;
-            break;
-        case 'a':
-            sprite->descr = "carnivorous ape";
-            sprite->attack = 4;
-            sprite->endurance = 3;
-            break;
-        case 'b':
-            sprite->descr = "barbarian";
-            sprite->attack = 3;
-            sprite->endurance = 4;
-            break;
-    }
-    sprite->under = ' ';
-    sprite->next = sprites;
-    sprites = sprite;
-    present(sprite);
-    return sprite;
-}
+void present(THING* thing);
+int sprite_act(WINDOW* room, THING* sprite);
+THING* locateThing(int ypos, int xpos);
+THING* locateObject(int ypos, int xpos);
+void stepSprite(WINDOW* room, THING* thing, chtype floor, int toY, int toX);
+void combat(THING* thing, int atY, int atX);
 
-int sprite_act(WINDOW* room, SPRITE* sprite);
-OBJECT* locateObject(int ypos, int xpos);
-SPRITE* locateSprite(int ypos, int xpos);
-void stepSprite(WINDOW* room, SPRITE* sprite, chtype floor, int yincr, int xincr);
+// https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/index.html
+WINDOW *create_newwin(int height, int width, int starty, int startx);
+void destroy_win(WINDOW *local_win);
 
-void combat(SPRITE* sprite, int atY, int atX);
-
-int main()
-{	
+int main() {	
 	initscr();
 	raw();
 	noecho();
@@ -145,31 +52,32 @@ int main()
 
     int height = 16;
     int width = 20;
-    int starty = (LINES - height) / 2;  /* Calculating for a center placement */
+    int starty = (LINES - height) / 2;
     int startx = (COLS - width) / 2;
     WINDOW *room = create_newwin(height, width, starty, startx);
-    intrflush(room, FALSE);
     keypad(room, TRUE);
 
     curs_set(0);
-    newobject(room, '$', 2, 4);
-    newobject(room, '>', 4, 12);
-    newsprite(room, 'a', 4, 9);
-    newsprite(room, 'a', 14, 5);
-    newsprite(room, 'b', 12, 3);
+    newThing(room, T_Item, '$', 2, 4);
+    newThing(room, T_Structure, '>', 4, 12);
+    newThing(room, T_Sprite, 'a', 4, 9);
+    newThing(room, T_Sprite, 'a', 14, 5);
+    newThing(room, T_Sprite, 'b', 12, 3);
     int x = 10;
     int y =  5;
-    newsprite(room, '@', y, x);
+    newThing(room, T_Sprite, '@', y, x);
 
     int ch;
-    SPRITE* sprite;
+    THING* thing;
     do {
-        sprite = sprites;
-        while (sprite != NULL) {
-            ch = sprite_act(room, sprite);
+        thing = things;
+        while (thing != NULL) {
+            if (thing->type == T_Sprite) {
+                ch = sprite_act(room, thing);
+            }
             if (ch == 'Q')
                 break;
-            sprite = sprite->next;
+            thing = thing->next;
         }
 
         refresh();
@@ -182,9 +90,11 @@ int main()
 	return 0;
 }
 
-int sprite_act(WINDOW* room, SPRITE* sprite) {
+int sprite_act(WINDOW* room, THING* sprite) {
     int ch;
     chtype floor;
+    if (sprite->type != T_Sprite)
+        return 0;
     if (sprite->endurance <= 0)
         return 0;
     int y = getmaxy(room);
@@ -308,30 +218,43 @@ int sprite_act(WINDOW* room, SPRITE* sprite) {
             clrtoeol();
             // 1st pass: count the items
             int itemcount = 0;
-            for (OBJECT* o = objects; o != NULL; o = o->next) {
-                if (o->inInventory)
+            for (THING* t = things; t != NULL; t = t->next) {
+                if (t->type == T_Item && t->inInventory)
                     itemcount++;
             }
-            WINDOW* invlist = create_newwin(itemcount+2, 25, 2, 0);
+            WINDOW* invlist = create_newwin(itemcount+3, 25, 2, 0);
             // 2nd pass: display the items
-            int i = 0;
-            for (OBJECT* o = objects; o != NULL; o = o->next) {
-                if (o->inInventory) {
-                    if (o->qty == 1) {
-                        mvwprintw(invlist, i, 2, "%s %s", o->singular, o->descr);
-                    } else {
-                        mvwprintw(invlist, i, 2, "%d %s%s", o->qty, o->descr, o->plural);
-                    }
+            int i = 1;
+            mvwprintw(invlist, i++, 2, "%s", "You are carrying:");
+            for (THING* t = things; t != NULL; t = t->next) {
+                if (t->type == T_Item && t->inInventory) {
+                    mvwprintw(invlist, i++, 2, "%s", t->descr);
                 }
-                i++;
             }
             wrefresh(invlist);
             wgetch(invlist);
             werase(invlist);
             destroy_win(invlist);
         } else if (ch == 'l') {
-            mvaddstr(1, 0, "look in which direction?");
-            clrtoeol();
+            // 1st pass: count the items
+            int itemcount = 0;
+            for (THING* t = things; t != NULL; t = t->next) {
+                if (t->badge != '@')
+                    itemcount++;
+            }
+            WINDOW* invlist = create_newwin(itemcount+3, 30, 2, 0);
+            // 2nd pass: display the items
+            int i = 1;
+            mvwprintw(invlist, i++, 2, "%s", "Looking around, you see:");
+            for (THING* t = things; t != NULL; t = t->next) {
+                if (t->badge != '@') {
+                    mvwprintw(invlist, i++, 2, "%s", t->descr);
+                }
+            }
+            wrefresh(invlist);
+            wgetch(invlist);
+            werase(invlist);
+            destroy_win(invlist);
         } else if (ch == 'q') {
             mvaddstr(1, 0, "drink what?");
             clrtoeol();
@@ -351,21 +274,17 @@ int sprite_act(WINDOW* room, SPRITE* sprite) {
             if (sprite->under == ' ') {
                 mvaddstr(1, 0, "there's nothing to pick up");
             } else {
-                OBJECT* o = locateObject(sprite->ypos, sprite->xpos);
-                if (o == NULL) {
+                THING* t = locateObject(sprite->ypos, sprite->xpos);
+                if (t == NULL) {
                     mvaddstr(1, 0, "there's nothing to pick up");
-                } else if (o->fixed) {
+                } else if (t->type == T_Structure) {
                     mvaddstr(1, 0, "you can't pick that up");
                 } else {
-                    if (o->qty == 1) {
-                        mvprintw(1, 0, "picked up %s %s", o->singular, o->descr);
-                    } else {
-                        mvprintw(1, 0, "picked up %d %s%s", o->qty, o->descr, o->plural);
-                    }
+                    mvprintw(1, 0, "%s", t->descr);
                     sprite->under = ' ';
-                    o->inInventory = true;
-                    o->ypos = -1;
-                    o->xpos = -1;
+                    t->inInventory = true;
+                    t->ypos = -1;
+                    t->xpos = -1;
                 }
             }
             clrtoeol();
@@ -391,31 +310,44 @@ int sprite_act(WINDOW* room, SPRITE* sprite) {
     return ch;
 }
 
-OBJECT* locateObject(int ypos, int xpos) {
-    OBJECT* object = objects;
-    while (object != NULL) {
-        if (ypos == object->ypos && xpos == object->xpos) {
-            return object;
+THING* locateThing(int ypos, int xpos) {
+    THING* thing = things;
+    while (thing != NULL) {
+        if (ypos == thing->ypos && xpos == thing->xpos) {
+            return thing;
         } else {
-            object = object->next;
+            thing = thing->next;
         }
     }
     return NULL;
 }
 
-SPRITE* locateSprite(int ypos, int xpos) {
-    SPRITE* sprite = sprites;
-    while (sprite != NULL) {
-        if (ypos == sprite->ypos && xpos == sprite->xpos) {
-            return sprite;
+THING* locateObject(int ypos, int xpos) {
+    THING* thing = things;
+    while (thing != NULL) {
+        if ((thing->type == T_Item || thing->type == T_Structure)
+                && ypos == thing->ypos && xpos == thing->xpos) {
+            return thing;
         } else {
-            sprite = sprite->next;
+            thing = thing->next;
         }
     }
     return NULL;
 }
 
-void stepSprite(WINDOW* room, SPRITE* sprite, chtype floor, int toY, int toX) {
+THING* locateSprite(int ypos, int xpos) {
+    THING* thing = things;
+    while (thing != NULL) {
+        if (thing->type == T_Sprite && ypos == thing->ypos && xpos == thing->xpos) {
+            return thing;
+        } else {
+            thing = thing->next;
+        }
+    }
+    return NULL;
+}
+
+void stepSprite(WINDOW* room, THING* sprite, chtype floor, int toY, int toX) {
     mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
     sprite->under = floor;
     sprite->ypos = toY;
@@ -423,8 +355,8 @@ void stepSprite(WINDOW* room, SPRITE* sprite, chtype floor, int toY, int toX) {
     present(sprite);
 }
 
-void combat(SPRITE* sprite, int atY, int atX) {
-    SPRITE* s = locateSprite(atY, atX);
+void combat(THING* sprite, int atY, int atX) {
+    THING* s = locateSprite(atY, atX);
     int combatRoll = rand() % 6 + 1;
     if (combatRoll < sprite->attack) {
         mvaddstr(1, 0, "hit!");
@@ -440,7 +372,7 @@ void combat(SPRITE* sprite, int atY, int atX) {
     clrtoeol();
 }
 
-void present(SPRITE* sprite) {
+void present(THING* sprite) {
     mvwaddch(sprite->room, sprite->ypos, sprite->xpos, sprite->badge);
     wrefresh(sprite->room);
 }
@@ -449,6 +381,62 @@ void present(SPRITE* sprite) {
 /*
 
  * */
+
+THING* newThing(WINDOW* win, ThingType type, chtype badge, int y, int x) {
+    THING* thing = malloc(sizeof(THING));
+    if (thing == NULL) {
+        mvaddstr(1, 0, "Out of memory, press any key to exit");
+        getch();
+        exit(1);
+    }
+    thing->type = type;
+    thing->room = win;
+    thing->badge = badge;
+    thing->ypos = y;
+    thing->xpos = x;
+    switch (badge) {
+        case '$':
+            thing->descr = "12 dollars";
+            break;
+        case '<':
+            thing->descr = "stair";
+            break;
+        case '>':
+            thing->descr = "stair";
+            break;
+        case '@':
+            thing->descr = "the player";
+            thing->attack = 5;
+            thing->endurance = 5;
+            break;
+        case 'a':
+            thing->descr = "carnivorous ape";
+            thing->attack = 4;
+            thing->endurance = 3;
+            break;
+        case 'b':
+            thing->descr = "barbarian";
+            thing->attack = 3;
+            thing->endurance = 4;
+            break;
+    }
+    thing->inInventory = false;
+    thing->next = things;
+    things = thing;
+    thing->under = ' ';
+    present(thing);
+    return thing;
+}
+
+WINDOW *create_newwin(int height, int width, int starty, int startx) {
+    WINDOW *local_win;
+
+    local_win = newwin(height, width, starty, startx);
+    box(local_win, 0 , 0);
+    wrefresh(local_win);
+
+    return local_win;
+}
 
 void destroy_win(WINDOW *local_win) {	
 	wborder(local_win, ' ', ' ', ' ',' ',' ',' ',' ',' ');
