@@ -18,6 +18,7 @@ typedef struct THING {
     const char* descr;
     bool inInventory;
     bool isEdible;
+    bool isPotable;
     struct THING* next;
     int attack;
     int endurance;
@@ -61,6 +62,7 @@ int main() {
     curs_set(0);
     newThing(room, T_Item, '$', 2, 4);
     newThing(room, T_Item, '*', 12, 9);
+    newThing(room, T_Item, '!', 10, 10);
     newThing(room, T_Structure, '>', 4, 12);
     newThing(room, T_Sprite, 'a', 4, 9);
     newThing(room, T_Sprite, 'a', 14, 5);
@@ -231,6 +233,7 @@ int sprite_act(WINDOW* room, THING* sprite) {
                 if (t->type == T_Item && t->inInventory && t->isEdible) {
                     if (i == j) {
                         t->inInventory = false;
+                        //TODO effect
                     } else {
                         i++;
                     }
@@ -286,8 +289,39 @@ int sprite_act(WINDOW* room, THING* sprite) {
             werase(invlist);
             destroy_win(invlist);
         } else if (ch == 'q') {
-            mvaddstr(1, 0, "drink what?");
-            clrtoeol();
+            // 1st pass: count the items
+            int itemcount = 0;
+            for (THING* t = things; t != NULL; t = t->next) {
+                if (t->type == T_Item && t->inInventory && t->isPotable)
+                    itemcount++;
+            }
+            WINDOW* invlist = create_newwin(itemcount+3, 30, 2, 0);
+            // 2nd pass: display the items
+            int i = 1;
+            mvwprintw(invlist, i++, 2, "%s", "What do you want to drink:");
+            for (THING* t = things; t != NULL; t = t->next) {
+                if (t->type == T_Item && t->inInventory && t->isPotable) {
+                    mvwprintw(invlist, i, 2, "%d %s", i-1, t->descr);
+                    i++;
+                }
+            }
+            wrefresh(invlist);
+            ch = wgetch(invlist);
+            werase(invlist);
+            destroy_win(invlist);
+            // 3rd pass: find the indicated item
+            i = 1;
+            int j = ch - '0';
+            for (THING* t = things; t != NULL; t = t->next) {
+                if (t->type == T_Item && t->inInventory && t->isPotable) {
+                    if (i == j) {
+                        t->inInventory = false;
+                        //TODO effect
+                    } else {
+                        i++;
+                    }
+                }
+            }
         } else if (ch == 'r') {
             mvaddstr(1, 0, "read what?");
             clrtoeol();
@@ -459,6 +493,7 @@ THING* newThing(WINDOW* win, ThingType type, chtype badge, int y, int x) {
     thing->ypos = y;
     thing->xpos = x;
     thing->isEdible = false;
+    thing->isPotable = false;
     switch (badge) {
         case '$':
             thing->descr = "12 dollars";
@@ -472,6 +507,10 @@ THING* newThing(WINDOW* win, ThingType type, chtype badge, int y, int x) {
         case '*':
             thing->descr = "leg of lamb";
             thing->isEdible = true;
+            break;
+        case '!':
+            thing->descr = "orange potion";
+            thing->isPotable = true;
             break;
         case '@':
             thing->descr = "the player";
