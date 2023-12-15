@@ -43,12 +43,12 @@ Still figuring these out...
 - `%` carcass
 - `&` garments or armour
 - `'`
-- `(` weapon?
-- `)` 
+- `(` weapon
+- `)` shield
 - `*` food
 - `+`
 - `-`
-- `/`
+- `/` wand
 - `:` ring
 - `;` amulet
 - `<` stair (up)
@@ -56,12 +56,12 @@ Still figuring these out...
 - `>` stair (down)
 - `?`
 - `[`
-- `\`
+- `\` staff
 - `]`
 - `^`
 - `_`
 - `{`
-- `|`
+- `|` rod
 - `}`
 - `~` scroll
 
