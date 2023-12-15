@@ -363,8 +363,39 @@ int sprite_act(WINDOW* room, THING* sprite) {
             mvaddstr(1, 0, "use what?");
             clrtoeol();
         } else if (ch == 'w') {
-            mvaddstr(1, 0, "wear what?");
-            clrtoeol();
+            // 1st pass: count the items
+            int itemcount = 0;
+            for (THING* t = things; t != NULL; t = t->next) {
+                if (t->type == T_Item && t->inInventory && t->badge == '&')
+                    itemcount++;
+            }
+            WINDOW* invlist = create_newwin(itemcount+3, 30, 2, 0);
+            // 2nd pass: display the items
+            int i = 1;
+            mvwprintw(invlist, i++, 2, "%s", "What do you want to read:");
+            for (THING* t = things; t != NULL; t = t->next) {
+                if (t->type == T_Item && t->inInventory && t->badge == '&') {
+                    mvwprintw(invlist, i, 2, "%d %s", i-1, t->descr);
+                    i++;
+                }
+            }
+            wrefresh(invlist);
+            ch = wgetch(invlist);
+            werase(invlist);
+            destroy_win(invlist);
+            // 3rd pass: find the indicated item
+            i = 1;
+            int j = ch - '0';
+            for (THING* t = things; t != NULL; t = t->next) {
+                if (t->type == T_Item && t->inInventory && t->badge == '&') {
+                    if (i == j) {
+                        t->inInventory = false;
+                        //TODO effect
+                    } else {
+                        i++;
+                    }
+                }
+            }
         } else if (ch == 'z') {
             mvaddstr(1, 0, "zap in which direction?");
             clrtoeol();
