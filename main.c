@@ -1,6 +1,8 @@
 // https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/index.html
 #include <ncurses.h>
 #include <ctype.h>
+#include <stdlib.h>
+#include <time.h>
 
 WINDOW *create_newwin(int height, int width, int starty, int startx) {
     WINDOW *local_win;
@@ -11,6 +13,44 @@ WINDOW *create_newwin(int height, int width, int starty, int startx) {
 
     return local_win;
 }
+
+typedef struct SPRITE {
+    chtype badge;
+    int ypos;
+    int xpos;
+    const char *descr;
+    chtype under;
+    struct SPRITE* next;
+} SPRITE;
+
+SPRITE* sprites = NULL;
+
+SPRITE* newsprite(WINDOW* room, chtype badge, int y, int x) {
+    SPRITE* sprite = malloc(sizeof(SPRITE));
+    if (sprite == NULL) {
+        mvaddstr(1, 0, "Out of memory, press any key to exit");
+        getch();
+        exit(1);
+    }
+    sprite->badge = badge;
+    sprite->ypos = y;
+    sprite->xpos = x;
+    switch (badge) {
+        case '@':
+            sprite->descr = "the player";
+            break;
+        case 'a':
+            sprite->descr = "carnivorous ape";
+            break;
+    }
+    sprite->under = ' ';
+    sprite->next = sprites;
+    sprites = sprite;
+    mvwaddch(room, y, x, badge);
+    return sprite;
+}
+
+void worldActs(void);
 
 int main()
 {	
@@ -23,6 +63,8 @@ int main()
 
     refresh();
 
+    srand (time (NULL));
+
     int height = 16;
     int width = 20;
     int starty = (LINES - height) / 2;  /* Calculating for a center placement */
@@ -32,12 +74,15 @@ int main()
     keypad(room, TRUE);
 
     curs_set(0);
-    mvwaddch(room, 4, 9, 'a');
     mvwaddch(room, 2, 4, '%');
     mvwaddch(room, 12, 3, 'b');
+    wrefresh(room);
+    newsprite(room, 'a', 4, 9);
+    newsprite(room, 'a', 14, 5);
     int x = 10;
     int y =  5;
-    mvwaddch(room, y, x, '@');
+    newsprite(room, '@', y, x);
+
     wrefresh(room);
     int ch;
     chtype floor;
@@ -56,6 +101,7 @@ int main()
                 mvaddstr(1, 0, "bash!");
                 clrtoeol();
             }
+            worldActs();
         } else if(ch == '2') {
             floor = mvwinch(room, y+1, x);
             if (floor == ' ' || ispunct(floor)) {
@@ -68,6 +114,7 @@ int main()
                 mvaddstr(1, 0, "bash!");
                 clrtoeol();
             }
+            worldActs();
         } else if(ch == '3') {
             floor = mvwinch(room, y+1, x+1);
             if (floor == ' ' || ispunct(floor)) {
@@ -80,6 +127,7 @@ int main()
                 mvaddstr(1, 0, "bash!");
                 clrtoeol();
             }
+            worldActs();
         } else if(ch == '4') {
             floor = mvwinch(room, y, x-1);
             if (floor == ' ' || ispunct(floor)) {
@@ -92,10 +140,12 @@ int main()
                 mvaddstr(1, 0, "bash!");
                 clrtoeol();
             }
+            worldActs();
         } else if(ch == '5') {
             mvwaddch(room, y, x, '@');
-                move(1, 0);
-                clrtoeol();
+            move(1, 0);
+            clrtoeol();
+            worldActs();
         } else if(ch == '6') {
             floor = mvwinch(room, y, x+1);
             if (floor == ' ' || ispunct(floor)) {
@@ -108,6 +158,7 @@ int main()
                 mvaddstr(1, 0, "bash!");
                 clrtoeol();
             }
+            worldActs();
         } else if(ch == '7') {
             floor = mvwinch(room, y-1, x-1);
             if (floor == ' ' || ispunct(floor)) {
@@ -120,6 +171,7 @@ int main()
                 mvaddstr(1, 0, "bash!");
                 clrtoeol();
             }
+            worldActs();
         } else if(ch == '8') {
             floor = mvwinch(room, y-1, x);
             if (floor == ' ' || ispunct(floor)) {
@@ -132,6 +184,7 @@ int main()
                 mvaddstr(1, 0, "bash!");
                 clrtoeol();
             }
+            worldActs();
         } else if(ch == '9') {
             floor = mvwinch(room, y-1, x+1);
             if (floor == ' ' || ispunct(floor)) {
@@ -144,6 +197,7 @@ int main()
                 mvaddstr(1, 0, "bash!");
                 clrtoeol();
             }
+            worldActs();
         } else if(ch == 'c') {
             mvaddstr(1, 0, "close what?");
             clrtoeol();
@@ -211,3 +265,11 @@ int main()
 
 	return 0;
 }
+
+void worldActs(void) {
+    mvaddstr(1, 0, "The world acts");
+    clrtoeol();
+    int randomNumber = 1 + rand() % 8;
+}
+
+// objects !  " # $ % & ' () * + , - .  / : ; < = > ?  [ \ ] ^ _ { | } ~
