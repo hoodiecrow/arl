@@ -23,7 +23,7 @@ Only a few, including Q, do anything yet except show a text line, lol
 - `q` **drink**
 - `r` **read**
 - `u` use
-- `w` wear
+- `w` **wear**
 - `z` zap
 - `,` **pick up**
 - `.` **drop**
@@ -41,10 +41,10 @@ Still figuring these out...
 - `#` book
 - `$` gold
 - `%` carcass
-- `&`
+- `&` garments or armour
 - `'`
 - `(` weapon?
-- `)` armour?
+- `)` 
 - `*` food
 - `+`
 - `-`
