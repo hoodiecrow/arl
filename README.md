@@ -36,16 +36,16 @@ Only a few, including Q, do anything yet except show a text line, lol
 
 # Objects
 Still figuring these out...
-- `!`
+- `!` potion or drink
 - `"`
 - `#`
-- `$` gold?
-- `%`
+- `$` gold
+- `%` carcass
 - `&`
 - `'`
 - `(` weapon?
 - `)` armour?
-- `*` food?
+- `*` food
 - `+`
 - `-`
 - `/`
