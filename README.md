@@ -21,7 +21,7 @@ Only a few, including Q, do anything yet except show a text line, lol
 - `i` **show inventory**
 - `l` **look**
 - `q` **drink**
-- `r` read
+- `r` **read**
 - `u` use
 - `w` wear
 - `z` zap
@@ -38,7 +38,7 @@ Only a few, including Q, do anything yet except show a text line, lol
 Still figuring these out...
 - `!` potion or drink
 - `"`
-- `#`
+- `#` book
 - `$` gold
 - `%` carcass
 - `&`
@@ -63,7 +63,7 @@ Still figuring these out...
 - `{`
 - `|`
 - `}`
-- `~`
+- `~` scroll
 
 # Time management
 To keep it simple for now, time management is Player-centric. The rest of the world acts when the player moves (including resting). Maybe some other actions will let the world act as well.
