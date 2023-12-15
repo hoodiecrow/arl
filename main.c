@@ -121,6 +121,7 @@ SPRITE* newsprite(WINDOW* room, chtype badge, int y, int x) {
 int sprite_act(WINDOW* room, SPRITE* sprite);
 OBJECT* locateObject(int ypos, int xpos);
 SPRITE* locateSprite(int ypos, int xpos);
+void stepSprite(WINDOW* room, SPRITE* sprite, chtype floor, int yincr, int xincr);
 
 void combat(WINDOW* room, SPRITE* sprite, int atY, int atX);
 
@@ -179,25 +180,22 @@ int main()
 int sprite_act(WINDOW* room, SPRITE* sprite) {
     int ch;
     chtype floor;
-    int y = getmaxy(room);
-    int x = getmaxx(room);
     if (sprite->endurance <= 0)
         return 0;
+    int y = getmaxy(room);
+    int x = getmaxx(room);
     if (sprite->badge == '@') {
         ch = wgetch(room);
     } else {
         ch = 49 + rand() % 8;
     }
     if (ch == '1') {
-        //mvprintw(1, 0, "maxy=%d, ypos=%d", y, sprite->ypos);
         if (sprite->xpos > 1 && sprite->ypos < y-2) {
             floor = mvwinch(room, sprite->ypos+1, sprite->xpos-1);
             if (floor == '@' || isalpha(floor)) {
                 combat(room, sprite, sprite->ypos+1, sprite->xpos-1);
             } else if (floor == ' ' || ispunct(floor)) {
-                mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
-                sprite->under = floor;
-                mvwaddch(room, ++sprite->ypos, --sprite->xpos, sprite->badge);
+                stepSprite(room, sprite, floor, +1, -1);
             }
         }
     } else if (ch == '2') {
@@ -206,9 +204,7 @@ int sprite_act(WINDOW* room, SPRITE* sprite) {
             if (floor == '@' || isalpha(floor)) {
                 combat(room, sprite, sprite->ypos+1, sprite->xpos);
             } else if (floor == ' ' || ispunct(floor)) {
-                mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
-                sprite->under = floor;
-                mvwaddch(room, ++sprite->ypos, sprite->xpos, sprite->badge);
+                stepSprite(room, sprite, floor, +1, 0);
             }
         }
     } else if (ch == '3') {
@@ -217,9 +213,7 @@ int sprite_act(WINDOW* room, SPRITE* sprite) {
             if (floor == '@' || isalpha(floor)) {
                 combat(room, sprite, sprite->ypos+1, sprite->xpos+1);
             } else if (floor == ' ' || ispunct(floor)) {
-                mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
-                sprite->under = floor;
-                mvwaddch(room, ++sprite->ypos, ++sprite->xpos, sprite->badge);
+                stepSprite(room, sprite, floor, +1, +1);
             }
         }
     } else if (ch == '4') {
@@ -228,9 +222,7 @@ int sprite_act(WINDOW* room, SPRITE* sprite) {
             if (floor == '@' || isalpha(floor)) {
                 combat(room, sprite, sprite->ypos, sprite->xpos-1);
             } else if (floor == ' ' || ispunct(floor)) {
-                mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
-                sprite->under = floor;
-                mvwaddch(room, sprite->ypos, --sprite->xpos, sprite->badge);
+                stepSprite(room, sprite, floor, 0, -1);
             }
         }
     } else if (ch == '5') {
@@ -241,9 +233,7 @@ int sprite_act(WINDOW* room, SPRITE* sprite) {
             if (floor == '@' || isalpha(floor)) {
                 combat(room, sprite, sprite->ypos, sprite->xpos+1);
             } else if (floor == ' ' || ispunct(floor)) {
-                mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
-                sprite->under = floor;
-                mvwaddch(room, sprite->ypos, ++sprite->xpos, sprite->badge);
+                stepSprite(room, sprite, floor, 0, +1);
             }
         }
     } else if (ch == '7') {
@@ -252,9 +242,7 @@ int sprite_act(WINDOW* room, SPRITE* sprite) {
             if (floor == '@' || isalpha(floor)) {
                 combat(room, sprite, sprite->ypos-1, sprite->xpos-1);
             } else if (floor == ' ' || ispunct(floor)) {
-                mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
-                sprite->under = floor;
-                mvwaddch(room, --sprite->ypos, --sprite->xpos, sprite->badge);
+                stepSprite(room, sprite, floor, -1, -1);
             }
         }
     } else if (ch == '8') {
@@ -263,9 +251,7 @@ int sprite_act(WINDOW* room, SPRITE* sprite) {
             if (floor == '@' || isalpha(floor)) {
                 combat(room, sprite, sprite->ypos-1, sprite->xpos);
             } else if (floor == ' ' || ispunct(floor)) {
-                mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
-                sprite->under = floor;
-                mvwaddch(room, --sprite->ypos, sprite->xpos, sprite->badge);
+                stepSprite(room, sprite, floor, -1, 0);
             }
         }
     } else if (ch == '9') {
@@ -274,9 +260,7 @@ int sprite_act(WINDOW* room, SPRITE* sprite) {
             if (floor == '@' || isalpha(floor)) {
                 combat(room, sprite, sprite->ypos-1, sprite->xpos+1);
             } else if (floor == ' ' || ispunct(floor)) {
-                mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
-                sprite->under = floor;
-                mvwaddch(room, --sprite->ypos, ++sprite->xpos, sprite->badge);
+                stepSprite(room, sprite, floor, -1, +1);
             }
         }
     }
@@ -383,6 +367,12 @@ SPRITE* locateSprite(int ypos, int xpos) {
         }
     }
     return NULL;
+}
+
+void stepSprite(WINDOW* room, SPRITE* sprite, chtype floor, int yincr, int xincr) {
+    mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
+    sprite->under = floor;
+    mvwaddch(room, sprite->ypos += yincr, sprite->xpos += xincr, sprite->badge);
 }
 
 void combat(WINDOW* room, SPRITE* sprite, int atY, int atX) {
