@@ -45,7 +45,7 @@ Still figuring these out...
 - `'`
 - `(` weapon?
 - `)` armour?
-- `*`
+- `*` food?
 - `+`
 - `-`
 - `/`
