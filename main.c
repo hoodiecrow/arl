@@ -239,7 +239,7 @@ int sprite_act(WINDOW* room, THING* sprite) {
             // 1st pass: count the items
             int itemcount = 0;
             for (THING* t = things; t != NULL; t = t->next) {
-                if (t->badge != '@')
+                if (t->badge != '@' && !t->inInventory)
                     itemcount++;
             }
             WINDOW* invlist = create_newwin(itemcount+3, 30, 2, 0);
@@ -247,7 +247,7 @@ int sprite_act(WINDOW* room, THING* sprite) {
             int i = 1;
             mvwprintw(invlist, i++, 2, "%s", "Looking around, you see:");
             for (THING* t = things; t != NULL; t = t->next) {
-                if (t->badge != '@') {
+                if (t->badge != '@' && !t->inInventory) {
                     mvwprintw(invlist, i++, 2, "%s", t->descr);
                 }
             }
