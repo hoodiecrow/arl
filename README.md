@@ -12,7 +12,7 @@ Move around with keypad
 (5 is rest)
 
 # Actions
-None of them (except Q) do anything yet except show a text line, lol
+Only a few, including Q, do anything yet except show a text line, lol
 
 - `c` close
 - `d` drop
