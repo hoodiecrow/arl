@@ -30,6 +30,10 @@ THING* things = NULL;
 
 THING* newThing(WINDOW* win, ThingType type, chtype badge, int y, int x);
 
+#define INVENTORY_SIZE 15
+THING* inventory[INVENTORY_SIZE];
+int inventoryFill = 0;
+
 void present(THING* thing);
 int sprite_act(WINDOW* room, THING* sprite);
 THING* locateThing(int ypos, int xpos);
@@ -208,98 +212,64 @@ int sprite_act(WINDOW* room, THING* sprite) {
             mvaddstr(1, 0, "close what?");
             clrtoeol();
         } else if (ch == 'e') {
-            // 1st pass: count the items
-            int itemcount = 0;
-            for (THING* t = things; t != NULL; t = t->next) {
+            WINDOW* invlist = create_newwin(inventoryFill+3, 30, 2, 0);
+            mvwprintw(invlist, 1, 2, "%s", "What do you want to eat:");
+            for (int i = 0; i < inventoryFill; i++) {
+                THING* t = inventory[i];
                 if (t->type == T_Item && t->inInventory && t->isEdible)
-                    itemcount++;
-            }
-            WINDOW* invlist = create_newwin(itemcount+3, 30, 2, 0);
-            // 2nd pass: display the items
-            int i = 1;
-            mvwprintw(invlist, i++, 2, "%s", "What do you want to eat:");
-            for (THING* t = things; t != NULL; t = t->next) {
-                if (t->type == T_Item && t->inInventory && t->isEdible) {
-                    mvwprintw(invlist, i, 2, "%d %s", i-1, t->descr);
-                    i++;
-                }
+                    mvwprintw(invlist, i+2, 2, "%c) %s", i+'a', inventory[i]->descr);
             }
             wrefresh(invlist);
             ch = wgetch(invlist);
             werase(invlist);
             destroy_win(invlist);
-            // 3rd pass: find the indicated item
-            i = 1;
-            int j = ch - '0';
-            for (THING* t = things; t != NULL; t = t->next) {
-                if (t->type == T_Item && t->inInventory && t->isEdible) {
-                    if (i == j) {
-                        t->inInventory = false;
-                        //TODO effect
-                        break;
-                    } else {
-                        i++;
-                    }
+            int i = ch-'a';
+            //TODO allow only selected letters
+            if (i >= 0 && i < inventoryFill) {
+                THING* t = inventory[i];
+                //TODO effect
+                for (int j = i + 1; j < inventoryFill; i++, j++) {
+                    inventory[i] = inventory[j];
                 }
+                inventoryFill--;
+                t->inInventory = false;
             }
         } else if (ch == 'E') {
-            // 1st pass: count the items
-            int itemcount = 0;
-            for (THING* t = things; t != NULL; t = t->next) {
+            WINDOW* invlist = create_newwin(inventoryFill+3, 30, 2, 0);
+            mvwprintw(invlist, 1, 2, "%s", "What do you want to equip:");
+            for (int i = 0; i < inventoryFill; i++) {
+                THING* t = inventory[i];
                 if (t->type == T_Item && t->inInventory && t->isEquippable)
-                    itemcount++;
-            }
-            WINDOW* invlist = create_newwin(itemcount+3, 30, 2, 0);
-            // 2nd pass: display the items
-            int i = 1;
-            mvwprintw(invlist, i++, 2, "%s", "What do you want to equip:");
-            for (THING* t = things; t != NULL; t = t->next) {
-                if (t->type == T_Item && t->inInventory && t->isEquippable) {
-                    mvwprintw(invlist, i, 2, "%d %s", i-1, t->descr);
-                    i++;
-                }
+                    mvwprintw(invlist, i+2, 2, "%c) %s", i+'a', inventory[i]->descr);
             }
             wrefresh(invlist);
             ch = wgetch(invlist);
             werase(invlist);
             destroy_win(invlist);
-            // 3rd pass: find the indicated item
-            i = 1;
-            int j = ch - '0';
-            for (THING* t = things; t != NULL; t = t->next) {
-                if (t->type == T_Item && t->inInventory && t->isEquippable) {
-                    if (i == j) {
-                        //TODO effect
-                        break;
-                    } else {
-                        i++;
-                    }
+            int i = ch-'a';
+            //TODO allow only selected letters
+            if (i >= 0 && i < inventoryFill) {
+                THING* t = inventory[i];
+                //TODO effect
+                for (int j = i + 1; j < inventoryFill; i++, j++) {
+                    inventory[i] = inventory[j];
                 }
+                inventoryFill--;
+                t->inInventory = false;
             }
         } else if (ch == 'g') {
             mvaddstr(1, 0, "get what?");
             clrtoeol();
         } else if (ch == 'i') {
-            mvaddstr(1, 0, "inventory");
-            clrtoeol();
-            // 1st pass: count the items
-            int itemcount = 0;
-            for (THING* t = things; t != NULL; t = t->next) {
+            WINDOW* invlist = create_newwin(inventoryFill+3, 30, 2, 0);
+            mvwprintw(invlist, 1, 2, "%s", "You are carrying:");
+            for (int i = 0; i < inventoryFill; i++) {
+                THING* t = inventory[i];
                 if (t->type == T_Item && t->inInventory)
-                    itemcount++;
-            }
-            WINDOW* invlist = create_newwin(itemcount+3, 30, 2, 0);
-            // 2nd pass: display the items
-            int i = 1;
-            mvwprintw(invlist, i++, 2, "%s", "You are carrying:");
-            for (THING* t = things; t != NULL; t = t->next) {
-                if (t->type == T_Item && t->inInventory) {
-                    mvwprintw(invlist, i, 2, "%s", t->descr);
-                    i++;
-                }
+                    mvwprintw(invlist, i+2, 2, "%c) %s", i+'a', inventory[i]->descr);
             }
             wrefresh(invlist);
-            wgetch(invlist);
+            ch = wgetch(invlist);
             werase(invlist);
             destroy_win(invlist);
         } else if (ch == 'l') {
@@ -323,116 +293,77 @@ int sprite_act(WINDOW* room, THING* sprite) {
             werase(invlist);
             destroy_win(invlist);
         } else if (ch == 'q') {
-            // 1st pass: count the items
-            int itemcount = 0;
-            for (THING* t = things; t != NULL; t = t->next) {
+            WINDOW* invlist = create_newwin(inventoryFill+3, 30, 2, 0);
+            mvwprintw(invlist, 1, 2, "%s", "What do you want to drink:");
+            for (int i = 0; i < inventoryFill; i++) {
+                THING* t = inventory[i];
                 if (t->type == T_Item && t->inInventory && t->isPotable)
-                    itemcount++;
-            }
-            WINDOW* invlist = create_newwin(itemcount+3, 30, 2, 0);
-            // 2nd pass: display the items
-            int i = 1;
-            mvwprintw(invlist, i++, 2, "%s", "What do you want to drink:");
-            for (THING* t = things; t != NULL; t = t->next) {
-                if (t->type == T_Item && t->inInventory && t->isPotable) {
-                    mvwprintw(invlist, i, 2, "%d %s", i-1, t->descr);
-                    i++;
-                }
+                    mvwprintw(invlist, i+2, 2, "%c) %s", i+'a', inventory[i]->descr);
             }
             wrefresh(invlist);
             ch = wgetch(invlist);
             werase(invlist);
             destroy_win(invlist);
-            // 3rd pass: find the indicated item
-            i = 1;
-            int j = ch - '0';
-            for (THING* t = things; t != NULL; t = t->next) {
-                if (t->type == T_Item && t->inInventory && t->isPotable) {
-                    if (i == j) {
-                        t->inInventory = false;
-                        //TODO effect
-                        break;
-                    } else {
-                        i++;
-                    }
+            int i = ch-'a';
+            //TODO allow only selected letters
+            if (i >= 0 && i < inventoryFill) {
+                THING* t = inventory[i];
+                //TODO effect
+                for (int j = i + 1; j < inventoryFill; i++, j++) {
+                    inventory[i] = inventory[j];
                 }
+                inventoryFill--;
+                t->inInventory = false;
             }
         } else if (ch == 'r') {
-            // 1st pass: count the items
-            int itemcount = 0;
-            for (THING* t = things; t != NULL; t = t->next) {
-                if (t->type == T_Item && t->inInventory &&
-                        (t->badge == '~' || t->badge == '#'))
-                    itemcount++;
-            }
-            WINDOW* invlist = create_newwin(itemcount+3, 30, 2, 0);
-            // 2nd pass: display the items
-            int i = 1;
-            mvwprintw(invlist, i++, 2, "%s", "What do you want to read:");
-            for (THING* t = things; t != NULL; t = t->next) {
+            WINDOW* invlist = create_newwin(inventoryFill+3, 30, 2, 0);
+            mvwprintw(invlist, 1, 2, "%s", "What do you want to read:");
+            for (int i = 0; i < inventoryFill; i++) {
+                THING* t = inventory[i];
                 if (t->type == T_Item && t->inInventory &&
                         (t->badge == '~' || t->badge == '#')) {
-                    mvwprintw(invlist, i, 2, "%d %s", i-1, t->descr);
-                    i++;
+                    mvwprintw(invlist, i+2, 2, "%c) %s", i+'a', inventory[i]->descr);
                 }
             }
             wrefresh(invlist);
             ch = wgetch(invlist);
             werase(invlist);
             destroy_win(invlist);
-            // 3rd pass: find the indicated item
-            i = 1;
-            int j = ch - '0';
-            for (THING* t = things; t != NULL; t = t->next) {
-                if (t->type == T_Item && t->inInventory &&
-                        (t->badge == '~' || t->badge == '#')) {
-                    if (i == j) {
-                        t->inInventory = false;
-                        //TODO effect
-                        break;
-                    } else {
-                        i++;
-                    }
+            int i = ch-'a';
+            //TODO allow only selected letters
+            if (i >= 0 && i < inventoryFill) {
+                THING* t = inventory[i];
+                //TODO effect
+                for (int j = i + 1; j < inventoryFill; i++, j++) {
+                    inventory[i] = inventory[j];
                 }
+                inventoryFill--;
+                t->inInventory = false;
+                //TODO item is expended
             }
         } else if (ch == 'u') {
             mvaddstr(1, 0, "use what?");
             clrtoeol();
         } else if (ch == 'w') {
-            // 1st pass: count the items
-            int itemcount = 0;
-            for (THING* t = things; t != NULL; t = t->next) {
-                if (t->type == T_Item && t->inInventory && t->badge == '&')
-                    itemcount++;
-            }
-            WINDOW* invlist = create_newwin(itemcount+3, 30, 2, 0);
-            // 2nd pass: display the items
-            int i = 1;
-            mvwprintw(invlist, i++, 2, "%s", "What do you want to read:");
-            for (THING* t = things; t != NULL; t = t->next) {
+            WINDOW* invlist = create_newwin(inventoryFill+3, 30, 2, 0);
+            mvwprintw(invlist, 1, 2, "%s", "What do you want to wear:");
+            for (int i = 0; i < inventoryFill; i++) {
+                THING* t = inventory[i];
                 if (t->type == T_Item && t->inInventory && t->badge == '&') {
-                    mvwprintw(invlist, i, 2, "%d %s", i-1, t->descr);
-                    i++;
+                    mvwprintw(invlist, i+2, 2, "%c) %s", i+'a', inventory[i]->descr);
                 }
             }
             wrefresh(invlist);
             ch = wgetch(invlist);
             werase(invlist);
             destroy_win(invlist);
-            // 3rd pass: find the indicated item
-            i = 1;
-            int j = ch - '0';
-            for (THING* t = things; t != NULL; t = t->next) {
-                if (t->type == T_Item && t->inInventory && t->badge == '&') {
-                    if (i == j) {
-                        t->inInventory = false;
-                        //TODO effect
-                        //TODO previous garment/armour goes to inv or is dropped
-                        break;
-                    } else {
-                        i++;
-                    }
-                }
+            int i = ch-'a';
+            //TODO allow only selected letters
+            if (i >= 0 && i < inventoryFill) {
+                THING* t = inventory[i];
+                (void)t; //TODO until used
+                //TODO set the item in the worn slot and move the previously
+                //worn item out of the inventory
             }
         } else if (ch == 'z') {
             mvaddstr(1, 0, "zap in which direction?");
@@ -440,6 +371,8 @@ int sprite_act(WINDOW* room, THING* sprite) {
         } else if (ch == ',') {
             if (sprite->under == ' ') {
                 mvaddstr(1, 0, "there's nothing to pick up");
+            } else if (inventoryFill == INVENTORY_SIZE) {
+                mvaddstr(1, 0, "your inventory is full");
             } else {
                 THING* t = locateObject(sprite->ypos, sprite->xpos);
                 if (t == NULL) {
@@ -447,6 +380,7 @@ int sprite_act(WINDOW* room, THING* sprite) {
                 } else if (t->type == T_Structure) {
                     mvaddstr(1, 0, "you can't pick that up");
                 } else {
+                    inventory[inventoryFill++] = t;
                     mvprintw(1, 0, "%s", t->descr);
                     sprite->under = ' ';
                     t->inInventory = true;
@@ -456,41 +390,26 @@ int sprite_act(WINDOW* room, THING* sprite) {
             }
             clrtoeol();
         } else if (ch == '.') {
-            // 1st pass: count the items
-            int itemcount = 0;
-            for (THING* t = things; t != NULL; t = t->next) {
-                if (t->type == T_Item && t->inInventory)
-                    itemcount++;
-            }
-            WINDOW* invlist = create_newwin(itemcount+3, 30, 2, 0);
-            // 2nd pass: display the items
-            int i = 1;
-            mvwprintw(invlist, i++, 2, "%s", "What do you want to drop:");
-            for (THING* t = things; t != NULL; t = t->next) {
-                if (t->type == T_Item && t->inInventory) {
-                    mvwprintw(invlist, i, 2, "%d %s", i-1, t->descr);
-                    i++;
-                }
+            WINDOW* invlist = create_newwin(inventoryFill+3, 30, 2, 0);
+            mvwprintw(invlist, 1, 2, "%s", "What do you want to drop:");
+            for (int i = 0; i < inventoryFill; i++) {
+                mvwprintw(invlist, i+2, 2, "%c) %s", i+'a', inventory[i]->descr);
             }
             wrefresh(invlist);
             ch = wgetch(invlist);
             werase(invlist);
             destroy_win(invlist);
-            // 3rd pass: find the indicated item
-            i = 1;
-            int j = ch - '0';
-            for (THING* t = things; t != NULL; t = t->next) {
-                if (t->type == T_Item && t->inInventory) {
-                    if (i == j) {
-                        t->inInventory = false;
-                        sprite->under = t->badge;
-                        t->ypos = sprite->ypos;
-                        t->xpos = sprite->xpos;
-                        break;
-                    } else {
-                        i++;
-                    }
+            int i = ch-'a';
+            if (i >= 0 && i < inventoryFill) {
+                THING* t = inventory[i];
+                for (int j = i + 1; j < inventoryFill; i++, j++) {
+                    inventory[i] = inventory[j];
                 }
+                inventoryFill--;
+                t->inInventory = false;
+                sprite->under = t->badge;
+                t->ypos = sprite->ypos;
+                t->xpos = sprite->xpos;
             }
         } else if (ch == '<') {
             mvaddstr(1, 0, "you climbed up a stair");
