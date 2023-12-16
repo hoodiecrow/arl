@@ -41,8 +41,10 @@ void present(THING* thing);
 int sprite_act(WINDOW* room, THING* sprite);
 THING* locateThing(int ypos, int xpos);
 THING* locateObject(int ypos, int xpos);
+void attemptMove(WINDOW* room, THING* sprite, int incrY, int incrX);
 void stepSprite(WINDOW* room, THING* thing, chtype floor, int toY, int toX);
 void combat(THING* thing, int atY, int atX);
+chtype endPopup(WINDOW* win);
 
 // https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/index.html
 WINDOW *create_newwin(int height, int width, int starty, int startx);
@@ -107,109 +109,51 @@ int main() {
 
 int sprite_act(WINDOW* room, THING* sprite) {
     int ch;
-    chtype floor;
     if (sprite->type != T_Sprite)
         return 0;
     if (sprite->endurance <= 0)
         return 0;
-    int y = getmaxy(room);
-    int x = getmaxx(room);
+    int maxy = getmaxy(room);
+    int maxx = getmaxx(room);
     if (sprite->badge == '@') {
         ch = wgetch(room);
     } else {
+        //TODO not totally random movement, e.g. moving towards player
         ch = 49 + rand() % 8;
     }
-    int toY;
-    int toX;
     if (ch == '1') {
-        toY = sprite->ypos+1;
-        toX = sprite->xpos-1;
-        if (sprite->ypos < y-2 && sprite->xpos > 1) {
-            floor = mvwinch(room, toY, toX);
-            if (floor == '@' || isalpha(floor)) {
-                combat(sprite, toY, toX);
-            } else if (floor == ' ' || ispunct(floor)) {
-                stepSprite(room, sprite, floor, toY, toX);
-            }
+        if (sprite->ypos < maxy-2 && sprite->xpos > 1) {
+            attemptMove(room, sprite, +1, -1);
         }
     } else if (ch == '2') {
-        toY = sprite->ypos+1;
-        toX = sprite->xpos;
-        if (sprite->ypos < y-2) {
-            floor = mvwinch(room, toY, toX);
-            if (floor == '@' || isalpha(floor)) {
-                combat(sprite, toY, toX);
-            } else if (floor == ' ' || ispunct(floor)) {
-                stepSprite(room, sprite, floor, toY, toX);
-            }
+        if (sprite->ypos < maxy-2) {
+            attemptMove(room, sprite, +1, +0);
         }
     } else if (ch == '3') {
-        toY = sprite->ypos+1;
-        toX = sprite->xpos+1;
-        if (sprite->ypos < y-2 && sprite->xpos < x-2) {
-            floor = mvwinch(room, toY, toX);
-            if (floor == '@' || isalpha(floor)) {
-                combat(sprite, toY, toX);
-            } else if (floor == ' ' || ispunct(floor)) {
-                stepSprite(room, sprite, floor, toY, toX);
-            }
+        if (sprite->ypos < maxy-2 && sprite->xpos < maxx-2) {
+            attemptMove(room, sprite, +1, +1);
         }
     } else if (ch == '4') {
-        toY = sprite->ypos;
-        toX = sprite->xpos-1;
         if (sprite->xpos > 1) {
-            floor = mvwinch(room, toY, toX);
-            if (floor == '@' || isalpha(floor)) {
-                combat(sprite, toY, toX);
-            } else if (floor == ' ' || ispunct(floor)) {
-                stepSprite(room, sprite, floor, toY, toX);
-            }
+            attemptMove(room, sprite, +0, -1);
         }
     } else if (ch == '5') {
         present(sprite);
     } else if (ch == '6') {
-        toY = sprite->ypos;
-        toX = sprite->xpos+1;
-        if (sprite->xpos < x-2) {
-            floor = mvwinch(room, toY, toX);
-            if (floor == '@' || isalpha(floor)) {
-                combat(sprite, toY, toX);
-            } else if (floor == ' ' || ispunct(floor)) {
-                stepSprite(room, sprite, floor, toY, toX);
-            }
+        if (sprite->xpos < maxx-2) {
+            attemptMove(room, sprite, +0, +1);
         }
     } else if (ch == '7') {
-        toY = sprite->ypos-1;
-        toX = sprite->xpos-1;
         if (sprite->ypos > 1 && sprite->xpos > 1) {
-            floor = mvwinch(room, toY, toX);
-            if (floor == '@' || isalpha(floor)) {
-                combat(sprite, toY, toX);
-            } else if (floor == ' ' || ispunct(floor)) {
-                stepSprite(room, sprite, floor, toY, toX);
-            }
+            attemptMove(room, sprite, -1, -1);
         }
     } else if (ch == '8') {
-        toY = sprite->ypos-1;
-        toX = sprite->xpos;
         if (sprite->ypos > 1) {
-            floor = mvwinch(room, toY, toX);
-            if (floor == '@' || isalpha(floor)) {
-                combat(sprite, toY, toX);
-            } else if (floor == ' ' || ispunct(floor)) {
-                stepSprite(room, sprite, floor, toY, toX);
-            }
+            attemptMove(room, sprite, -1, +0);
         }
     } else if (ch == '9') {
-        toY = sprite->ypos-1;
-        toX = sprite->xpos+1;
-        if (sprite->ypos > 1 && sprite->xpos < x-2) {
-            floor = mvwinch(room, toY, toX);
-            if (floor == '@' || isalpha(floor)) {
-                combat(sprite, toY, toX);
-            } else if (floor == ' ' || ispunct(floor)) {
-                stepSprite(room, sprite, floor, toY, toX);
-            }
+        if (sprite->ypos > 1 && sprite->xpos < maxx-2) {
+            attemptMove(room, sprite, -1, +1);
         }
     }
     if (sprite->badge == '@') {
@@ -218,16 +162,13 @@ int sprite_act(WINDOW* room, THING* sprite) {
             clrtoeol();
         } else if (ch == 'e') {
             WINDOW* invlist = create_newwin(inventoryFill+3, 30, 2, 0);
-            mvwprintw(invlist, 1, 2, "%s", "What do you want to eat:");
+            mvwprintw(invlist, 1, 1, "%s", "What do you want to eat:");
             for (int i = 0; i < inventoryFill; i++) {
                 THING* t = inventory[i];
                 if (t->type == T_Item && t->inInventory && t->isEdible)
-                    mvwprintw(invlist, i+2, 2, "%c) %s", i+'a', inventory[i]->descr);
+                    mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
             }
-            wrefresh(invlist);
-            ch = wgetch(invlist);
-            werase(invlist);
-            destroy_win(invlist);
+            ch = endPopup(invlist);
             int i = ch-'a';
             //TODO allow only selected letters
             if (i >= 0 && i < inventoryFill) {
@@ -241,16 +182,13 @@ int sprite_act(WINDOW* room, THING* sprite) {
             }
         } else if (ch == 'E') {
             WINDOW* invlist = create_newwin(inventoryFill+3, 30, 2, 0);
-            mvwprintw(invlist, 1, 2, "%s", "What do you want to equip:");
+            mvwprintw(invlist, 1, 1, "%s", "What do you want to equip:");
             for (int i = 0; i < inventoryFill; i++) {
                 THING* t = inventory[i];
                 if (t->type == T_Item && t->inInventory && t->isEquippable)
-                    mvwprintw(invlist, i+2, 2, "%c) %s", i+'a', inventory[i]->descr);
+                    mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
             }
-            wrefresh(invlist);
-            ch = wgetch(invlist);
-            werase(invlist);
-            destroy_win(invlist);
+            ch = endPopup(invlist);
             int i = ch-'a';
             //TODO allow only selected letters
             if (i >= 0 && i < inventoryFill) {
@@ -267,16 +205,13 @@ int sprite_act(WINDOW* room, THING* sprite) {
             clrtoeol();
         } else if (ch == 'i') {
             WINDOW* invlist = create_newwin(inventoryFill+3, 30, 2, 0);
-            mvwprintw(invlist, 1, 2, "%s", "You are carrying:");
+            mvwprintw(invlist, 1, 1, "%s", "You are carrying:");
             for (int i = 0; i < inventoryFill; i++) {
                 THING* t = inventory[i];
                 if (t->type == T_Item && t->inInventory)
-                    mvwprintw(invlist, i+2, 2, "%c) %s", i+'a', inventory[i]->descr);
+                    mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
             }
-            wrefresh(invlist);
-            ch = wgetch(invlist);
-            werase(invlist);
-            destroy_win(invlist);
+            ch = endPopup(invlist);
         } else if (ch == 'l') {
             // 1st pass: count the items
             int itemcount = 0;
@@ -287,28 +222,22 @@ int sprite_act(WINDOW* room, THING* sprite) {
             WINDOW* invlist = create_newwin(itemcount+3, 30, 2, 0);
             // 2nd pass: display the items
             int i = 1;
-            mvwprintw(invlist, i++, 2, "%s", "Looking around, you see:");
+            mvwprintw(invlist, i++, 1, "%s", "Looking around, you see:");
             for (THING* t = things; t != NULL; t = t->next) {
                 if (t->badge != '@' && !t->inInventory && t != worn) {
-                    mvwprintw(invlist, i++, 2, "%s", t->descr);
+                    mvwprintw(invlist, i++, 1, "%s", t->descr);
                 }
             }
-            wrefresh(invlist);
-            wgetch(invlist);
-            werase(invlist);
-            destroy_win(invlist);
+            ch = endPopup(invlist);
         } else if (ch == 'q') {
             WINDOW* invlist = create_newwin(inventoryFill+3, 30, 2, 0);
-            mvwprintw(invlist, 1, 2, "%s", "What do you want to drink:");
+            mvwprintw(invlist, 1, 1, "%s", "What do you want to drink:");
             for (int i = 0; i < inventoryFill; i++) {
                 THING* t = inventory[i];
                 if (t->type == T_Item && t->inInventory && t->isPotable)
-                    mvwprintw(invlist, i+2, 2, "%c) %s", i+'a', inventory[i]->descr);
+                    mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
             }
-            wrefresh(invlist);
-            ch = wgetch(invlist);
-            werase(invlist);
-            destroy_win(invlist);
+            ch = endPopup(invlist);
             int i = ch-'a';
             //TODO allow only selected letters
             if (i >= 0 && i < inventoryFill) {
@@ -322,18 +251,15 @@ int sprite_act(WINDOW* room, THING* sprite) {
             }
         } else if (ch == 'r') {
             WINDOW* invlist = create_newwin(inventoryFill+3, 30, 2, 0);
-            mvwprintw(invlist, 1, 2, "%s", "What do you want to read:");
+            mvwprintw(invlist, 1, 1, "%s", "What do you want to read:");
             for (int i = 0; i < inventoryFill; i++) {
                 THING* t = inventory[i];
                 if (t->type == T_Item && t->inInventory &&
                         (t->badge == '~' || t->badge == '#')) {
-                    mvwprintw(invlist, i+2, 2, "%c) %s", i+'a', inventory[i]->descr);
+                    mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
                 }
             }
-            wrefresh(invlist);
-            ch = wgetch(invlist);
-            werase(invlist);
-            destroy_win(invlist);
+            ch = endPopup(invlist);
             int i = ch-'a';
             //TODO allow only selected letters
             if (i >= 0 && i < inventoryFill) {
@@ -351,17 +277,14 @@ int sprite_act(WINDOW* room, THING* sprite) {
             clrtoeol();
         } else if (ch == 'w') {
             WINDOW* invlist = create_newwin(inventoryFill+3, 30, 2, 0);
-            mvwprintw(invlist, 1, 2, "%s", "What do you want to wear:");
+            mvwprintw(invlist, 1, 1, "%s", "What do you want to wear:");
             for (int i = 0; i < inventoryFill; i++) {
                 THING* t = inventory[i];
                 if (t->type == T_Item && t->inInventory && t->badge == '&') {
-                    mvwprintw(invlist, i+2, 2, "%c) %s", i+'a', inventory[i]->descr);
+                    mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
                 }
             }
-            wrefresh(invlist);
-            ch = wgetch(invlist);
-            werase(invlist);
-            destroy_win(invlist);
+            ch = endPopup(invlist);
             int i = ch-'a';
             //TODO allow only selected letters
             if (i >= 0 && i < inventoryFill) {
@@ -403,14 +326,11 @@ int sprite_act(WINDOW* room, THING* sprite) {
             clrtoeol();
         } else if (ch == '.') {
             WINDOW* invlist = create_newwin(inventoryFill+3, 30, 2, 0);
-            mvwprintw(invlist, 1, 2, "%s", "What do you want to drop:");
+            mvwprintw(invlist, 1, 1, "%s", "What do you want to drop:");
             for (int i = 0; i < inventoryFill; i++) {
-                mvwprintw(invlist, i+2, 2, "%c) %s", i+'a', inventory[i]->descr);
+                mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
             }
-            wrefresh(invlist);
-            ch = wgetch(invlist);
-            werase(invlist);
-            destroy_win(invlist);
+            ch = endPopup(invlist);
             int i = ch-'a';
             if (i >= 0 && i < inventoryFill) {
                 THING* t = inventory[i];
@@ -442,6 +362,14 @@ int sprite_act(WINDOW* room, THING* sprite) {
         } else 
             ;
     }
+    return ch;
+}
+
+chtype endPopup(WINDOW* win) {
+    wrefresh(win);
+    chtype ch = wgetch(win);
+    werase(win);
+    destroy_win(win);
     return ch;
 }
 
@@ -480,6 +408,17 @@ THING* locateSprite(int ypos, int xpos) {
         }
     }
     return NULL;
+}
+
+void attemptMove(WINDOW* room, THING* sprite, int incrY, int incrX) {
+    int toY = sprite->ypos+incrY;
+    int toX = sprite->xpos+incrX;
+    chtype floor = mvwinch(room, toY, toX);
+    if (floor == '@' || isalpha(floor)) {
+        combat(sprite, toY, toX);
+    } else if (floor == ' ' || ispunct(floor)) {
+        stepSprite(room, sprite, floor, toY, toX);
+    }
 }
 
 void stepSprite(WINDOW* room, THING* sprite, chtype floor, int toY, int toX) {
