@@ -484,6 +484,8 @@ int sprite_act(WINDOW* room, THING* sprite) {
                     if (i == j) {
                         t->inInventory = false;
                         sprite->under = t->badge;
+                        t->ypos = sprite->ypos;
+                        t->xpos = sprite->xpos;
                         break;
                     } else {
                         i++;
