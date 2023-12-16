@@ -33,7 +33,7 @@ THING* newThing(WINDOW* win, ThingType type, chtype badge, int y, int x);
 #define INVENTORY_SIZE 15
 THING* inventory[INVENTORY_SIZE];
 int inventoryFill = 0;
-bool allowedLetters[INVENTORY_SIZE];
+bool allowedIndices[INVENTORY_SIZE];
 
 THING* worn = NULL;
 
@@ -42,6 +42,7 @@ void present(THING* thing);
 int sprite_act(WINDOW* room, THING* sprite);
 THING* locateThing(int ypos, int xpos);
 THING* locateObject(int ypos, int xpos);
+void dumpInventory(int i);
 void attemptMove(WINDOW* room, THING* sprite, int incrY, int incrX);
 void stepSprite(WINDOW* room, THING* thing, chtype floor, int toY, int toX);
 void combat(THING* thing, int atY, int atX);
@@ -169,21 +170,16 @@ int sprite_act(WINDOW* room, THING* sprite) {
             for (int i = 0; i < inventoryFill; i++) {
                 if (inventory[i]->isEdible) {
                     mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
-                    allowedLetters[i] = true;
+                    allowedIndices[i] = true;
                 } else {
-                    allowedLetters[i] = false;
+                    allowedIndices[i] = false;
                 }
             }
             ch = endPopup(invlist);
             int i = ch-'a';
-            if (allowedLetters[i]) {
-                THING* t = inventory[i];
+            if (allowedIndices[i]) {
                 //TODO effect
-                for (int j = i + 1; j < inventoryFill; i++, j++) {
-                    inventory[i] = inventory[j];
-                }
-                inventoryFill--;
-                t->inInventory = false;
+                dumpInventory(i);
             } else {
                 mvaddstr(1, 0, "you can't eat that"); clrtoeol(); refresh();
             }
@@ -194,21 +190,16 @@ int sprite_act(WINDOW* room, THING* sprite) {
             for (int i = 0; i < inventoryFill; i++) {
                 if (inventory[i]->isEquippable) {
                     mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
-                    allowedLetters[i] = true;
+                    allowedIndices[i] = true;
                 } else {
-                    allowedLetters[i] = false;
+                    allowedIndices[i] = false;
                 }
             }
             ch = endPopup(invlist);
             int i = ch-'a';
-            if (allowedLetters[i]) {
-                THING* t = inventory[i];
+            if (allowedIndices[i]) {
                 //TODO effect
-                for (int j = i + 1; j < inventoryFill; i++, j++) {
-                    inventory[i] = inventory[j];
-                }
-                inventoryFill--;
-                t->inInventory = false;
+                dumpInventory(i);
             } else {
                 mvaddstr(1, 0, "you can't equip that"); clrtoeol(); refresh();
             }
@@ -249,21 +240,16 @@ int sprite_act(WINDOW* room, THING* sprite) {
             for (int i = 0; i < inventoryFill; i++) {
                 if (inventory[i]->isPotable) {
                     mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
-                    allowedLetters[i] = true;
+                    allowedIndices[i] = true;
                 } else {
-                    allowedLetters[i] = false;
+                    allowedIndices[i] = false;
                 }
             }
             ch = endPopup(invlist);
             int i = ch-'a';
-            if (allowedLetters[i]) {
-                THING* t = inventory[i];
+            if (allowedIndices[i]) {
                 //TODO effect
-                for (int j = i + 1; j < inventoryFill; i++, j++) {
-                    inventory[i] = inventory[j];
-                }
-                inventoryFill--;
-                t->inInventory = false;
+                dumpInventory(i);
             } else {
                 mvaddstr(1, 0, "you can't drink that"); clrtoeol(); refresh();
             }
@@ -274,21 +260,16 @@ int sprite_act(WINDOW* room, THING* sprite) {
             for (int i = 0; i < inventoryFill; i++) {
                 if ((inventory[i]->badge == '~' || inventory[i]->badge == '#')) {
                     mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
-                    allowedLetters[i] = true;
+                    allowedIndices[i] = true;
                 } else {
-                    allowedLetters[i] = false;
+                    allowedIndices[i] = false;
                 }
             }
             ch = endPopup(invlist);
             int i = ch-'a';
-            if (allowedLetters[i]) {
-                THING* t = inventory[i];
+            if (allowedIndices[i]) {
                 //TODO effect
-                for (int j = i + 1; j < inventoryFill; i++, j++) {
-                    inventory[i] = inventory[j];
-                }
-                inventoryFill--;
-                t->inInventory = false;
+                dumpInventory(i);
                 //TODO item is expended
             } else {
                 mvaddstr(1, 0, "you can't read that"); clrtoeol(); refresh();
@@ -305,25 +286,21 @@ int sprite_act(WINDOW* room, THING* sprite) {
                 // t->type == T_Item && t->inInventory && are already given
                 if (inventory[i]->badge == '&') {
                     mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
-                    allowedLetters[i] = true;
+                    allowedIndices[i] = true;
                 } else {
-                    allowedLetters[i] = false;
+                    allowedIndices[i] = false;
                 }
             }
             ch = endPopup(invlist);
             int i = ch-'a';
-            if (allowedLetters[i]) {
+            if (allowedIndices[i]) {
                 if (worn != NULL) {
                     sprite->under = worn->badge;
                     worn->ypos = sprite->ypos;
                     worn->xpos = sprite->xpos;
                 }
                 worn = inventory[i];
-                inventory[i]->inInventory = false;
-                for (int j = i + 1; j < inventoryFill; i++, j++) {
-                    inventory[i] = inventory[j];
-                }
-                inventoryFill--;
+                dumpInventory(i);
             } else {
                 mvaddstr(1, 0, "you can't wear that"); clrtoeol(); refresh();
             }
@@ -364,11 +341,8 @@ int sprite_act(WINDOW* room, THING* sprite) {
             int i = ch-'a';
             if (i >= 0 && i < inventoryFill) {
                 THING* t = inventory[i];
-                for (int j = i + 1; j < inventoryFill; i++, j++) {
-                    inventory[i] = inventory[j];
-                }
-                inventoryFill--;
-                t->inInventory = false;
+                dumpInventory(i);
+                //TODO drop more than one item
                 sprite->under = t->badge;
                 t->ypos = sprite->ypos;
                 t->xpos = sprite->xpos;
@@ -396,6 +370,9 @@ int sprite_act(WINDOW* room, THING* sprite) {
             // more keys at roguebasin
         } else 
             ;
+    }
+    for (int i = 0; i < INVENTORY_SIZE; i++) {
+        allowedIndices[i] = false;
     }
     return ch;
 }
@@ -448,6 +425,14 @@ THING* locateSprite(int ypos, int xpos) {
         }
     }
     return NULL;
+}
+
+void dumpInventory(int i) {
+    inventory[i]->inInventory = false;
+    for (int j = i + 1; j < inventoryFill; i++, j++) {
+        inventory[i] = inventory[j];
+    }
+    inventoryFill--;
 }
 
 void attemptMove(WINDOW* room, THING* sprite, int incrY, int incrX) {
