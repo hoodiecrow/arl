@@ -1,53 +1,12 @@
-#include <ncurses.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <time.h>
+#include "main.h"
 
-typedef enum {
-    T_Sprite,
-    T_Item,
-    T_Structure,
-} ThingType;
+THING* things = NULL; // top pointer for thing linked list
 
-typedef struct THING {
-    ThingType type;
-    chtype badge;
-    WINDOW* room;
-    int ypos;
-    int xpos;
-    const char* descr;
-    bool inInventory;
-    bool isEdible;
-    bool isPotable;
-    bool isEquippable;
-    struct THING* next;
-    int attack;
-    int endurance;
-    chtype under;
-} THING;
-
-THING* things = NULL;
-
-THING* newThing(WINDOW* win, ThingType type, chtype badge, int y, int x);
-
-#define INVENTORY_SIZE 15
 THING* inventory[INVENTORY_SIZE];
 int inventoryFill = 0;
 bool allowedIndices[INVENTORY_SIZE];
 
 THING* worn = NULL;
-
-THING* addArmour(WINDOW* win, int y, int x, const char* descr);
-void present(THING* thing);
-int sprite_act(WINDOW* room, THING* sprite);
-THING* locateThing(int ypos, int xpos);
-THING* locateObject(int ypos, int xpos);
-void dumpInventory(int i);
-void attemptMove(WINDOW* room, THING* sprite, int incrY, int incrX);
-void stepSprite(WINDOW* room, THING* thing, chtype floor, int toY, int toX);
-void combat(THING* thing, int atY, int atX);
-WINDOW* newPopup(int lines);
-chtype endPopup(WINDOW* win);
 
 // https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/index.html
 WINDOW *create_newwin(int height, int width, int starty, int startx);
@@ -78,33 +37,30 @@ int main() {
     newThing(room, T_Item, '*', 12, 9);
     newThing(room, T_Item, '!', 10, 10);
     newThing(room, T_Structure, '>', 4, 12);
-    newThing(room, T_Sprite, 'a', 4, 9);
-    newThing(room, T_Sprite, 'a', 14, 5);
-    newThing(room, T_Sprite, 'b', 12, 3);
+    addMonster(room, 4, 9, "ape", 4, 3);
+    addMonster(room, 14, 5, "ape", 4, 3);
+    addMonster(room, 12, 3, "barbarian", 3, 4);
     int x = 10;
     int y =  5;
     newThing(room, T_Sprite, '@', y, x);
     addArmour(room, 12, 10, "yellow jammies");
     addArmour(room, 2, 6, "green jammies");
 
-    int ch;
-    THING* thing;
-    do {
-        thing = things;
-        while (thing != NULL) {
+    chtype ch = 0;
+    while (ch != 'Q') {
+        for (THING* thing = things; thing != NULL; thing = thing->next) {
             if (thing->type == T_Sprite) {
                 ch = sprite_act(room, thing);
             }
             if (ch == 'Q')
                 break;
-            thing = thing->next;
         }
 
         refresh();
         wrefresh(room);
-    } while (ch != 'Q');
+    }
 
-    delwin(room);
+    destroy_win(room);
 	endwin();
 
 	return 0;
@@ -114,7 +70,7 @@ int sprite_act(WINDOW* room, THING* sprite) {
     int ch;
     if (sprite->type != T_Sprite)
         return 0;
-    if (sprite->endurance <= 0)
+    if (sprite->constitution <= 0)
         return 0;
     int maxy = getmaxy(room);
     int maxx = getmaxx(room);
@@ -270,7 +226,6 @@ int sprite_act(WINDOW* room, THING* sprite) {
             if (allowedIndices[i]) {
                 //TODO effect
                 dumpInventory(i);
-                //TODO item is expended
             } else {
                 mvaddstr(1, 0, "you can't read that"); clrtoeol(); refresh();
             }
@@ -283,7 +238,6 @@ int sprite_act(WINDOW* room, THING* sprite) {
             WINDOW* invlist = newPopup(inventoryFill+3);
             mvwprintw(invlist, 1, 1, "%s", "What do you want to wear:");
             for (int i = 0; i < inventoryFill; i++) {
-                // t->type == T_Item && t->inInventory && are already given
                 if (inventory[i]->badge == '&') {
                     mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
                     allowedIndices[i] = true;
@@ -313,7 +267,7 @@ int sprite_act(WINDOW* room, THING* sprite) {
             if (sprite->under == ' ') {
                 mvaddstr(1, 0, "there's nothing to pick up");
             } else if (inventoryFill == INVENTORY_SIZE) {
-                mvaddstr(1, 0, "your inventory is full");
+                mvaddstr(1, 0, "you can't carry more items");
             } else {
                 THING* t = locateObject(sprite->ypos, sprite->xpos);
                 if (t == NULL) {
@@ -322,7 +276,8 @@ int sprite_act(WINDOW* room, THING* sprite) {
                     mvaddstr(1, 0, "you can't pick that up");
                 } else {
                     inventory[inventoryFill++] = t;
-                    mvprintw(1, 0, "%s", t->descr);
+                    mvprintw(1, 0, "you picked up: %s", t->descr);
+                    //TODO multiple items in same space
                     sprite->under = ' ';
                     t->inInventory = true;
                     t->ypos = -1;
@@ -459,8 +414,8 @@ void combat(THING* sprite, int atY, int atX) {
     int combatRoll = rand() % 6 + 1;
     if (combatRoll < sprite->attack) {
         mvaddstr(1, 0, "hit!");
-        s->endurance--;
-        if (s->endurance <= 0) {
+        s->constitution--;
+        if (s->constitution <= 0) {
             // s is killed
             s->badge = '%';
             present(s);
@@ -480,6 +435,14 @@ void present(THING* sprite) {
 /*
 
  * */
+
+THING* addMonster(WINDOW* win, int y, int x, const char* descr, int atk, int con) {
+    THING* t = newThing(win, T_Sprite, descr[0], y, x);
+    t->descr = descr;
+    t->attack = atk;
+    t->constitution = con;
+    return t;
+}
 
 THING* addArmour(WINDOW* win, int y, int x, const char* descr) {
     THING* t = newThing(win, T_Item, '&', y, x);
@@ -527,17 +490,17 @@ THING* newThing(WINDOW* win, ThingType type, chtype badge, int y, int x) {
         case '@':
             thing->descr = "the player";
             thing->attack = 5;
-            thing->endurance = 5;
+            thing->constitution = 5;
             break;
         case 'a':
             thing->descr = "carnivorous ape";
             thing->attack = 4;
-            thing->endurance = 3;
+            thing->constitution = 3;
             break;
         case 'b':
             thing->descr = "barbarian";
             thing->attack = 3;
-            thing->endurance = 4;
+            thing->constitution = 4;
             break;
     }
     thing->inInventory = false;
