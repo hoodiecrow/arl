@@ -34,6 +34,9 @@ THING* newThing(WINDOW* win, ThingType type, chtype badge, int y, int x);
 THING* inventory[INVENTORY_SIZE];
 int inventoryFill = 0;
 
+THING* worn = NULL;
+
+THING* addArmour(WINDOW* win, int y, int x, const char* descr);
 void present(THING* thing);
 int sprite_act(WINDOW* room, THING* sprite);
 THING* locateThing(int ypos, int xpos);
@@ -76,6 +79,8 @@ int main() {
     int x = 10;
     int y =  5;
     newThing(room, T_Sprite, '@', y, x);
+    addArmour(room, 12, 10, "yellow jammies");
+    addArmour(room, 2, 6, "green jammies");
 
     int ch;
     THING* thing;
@@ -276,7 +281,7 @@ int sprite_act(WINDOW* room, THING* sprite) {
             // 1st pass: count the items
             int itemcount = 0;
             for (THING* t = things; t != NULL; t = t->next) {
-                if (t->badge != '@' && !t->inInventory)
+                if (t->badge != '@' && !t->inInventory && t != worn)
                     itemcount++;
             }
             WINDOW* invlist = create_newwin(itemcount+3, 30, 2, 0);
@@ -284,7 +289,7 @@ int sprite_act(WINDOW* room, THING* sprite) {
             int i = 1;
             mvwprintw(invlist, i++, 2, "%s", "Looking around, you see:");
             for (THING* t = things; t != NULL; t = t->next) {
-                if (t->badge != '@' && !t->inInventory) {
+                if (t->badge != '@' && !t->inInventory && t != worn) {
                     mvwprintw(invlist, i++, 2, "%s", t->descr);
                 }
             }
@@ -360,10 +365,17 @@ int sprite_act(WINDOW* room, THING* sprite) {
             int i = ch-'a';
             //TODO allow only selected letters
             if (i >= 0 && i < inventoryFill) {
-                THING* t = inventory[i];
-                (void)t; //TODO until used
-                //TODO set the item in the worn slot and move the previously
-                //worn item out of the inventory
+                if (worn != NULL) {
+                    sprite->under = worn->badge;
+                    worn->ypos = sprite->ypos;
+                    worn->xpos = sprite->xpos;
+                }
+                worn = inventory[i];
+                inventory[i]->inInventory = false;
+                for (int j = i + 1; j < inventoryFill; i++, j++) {
+                    inventory[i] = inventory[j];
+                }
+                inventoryFill--;
             }
         } else if (ch == 'z') {
             mvaddstr(1, 0, "zap in which direction?");
@@ -504,6 +516,12 @@ void present(THING* sprite) {
 /*
 
  * */
+
+THING* addArmour(WINDOW* win, int y, int x, const char* descr) {
+    THING* t = newThing(win, T_Item, '&', y, x);
+    t->descr = descr;
+    return t;
+}
 
 THING* newThing(WINDOW* win, ThingType type, chtype badge, int y, int x) {
     THING* thing = malloc(sizeof(THING));
