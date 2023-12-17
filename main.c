@@ -13,6 +13,10 @@ THING* player = NULL;
 WINDOW *create_newwin(int height, int width, int starty, int startx);
 void destroy_win(WINDOW *local_win);
 
+int** genMap(int ysize, int xsize, int fill, int r1, int r2, int count);
+
+int** mapGen();
+
 int main() {	
 	initscr();
 	raw();
@@ -23,45 +27,56 @@ int main() {
 
     refresh();
 
-    srand (time (NULL));
+    srand(time (NULL));
 
+    WINDOW* map = create_newwin(37, 92, 2, 0);
+    keypad(map, TRUE);
+
+    int** grid = genMap(35, 90, 35, 5, 1, 10);
+
+    void showMap(WINDOW* map, int** grid);
+    showMap(map, grid);
+    wrefresh(map);
+            
+#if 0
     int height = 16;
     int width = 20;
     int starty = (LINES - height) / 2;
     int startx = (COLS - width) / 2;
     WINDOW *room = create_newwin(height, width, starty, startx);
     keypad(room, TRUE);
+#endif
 
     curs_set(0);
-    newThing(room, T_Item, '$', 2, 4);
-    newThing(room, T_Item, ':', 6, 10);
-    newThing(room, T_Item, '*', 12, 9);
-    newThing(room, T_Item, '!', 10, 10);
-    newThing(room, T_Structure, '>', 4, 12);
-    addMonster(room, 4, 9, "ape", 4, 3);
-    addMonster(room, 14, 5, "ape", 4, 3);
-    addMonster(room, 12, 3, "barbarian", 3, 4);
+    newThing(map, T_Item, '$', 2, 4);
+    newThing(map, T_Item, ':', 6, 10);
+    newThing(map, T_Item, '*', 12, 9);
+    newThing(map, T_Item, '!', 10, 10);
+    newThing(map, T_Structure, '>', 4, 12);
+    addMonster(map, 4, 9, "ape", 4, 3);
+    addMonster(map, 14, 5, "ape", 4, 3);
+    addMonster(map, 12, 3, "barbarian", 3, 4);
     int x = 10;
     int y =  5;
-    newThing(room, T_Sprite, '@', y, x);
-    addArmour(room, 12, 10, "yellow jammies");
-    addArmour(room, 2, 6, "green jammies");
+    newThing(map, T_Sprite, '@', y, x);
+    addArmour(map, 12, 10, "yellow jammies");
+    addArmour(map, 2, 6, "green jammies");
 
     chtype ch = 0;
     while (ch != 'Q') {
         for (THING* thing = things; thing != NULL; thing = thing->next) {
             if (thing->type == T_Sprite) {
-                ch = sprite_act(room, thing);
+                ch = sprite_act(map, thing);
             }
             if (ch == 'Q')
                 break;
         }
 
         refresh();
-        wrefresh(room);
+        wrefresh(map);
     }
 
-    destroy_win(room);
+    destroy_win(map);
 	endwin();
 
 	return 0;
@@ -444,6 +459,8 @@ void attemptMove(WINDOW* room, THING* sprite, int incrY, int incrX) {
     chtype floor = mvwinch(room, toY, toX);
     if (floor == '@' || isalpha(floor)) {
         combat(sprite, toY, toX);
+    } else if (floor == '#') {
+        // a wall
     } else if (floor == ' ' || ispunct(floor)) {
         stepSprite(room, sprite, floor, toY, toX);
     }
