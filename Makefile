@@ -10,7 +10,7 @@ arl: $(OBJ)
 	$(CC) -o $@ $^ -lncurses $(CFLAGS)
 
 maps: maps.o
-	$(CC) -o $@ $^ -lncurses $(CFLAGS)
+	$(CC) -o $@ $^ $(CFLAGS)
 
 .PHONY: clean
 

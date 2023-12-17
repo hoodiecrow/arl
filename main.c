@@ -9,6 +9,8 @@ bool allowedIndices[INVENTORY_SIZE];
 THING* worn = NULL;
 THING* player = NULL;
 
+void showMap(WINDOW* map);
+
 // https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/index.html
 WINDOW *create_newwin(int height, int width, int starty, int startx);
 void destroy_win(WINDOW *local_win);
@@ -32,10 +34,9 @@ int main() {
     WINDOW* map = create_newwin(37, 92, 2, 0);
     keypad(map, TRUE);
 
-    int** grid = genMap(35, 90, 35, 5, 1, 10);
+    genMap(35, 90, 35, 5, 1, 10);
 
-    void showMap(WINDOW* map, int** grid);
-    showMap(map, grid);
+    showMap(map);
     wrefresh(map);
             
 #if 0

@@ -152,18 +152,19 @@ int** genMap(int ysize, int xsize, int fill, int r1, int r2, int count) {
     return grid;
 }
 
-void showMap(WINDOW* map, int** grid) {
+void showMap(WINDOW* map) {
     for (int y = 0; y < 35; y++) {
         for (int x = 0; x < 90; x++) {
- 			switch(grid[y][x]) {
- 				case TILE_WALL: 
+            switch(grid[y][x]) {
+                case TILE_WALL: 
                     mvwaddch(map, y+1, x+1, '#');
                     break;
- 				case TILE_FLOOR:
+                case TILE_FLOOR:
                     mvwaddch(map, y+1, x+1, ' ');
                     break;
-                default: mvwaddch(map, y+1, x+1, 'X');
- 			}
+                default:
+                    mvwaddch(map, y+1, x+1, 'X');
+            }
         }
     }
 }
