@@ -7,6 +7,7 @@ int inventoryFill = 0;
 bool allowedIndices[INVENTORY_SIZE];
 
 THING* worn = NULL;
+THING* player = NULL;
 
 // https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/index.html
 WINDOW *create_newwin(int height, int width, int starty, int startx);
@@ -70,15 +71,62 @@ int sprite_act(WINDOW* room, THING* sprite) {
     int ch;
     if (sprite->type != T_Sprite)
         return 0;
-    if (sprite->constitution <= 0)
-        return 0;
+    if (sprite->constitution <= 0) {
+        if (sprite == player) 
+            return 'Q';
+        else
+            return 0;
+    }
     int maxy = getmaxy(room);
     int maxx = getmaxx(room);
     if (sprite->badge == '@') {
         ch = wgetch(room);
     } else {
         //TODO not totally random movement, e.g. moving towards player
-        ch = 49 + rand() % 8;
+        int diffy = 0;
+        int diffx = 0;
+        int diry = 0;
+        int dirx = 0;
+        if (player->ypos > sprite->ypos) {
+            diffy = player->ypos - sprite->ypos;
+            diry = 1;
+        } else if (player->ypos == sprite->ypos) {
+            diry = 0;
+        } else {
+            diffy = sprite->ypos - player->ypos;
+            diry = -1;
+        }
+        if (player->xpos > sprite->xpos) {
+            diffx = player->xpos - sprite->xpos;
+            dirx = 1;
+        } else if (player->xpos == sprite->xpos) {
+            dirx = 0;
+        } else {
+            diffx = sprite->xpos - player->xpos;
+            dirx = -1;
+        }
+        if (diffy < 3 && diffx < 3) {
+            if (diry == 1 && dirx == -1)
+                ch = '1';
+            else if (diry == 1 && dirx == 0)
+                ch = '2';
+            else if (diry == 1 && dirx == 1)
+                ch = '3';
+            else if (diry == 0 && dirx == -1)
+                ch = '4';
+            else if (diry == 0 && dirx == 1)
+                ch = '6';
+            else if (diry == -1 && dirx == -1)
+                ch = '7';
+            else if (diry == -1 && dirx == 0)
+                ch = '8';
+            else if (diry == -1 && dirx == 1)
+                ch = '9';
+            else
+                ch = '5'; // won't happen
+        } else {
+            ch = 49 + rand() % 8;
+        }
     }
     if (ch == '1') {
         if (sprite->ypos < maxy-2 && sprite->xpos > 1) {
@@ -457,6 +505,8 @@ THING* newThing(WINDOW* win, ThingType type, chtype badge, int y, int x) {
         getch();
         exit(1);
     }
+    if (badge == '@')
+        player = thing;
     thing->type = type;
     thing->room = win;
     thing->badge = badge;
