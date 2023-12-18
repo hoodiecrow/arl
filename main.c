@@ -27,7 +27,7 @@ int main() {
 
     srand(time (NULL));
 
-    WINDOW* map = create_newwin(37, 72, 2, 30);
+    WINDOW* map = create_newwin(37, 72, 2, 0);
     keypad(map, TRUE);
 
     //genMap(35, 90, 35, 5, 1, 10);
@@ -46,6 +46,7 @@ int main() {
     keypad(room, TRUE);
 #endif
 
+    //TODO drop things in open space
     curs_set(0);
     newThing(map, T_Item, '$', 2, 4);
     newThing(map, T_Item, ':', 6, 10);
@@ -395,7 +396,7 @@ int sprite_act(WINDOW* room, THING* sprite) {
 }
 
 WINDOW* newPopup(int lines) {
-    WINDOW* win = create_newwin(lines, 30, 2, 0);
+    WINDOW* win = create_newwin(lines, 30, 2, 72);
     return win;
 }
 
