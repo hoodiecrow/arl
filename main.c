@@ -1,4 +1,6 @@
 #include "main.h"
+#include "maps.h"
+#include "map9.h"
 
 THING* things = NULL; // top pointer for thing linked list
 
@@ -9,15 +11,9 @@ bool allowedIndices[INVENTORY_SIZE];
 THING* worn = NULL;
 THING* player = NULL;
 
-void showMap(WINDOW* map);
-
 // https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/index.html
 WINDOW *create_newwin(int height, int width, int starty, int startx);
 void destroy_win(WINDOW *local_win);
-
-int** genMap(int ysize, int xsize, int fill, int r1, int r2, int count);
-
-int** mapGen();
 
 int main() {	
 	initscr();
@@ -31,12 +27,14 @@ int main() {
 
     srand(time (NULL));
 
-    WINDOW* map = create_newwin(37, 92, 2, 0);
+    WINDOW* map = create_newwin(37, 72, 2, 30);
     keypad(map, TRUE);
 
-    genMap(35, 90, 35, 5, 1, 10);
+    //genMap(35, 90, 35, 5, 1, 10);
+    genMap9(35, 70);
 
-    showMap(map);
+    //showMap(map);
+    showMap9(map);
     wrefresh(map);
             
 #if 0
