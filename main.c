@@ -11,6 +11,8 @@ bool allowedIndices[INVENTORY_SIZE];
 THING* worn = NULL;
 THING* player = NULL;
 
+static void placeThingInOpen(WINDOW* win, int *y, int *x);
+
 // https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/index.html
 WINDOW *create_newwin(int height, int width, int starty, int startx);
 void destroy_win(WINDOW *local_win);
@@ -48,19 +50,25 @@ int main() {
 
     //TODO drop things in open space
     curs_set(0);
-    newThing(map, T_Item, '$', 2, 4);
-    newThing(map, T_Item, ':', 6, 10);
-    newThing(map, T_Item, '*', 12, 9);
-    newThing(map, T_Item, '!', 10, 10);
-    newThing(map, T_Structure, '>', 4, 12);
+    int y, x;
+    placeThingInOpen(map, &y, &x);
+    newThing(map, T_Item, '$', y, x);
+    placeThingInOpen(map, &y, &x);
+    newThing(map, T_Item, ':', y, x);
+    placeThingInOpen(map, &y, &x);
+    newThing(map, T_Item, '*', y, x);
+    placeThingInOpen(map, &y, &x);
+    newThing(map, T_Item, '!', y, x);
+    placeThingInOpen(map, &y, &x);
+    newThing(map, T_Structure, '>', y, x);
     addMonster(map, "ape", 4, 3);
     addMonster(map, "ape", 4, 3);
     addMonster(map, "barbarian", 3, 4);
-    int x = 10;
-    int y =  5;
+    x = 10;
+    y =  5;
     newThing(map, T_Sprite, '@', y, x);
-    addArmour(map, 12, 10, "yellow jammies");
-    addArmour(map, 2, 6, "green jammies");
+    addArmour(map, "yellow jammies");
+    addArmour(map, "green jammies");
 
     chtype ch = 0;
     while (ch != 'Q') {
@@ -496,15 +504,22 @@ void present(THING* sprite) {
     wrefresh(sprite->room);
 }
 
-THING* addMonster(WINDOW* win, const char* descr, int atk, int con) {
+static void placeThingInOpen(WINDOW* win, int *y, int *x) {
     int maxy, maxx;
     getmaxyx(win, maxy, maxx);
-    int y = rand() % maxy;
-    int x = rand() % maxx;
-    while (mvwinch(win, y, x) != ' ') {
-        y = rand() % maxy;
-        x = rand() % maxx;
+    int ry = rand() % maxy;
+    int rx = rand() % maxx;
+    while (mvwinch(win, ry, rx) != ' ') {
+        ry = rand() % maxy;
+        rx = rand() % maxx;
     }
+    *y = ry;
+    *x = rx;
+}
+
+THING* addMonster(WINDOW* win, const char* descr, int atk, int con) {
+    int y, x;
+    placeThingInOpen(win, &y, &x);
     THING* t = newThing(win, T_Sprite, descr[0], y, x);
     t->descr = descr;
     t->attack = atk;
@@ -512,7 +527,9 @@ THING* addMonster(WINDOW* win, const char* descr, int atk, int con) {
     return t;
 }
 
-THING* addArmour(WINDOW* win, int y, int x, const char* descr) {
+THING* addArmour(WINDOW* win, const char* descr) {
+    int y, x;
+    placeThingInOpen(win, &y, &x);
     THING* t = newThing(win, T_Item, '&', y, x);
     t->descr = descr;
     return t;
