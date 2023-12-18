@@ -19,6 +19,7 @@ typedef struct THING {
     int ypos;
     int xpos;
     const char* descr;
+    int value;
     bool inInventory;
     bool isEdible;
     bool isPotable;
@@ -35,6 +36,7 @@ THING* newThing(WINDOW* win, ThingType type, chtype badge, int y, int x);
 
 THING* addMonster(WINDOW* win, const char* descr, int atk, int con);
 THING* addArmour(WINDOW* win, const char* descr);
+THING* addGold(WINDOW* win);
 void present(THING* thing);
 int sprite_act(WINDOW* room, THING* sprite);
 THING* locateThing(int ypos, int xpos);

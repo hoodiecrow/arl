@@ -11,7 +11,7 @@ typedef struct PART {
     int xsize;
 } PART;
 
-int** genMap9(int ysize, int xsize);
+void genMap9(int ysize, int xsize);
 void showMap9(WINDOW* map);
 void drawBox(WINDOW* map, int ybeg, int xbeg, int ysiz, int xsiz);
 void drawCorr(WINDOW* map, PART from, PART to);

@@ -48,11 +48,12 @@ int main() {
     keypad(room, TRUE);
 #endif
 
-    //TODO drop things in open space
     curs_set(0);
     int y, x;
-    placeThingInOpen(map, &y, &x);
-    newThing(map, T_Item, '$', y, x);
+    //TODO pick up gold automatically when stepping over
+    for (int n = 0; n < rand() % 5 + 1; n++) {
+        addGold(map);
+    }
     placeThingInOpen(map, &y, &x);
     newThing(map, T_Item, ':', y, x);
     placeThingInOpen(map, &y, &x);
@@ -535,6 +536,14 @@ THING* addArmour(WINDOW* win, const char* descr) {
     return t;
 }
 
+THING* addGold(WINDOW* win) {
+    int y, x;
+    placeThingInOpen(win, &y, &x);
+    THING* t = newThing(win, T_Item, '$', y, x);
+    t->value = rand() % 100;
+    return t;
+}
+
 THING* newThing(WINDOW* win, ThingType type, chtype badge, int y, int x) {
     THING* thing = malloc(sizeof(THING));
     if (thing == NULL) {
@@ -590,6 +599,7 @@ THING* newThing(WINDOW* win, ThingType type, chtype badge, int y, int x) {
             thing->constitution = 4;
             break;
     }
+    thing->value = -1;
     thing->inInventory = false;
     thing->next = things;
     things = thing;

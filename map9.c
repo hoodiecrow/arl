@@ -2,7 +2,7 @@
 
 PART A, B, C, D, E, F, G, H, I;
 
-int** genMap9(int ysize, int xsize) {
+void genMap9(int ysize, int xsize) {
     // A B C
     // D E F
     // G H I
