@@ -27,6 +27,7 @@ typedef struct THING {
     struct THING* next;
     int attack;
     int constitution;
+    int wholeConstitution;
     chtype under;
 } THING;
 

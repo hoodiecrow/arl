@@ -133,7 +133,7 @@ void drawBox(WINDOW* map, int ybeg, int xbeg, int ysiz, int xsiz) {
     }
     int yrand = ysiz - rand() % r;
     for (int y0 = yrand; y0 < ysiz; y0++) {
-        for (int y = ysiz, x = xbeg; x <= xsiz; x++) {
+        for (int y = y0, x = xbeg; x <= xsiz; x++) {
             mvwaddch(map, y, x, '#');
         }
     }

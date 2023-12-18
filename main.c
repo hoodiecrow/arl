@@ -11,6 +11,8 @@ bool allowedIndices[INVENTORY_SIZE];
 THING* worn = NULL;
 THING* player = NULL;
 
+WINDOW* status;
+
 static void placeThingInOpen(WINDOW* win, int *y, int *x);
 
 // https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/index.html
@@ -32,6 +34,9 @@ int main() {
     WINDOW* map = create_newwin(37, 72, 2, 0);
     keypad(map, TRUE);
 
+    status = create_newwin(19, 30, 20, 72);
+    keypad(status, TRUE);
+
     //genMap(35, 90, 35, 5, 1, 10);
     genMap9(35, 70);
 
@@ -50,7 +55,6 @@ int main() {
 
     curs_set(0);
     int y, x;
-    //TODO pick up gold automatically when stepping over
     for (int n = 0; n < rand() % 5 + 1; n++) {
         addGold(map);
     }
@@ -71,6 +75,9 @@ int main() {
     addArmour(map, "yellow jammies");
     addArmour(map, "green jammies");
 
+    mvwprintw(status, 1, 1, "Gold: %9d", player->gold);
+    mvwprintw(status, 2, 1, "Constitution: %3d (%3d)", player->constitution, player->wholeConstitution);
+
     chtype ch = 0;
     while (ch != 'Q') {
         for (THING* thing = things; thing != NULL; thing = thing->next) {
@@ -83,6 +90,7 @@ int main() {
 
         refresh();
         wrefresh(map);
+        wrefresh(status);
     }
 
     destroy_win(map);
@@ -106,7 +114,6 @@ int sprite_act(WINDOW* room, THING* sprite) {
     if (sprite->badge == '@') {
         ch = wgetch(room);
     } else {
-        //TODO not totally random movement, e.g. moving towards player
         int diffy = 0;
         int diffx = 0;
         int diry = 0;
@@ -188,6 +195,7 @@ int sprite_act(WINDOW* room, THING* sprite) {
         }
     }
     if (sprite->badge == '@') {
+            //                     ((( c )))
         if (ch == 'c') {
             mvaddstr(1, 0, "close what?");
             clrtoeol();
@@ -237,7 +245,7 @@ int sprite_act(WINDOW* room, THING* sprite) {
             clrtoeol();
         } else if (ch == 'i') {
             //                     ((( i )))
-            WINDOW* invlist = newPopup(inventoryFill+3);
+            WINDOW* invlist = newPopup(15+3);
             mvwprintw(invlist, 1, 1, "%s", "You are carrying:");
             for (int i = 0; i < inventoryFill; i++) {
                 mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
@@ -369,7 +377,6 @@ int sprite_act(WINDOW* room, THING* sprite) {
             if (i >= 0 && i < inventoryFill) {
                 THING* t = inventory[i];
                 dumpInventory(i);
-                //TODO drop more than one item
                 sprite->under = t->badge;
                 t->ypos = sprite->ypos;
                 t->xpos = sprite->xpos;
@@ -487,16 +494,19 @@ static void freeObject(THING* o) {
     free(o);
 }
 
+static void playerStepsOnGold(int toY, int toX) {
+    THING* o = locateObject(toY, toX);
+    if (o != NULL) {
+        player->gold += o->gold;
+        mvwprintw(status, 1, 1, "Gold: %9d", player->gold);
+        freeObject(o);
+    }
+}
+
 void stepSprite(WINDOW* room, THING* sprite, chtype floor, int toY, int toX) {
     mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
-    if (floor == '$') {
-        THING* o = locateObject(toY, toX);
-        if (o != NULL) {
-            player->gold += o->gold;
-            mvprintw(1, 0, "Gold: %d", player->gold);
-            clrtoeol();
-            freeObject(o);
-        }
+    if (floor == '$' && sprite == player) {
+        playerStepsOnGold(toY, toX);
     } else {
         sprite->under = floor;
     }
@@ -511,6 +521,10 @@ void combat(THING* sprite, int atY, int atX) {
     if (combatRoll < sprite->attack) {
         mvaddstr(1, 0, "hit!");
         s->constitution--;
+        if (s == player) {
+            mvwprintw(status, 2, 1, "Constitution: %3d (%3d)", player->constitution, player->wholeConstitution);
+            wrefresh(status);
+        }
         if (s->constitution <= 0) {
             // s is killed
             s->badge = '%';
@@ -562,7 +576,7 @@ THING* addGold(WINDOW* win) {
     int y, x;
     placeThingInOpen(win, &y, &x);
     THING* t = newThing(win, T_Item, '$', y, x);
-    t->gold = rand() % 100;
+    t->gold = 20 + rand() % 100;
     return t;
 }
 
@@ -583,6 +597,8 @@ THING* newThing(WINDOW* win, ThingType type, chtype badge, int y, int x) {
     thing->isEdible = false;
     thing->isPotable = false;
     thing->isEquippable = false;
+    thing->attack = 0;
+    thing->constitution = 0;
     switch (badge) {
         case '$':
             thing->descr = "12 dollars";
@@ -622,6 +638,7 @@ THING* newThing(WINDOW* win, ThingType type, chtype badge, int y, int x) {
             break;
     }
     thing->gold = 0;
+    thing->wholeConstitution = thing->constitution;
     thing->inInventory = false;
     thing->next = things;
     things = thing;
