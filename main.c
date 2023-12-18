@@ -475,9 +475,31 @@ void attemptMove(WINDOW* room, THING* sprite, int incrY, int incrX) {
     }
 }
 
+static void freeObject(THING* o) {
+    if (things == o) {
+        things = o->next;
+    } else {
+        THING* t;
+        for (t = things; t->next != o; t = t->next)
+            ;
+        t->next = o->next;
+    }
+    free(o);
+}
+
 void stepSprite(WINDOW* room, THING* sprite, chtype floor, int toY, int toX) {
     mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
-    sprite->under = floor;
+    if (floor == '$') {
+        THING* o = locateObject(toY, toX);
+        if (o != NULL) {
+            player->gold += o->gold;
+            mvprintw(1, 0, "Gold: %d", player->gold);
+            clrtoeol();
+            freeObject(o);
+        }
+    } else {
+        sprite->under = floor;
+    }
     sprite->ypos = toY;
     sprite->xpos = toX;
     present(sprite);
@@ -540,7 +562,7 @@ THING* addGold(WINDOW* win) {
     int y, x;
     placeThingInOpen(win, &y, &x);
     THING* t = newThing(win, T_Item, '$', y, x);
-    t->value = rand() % 100;
+    t->gold = rand() % 100;
     return t;
 }
 
@@ -599,7 +621,7 @@ THING* newThing(WINDOW* win, ThingType type, chtype badge, int y, int x) {
             thing->constitution = 4;
             break;
     }
-    thing->value = -1;
+    thing->gold = 0;
     thing->inInventory = false;
     thing->next = things;
     things = thing;

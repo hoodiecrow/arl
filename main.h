@@ -19,7 +19,7 @@ typedef struct THING {
     int ypos;
     int xpos;
     const char* descr;
-    int value;
+    int gold;
     bool inInventory;
     bool isEdible;
     bool isPotable;
