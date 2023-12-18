@@ -276,7 +276,7 @@ int sprite_act(WINDOW* room, THING* sprite) {
             WINDOW* invlist = newPopup(inventoryFill+3);
             mvwprintw(invlist, 1, 1, "%s", "What do you want to read:");
             for (int i = 0; i < inventoryFill; i++) {
-                if ((inventory[i]->badge == '~' || inventory[i]->badge == '#')) {
+                if ((inventory[i]->badge == '~' || inventory[i]->badge == '=')) {
                     mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
                     allowedIndices[i] = true;
                 } else {
@@ -494,11 +494,6 @@ void present(THING* sprite) {
     mvwaddch(sprite->room, sprite->ypos, sprite->xpos, sprite->badge);
     wrefresh(sprite->room);
 }
-
-// objects !  " # $ % & ' () * + , - .  / : ; < = > ?  [ \ ] ^ _ { | } ~
-/*
-
- * */
 
 THING* addMonster(WINDOW* win, int y, int x, const char* descr, int atk, int con) {
     THING* t = newThing(win, T_Sprite, descr[0], y, x);
