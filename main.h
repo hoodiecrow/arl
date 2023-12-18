@@ -33,7 +33,7 @@ typedef struct THING {
 
 THING* newThing(WINDOW* win, ThingType type, chtype badge, int y, int x);
 
-THING* addMonster(WINDOW* win, int y, int x, const char* descr, int atk, int con);
+THING* addMonster(WINDOW* win, const char* descr, int atk, int con);
 THING* addArmour(WINDOW* win, int y, int x, const char* descr);
 void present(THING* thing);
 int sprite_act(WINDOW* room, THING* sprite);

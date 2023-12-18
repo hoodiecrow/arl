@@ -53,9 +53,9 @@ int main() {
     newThing(map, T_Item, '*', 12, 9);
     newThing(map, T_Item, '!', 10, 10);
     newThing(map, T_Structure, '>', 4, 12);
-    addMonster(map, 4, 9, "ape", 4, 3);
-    addMonster(map, 14, 5, "ape", 4, 3);
-    addMonster(map, 12, 3, "barbarian", 3, 4);
+    addMonster(map, "ape", 4, 3);
+    addMonster(map, "ape", 4, 3);
+    addMonster(map, "barbarian", 3, 4);
     int x = 10;
     int y =  5;
     newThing(map, T_Sprite, '@', y, x);
@@ -496,7 +496,15 @@ void present(THING* sprite) {
     wrefresh(sprite->room);
 }
 
-THING* addMonster(WINDOW* win, int y, int x, const char* descr, int atk, int con) {
+THING* addMonster(WINDOW* win, const char* descr, int atk, int con) {
+    int maxy, maxx;
+    getmaxyx(win, maxy, maxx);
+    int y = rand() % maxy;
+    int x = rand() % maxx;
+    while (mvwinch(win, y, x) != ' ') {
+        y = rand() % maxy;
+        x = rand() % maxx;
+    }
     THING* t = newThing(win, T_Sprite, descr[0], y, x);
     t->descr = descr;
     t->attack = atk;
