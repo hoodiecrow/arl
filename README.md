@@ -12,7 +12,7 @@ Move around with keypad
 (5 is rest)
 
 # Actions
-Around half of them do anything at all except show a text line, lol
+Bolded commands have some kind of mechanism to them.
 
 - `c` close
 - `e` **eat**
@@ -38,7 +38,6 @@ Around half of them do anything at all except show a text line, lol
 Still figuring these out...
 - `!` potion or drink
 - `"`
-- `#` book
 - `$` gold
 - `%` carcass
 - `&` garments or armour
@@ -52,7 +51,7 @@ Still figuring these out...
 - `:` ring
 - `;` amulet
 - `<` stair (up)
-- `=`
+- `=` book
 - `>` stair (down)
 - `?`
 - `[`
