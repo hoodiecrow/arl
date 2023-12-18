@@ -4,7 +4,7 @@
  #include <stdlib.h>
  #include <time.h>
 
-#include "main.h"
+#include "maps.h"
 
  #define TILE_FLOOR 0
  #define TILE_WALL 1
@@ -25,16 +25,14 @@
  generation_params *params_set;
  int generations;
 
- int randpick(void)
- {
- 	if(rand()%100 < fillprob)
+ int randpick(void) {
+ 	if (rand() % 100 < fillprob)
  		return TILE_WALL;
  	else
  		return TILE_FLOOR;
  }
 
- void initmap(void)
- {
+ void initmap(void) {
 	int xi, yi;
 	
 	grid  = (int**)malloc(sizeof(int*) * size_y);
@@ -60,8 +58,7 @@
 		grid[0][xi] = grid[size_y-1][xi] = TILE_WALL;
  }
 
- void generation(void)
- {
+ void generation(void) {
 	int xi, yi, ii, jj;
 	
 	for(yi=1; yi<size_y-1; yi++)
@@ -96,8 +93,7 @@
  		grid[yi][xi] = grid2[yi][xi];
  } 
 
- void printfunc(void)
- {
+ void printfunc(void) {
  	int ii;
  	
  	printf("W[0](p) = rand[0,100) < %i\n", fillprob);
@@ -114,8 +110,7 @@
  	}
  }
  
- void printmap(void)
- {
+ void printmap(void) {
  	int xi, yi;
  	
  	for(yi=0; yi<size_y; yi++)
@@ -132,6 +127,7 @@
  }
 
 int** genMap(int ysize, int xsize, int fill, int r1, int r2, int count) {
+    //TODO multiple (r1, r2, count) sets
     size_y = ysize;
     size_x = xsize;
     fillprob = fill;
@@ -170,8 +166,7 @@ void showMap(WINDOW* map) {
 }
 
 #if 0
- int main(int argc, char **argv)
- {
+ int main(int argc, char **argv) {
  	int ii, jj;
  	
  	if(argc < 7) {
