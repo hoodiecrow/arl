@@ -115,23 +115,23 @@ void drawBox(WINDOW* map, int ybeg, int xbeg, int ysiz, int xsiz) {
     for (int y = ysiz, x = xbeg; x <= xsiz; x++) {
         mvwaddch(map, y, x, '#');
     }
-    for (int x0 = xbeg; x0 < xbeg + rand() % r; x0++) {
+    for (int x0 = xbeg; x0 < xbeg + random() % r; x0++) {
         for (int y = ybeg, x = x0; y <= ysiz; y++) {
             mvwaddch(map, y, x, '#');
         }
     }
-    for (int y0 = ybeg; y0 < ybeg + rand() % r; y0++) {
+    for (int y0 = ybeg; y0 < ybeg + random() % r; y0++) {
         for (int y = y0, x = xbeg; x <= xsiz; x++) {
             mvwaddch(map, y, x, '#');
         }
     }
-    int xrand = xsiz - rand() % r;
+    int xrand = xsiz - random() % r;
     for (int x0 = xrand; x0 < xsiz; x0++) {
         for (int y = ybeg, x = x0; y <= ysiz; y++) {
             mvwaddch(map, y, x, '#');
         }
     }
-    int yrand = ysiz - rand() % r;
+    int yrand = ysiz - random() % r;
     for (int y0 = yrand; y0 < ysiz; y0++) {
         for (int y = y0, x = xbeg; x <= xsiz; x++) {
             mvwaddch(map, y, x, '#');

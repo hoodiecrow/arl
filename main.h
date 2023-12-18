@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include "pcg_basic.h"
+
 typedef enum {
     T_Sprite,
     T_Item,

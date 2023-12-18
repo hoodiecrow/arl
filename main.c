@@ -13,7 +13,7 @@ THING* player = NULL;
 
 WINDOW* status;
 
-static void placeThingInOpen(WINDOW* win, int *y, int *x);
+static void getOpenLocation(WINDOW* win, int *y, int *x);
 
 // https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/index.html
 WINDOW *create_newwin(int height, int width, int starty, int startx);
@@ -29,7 +29,8 @@ int main() {
 
     refresh();
 
-    srand(time (NULL));
+    srandom(time(NULL));
+    //srand(time (NULL));
 
     WINDOW* map = create_newwin(37, 72, 2, 0);
     keypad(map, TRUE);
@@ -55,16 +56,16 @@ int main() {
 
     curs_set(0);
     int y, x;
-    for (int n = 0; n < rand() % 5 + 1; n++) {
+    for (int n = 0; n < random() % 5 + 1; n++) {
         addGold(map);
     }
-    placeThingInOpen(map, &y, &x);
+    getOpenLocation(map, &y, &x);
     newThing(map, T_Item, ':', y, x);
-    placeThingInOpen(map, &y, &x);
+    getOpenLocation(map, &y, &x);
     newThing(map, T_Item, '*', y, x);
-    placeThingInOpen(map, &y, &x);
+    getOpenLocation(map, &y, &x);
     newThing(map, T_Item, '!', y, x);
-    placeThingInOpen(map, &y, &x);
+    getOpenLocation(map, &y, &x);
     newThing(map, T_Structure, '>', y, x);
     addMonster(map, "ape", 4, 3);
     addMonster(map, "ape", 4, 3);
@@ -156,7 +157,7 @@ int sprite_act(WINDOW* room, THING* sprite) {
             else
                 ch = '5'; // won't happen
         } else {
-            ch = 49 + rand() % 8;
+            ch = 49 + random() % 8;
         }
     }
     if (ch == '1') {
@@ -517,7 +518,7 @@ void stepSprite(WINDOW* room, THING* sprite, chtype floor, int toY, int toX) {
 
 void combat(THING* sprite, int atY, int atX) {
     THING* s = locateSprite(atY, atX);
-    int combatRoll = rand() % 6 + 1;
+    int combatRoll = random() % 6 + 1;
     if (combatRoll < sprite->attack) {
         mvaddstr(1, 0, "hit!");
         s->constitution--;
@@ -541,14 +542,14 @@ void present(THING* sprite) {
     wrefresh(sprite->room);
 }
 
-static void placeThingInOpen(WINDOW* win, int *y, int *x) {
+static void getOpenLocation(WINDOW* win, int *y, int *x) {
     int maxy, maxx;
     getmaxyx(win, maxy, maxx);
-    int ry = rand() % maxy;
-    int rx = rand() % maxx;
+    int ry = random() % maxy;
+    int rx = random() % maxx;
     while (mvwinch(win, ry, rx) != ' ') {
-        ry = rand() % maxy;
-        rx = rand() % maxx;
+        ry = random() % maxy;
+        rx = random() % maxx;
     }
     *y = ry;
     *x = rx;
@@ -556,7 +557,7 @@ static void placeThingInOpen(WINDOW* win, int *y, int *x) {
 
 THING* addMonster(WINDOW* win, const char* descr, int atk, int con) {
     int y, x;
-    placeThingInOpen(win, &y, &x);
+    getOpenLocation(win, &y, &x);
     THING* t = newThing(win, T_Sprite, descr[0], y, x);
     t->descr = descr;
     t->attack = atk;
@@ -566,7 +567,7 @@ THING* addMonster(WINDOW* win, const char* descr, int atk, int con) {
 
 THING* addArmour(WINDOW* win, const char* descr) {
     int y, x;
-    placeThingInOpen(win, &y, &x);
+    getOpenLocation(win, &y, &x);
     THING* t = newThing(win, T_Item, '&', y, x);
     t->descr = descr;
     return t;
@@ -574,9 +575,9 @@ THING* addArmour(WINDOW* win, const char* descr) {
 
 THING* addGold(WINDOW* win) {
     int y, x;
-    placeThingInOpen(win, &y, &x);
+    getOpenLocation(win, &y, &x);
     THING* t = newThing(win, T_Item, '$', y, x);
-    t->gold = 20 + rand() % 100;
+    t->gold = 20 + random() % 100;
     return t;
 }
 
