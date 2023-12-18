@@ -11,7 +11,7 @@ Move around with keypad
 ```
 (5 is rest)
 
-# Actions
+## Actions
 Bolded commands have some kind of mechanism to them.
 
 - `c` close
@@ -34,7 +34,7 @@ Bolded commands have some kind of mechanism to them.
 - `F1` show help screen
 - `Q` **quit**
 
-# Objects
+## Objects
 Still figuring these out...
 - `!` potion or drink
 - `"`
@@ -64,12 +64,15 @@ Still figuring these out...
 - `}`
 - `~` scroll
 
-# Time management
+## Time management
 To keep it simple for now, time management is Player-centric. The rest of the world acts when the player moves (including resting). Maybe some other actions will let the world act as well.
 
-# Enemies
+## Enemies
 Move randomly unless near the player, in which case they attempt to approach and attack.
 
+## Steps
+
+1. ✓ 2. ✓ 3. ✓ 4. ✓ 5. - 6. ✓ 7. ✓ 8. - 9. ✓ 10. 
 ## My resources
 
 - https://www.roguebasin.com/index.php/How_to_Write_a_Roguelike_in_15_Steps
