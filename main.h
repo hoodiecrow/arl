@@ -4,6 +4,7 @@
 #include <ncurses.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 typedef enum {
@@ -26,6 +27,7 @@ typedef struct THING {
     bool isPotable;
     bool isEquippable;
     bool isIdentified;
+    int armour;
     struct THING* next;
     int attack;
     int constitution;
@@ -55,9 +57,18 @@ enum POTIONS {
 THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x);
 
 THING* addMonster(WINDOW* win, const char* descr, int atk, int con);
-THING* addArmour(WINDOW* win, const char* descr);
+THING* addArmour(WINDOW* win);
+THING* addWand(WINDOW* win);
+THING* addStaff(WINDOW* win);
+THING* addScroll(WINDOW* win);
+THING* addRing(WINDOW* win);
 THING* addPotion(WINDOW* win);
 THING* addGold(WINDOW* win);
+void zapEffect(int i);
+void readEffect(int i);
+void equipEffect(int i);
+void wearEffect(int i);
+void drinkEffect(int i);
 void present(THING* thing);
 int sprite_act(WINDOW* room, THING* sprite);
 THING* locateThing(int ypos, int xpos);

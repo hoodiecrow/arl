@@ -19,6 +19,55 @@ static void getOpenLocation(WINDOW* win, int *y, int *x);
 WINDOW *create_newwin(int height, int width, int starty, int startx);
 void destroy_win(WINDOW *local_win);
 
+// TODO traps
+/*
+ * bear trap -- A trap that prevents you from moving off the tile until you've managed to escape. When you first step into a bear trap, it reads: "you are caught in a bear trap". Every subsequent turn spent moving may result in your escape or the text: "you are still stuck in the bear trap".
+ * poison dart trap -- A trap that shoots a dart at you which, if it hits, will deal damage and potentially reduce your strength. It reads: "a small dart just hit you in the shoulder".
+ * rust trap -- A trap that applies a -1 modifier to the armor you are currently wearing. When you first step into a rust trap, it reads: "a gush of water hits you on the head" then: "your armor weakens".
+ * sleeping gas trap -- A trap that puts you to sleep for a period of time (similar to the scroll of sleep). When you first step into a sleeping gas trap, it reads: "a strange white mist envelops you and you fall asleep".
+ * teleport trap -- A trap that teleports you to a random location in the current dungeon level.
+*/
+
+/*TODO
+You gain a new level when your experience points are equal to or greather than a power of two times ten. Your new max Hp is a random increase over your prevous Hp. Further statistics can be gathered in-game by pressing ^A.
+
+Level	Experience Required	Max Hp
+1	0	12
+2	10	15 - 22
+3	20	18 - 29
+4	40	26 - 37
+5	80	34 - 44
+6	160	41 - 50
+7	320	56 - 57
+8	640	62 - 66
+ */
+
+/* TODO
+ * At least one new enemy type may appear on each subsequent level of the dungeon past level one, though exactly which enemies spawn is randomly generated. A monster's symbol in bold designates his natural entry level.
+
+ 
+
+Level	Quantities of Gold Found	Enemies Encountered
+1	2 - 16	B, E, H, K, S
+2	4 - 32	B, E, H, I, K, S
+3	6 - 63	B, E, H, I, K, R, S
+4	10 - 64	B, E, H, I, K, O, R, S
+5	17 - 80	B, E, H, I, K, O, R, S, Z
+6	14 - 90	B, E, H, I, L, O, R, S, Z
+7	14 - 112	B, C, E, H, I, L, O, Q, R, S, Z
+8	16 - 125	C, H, I, L, O, Q, R, S, Z
+9	36 - 137	A, C, I, L?, O, Q?, R, S, Z
+10	21 - 157	A?, C?, I, L, N, O, Q, R, Z?
+11	27 - 106	A, C?, I, L, O?, Q, R?, Z
+12	48 - 184	A?, C?, F, L, O, Q, R, Z
+13	76 - 104	A?, C, F, L?, N, O, Y, Z?
+14	38 - 179	A, C?, L, T, W, Z
+15	114	C
+ 
+
+There is a slim chance of discovering a "monster room". These rooms can be anywhere from normal sized to the size of the whole level. There will be many, many monsters present as well as a fair amount of loot. An enemy may show up in a monster room one level earlier than it would usually first appear.
+*/
+
 int main() {	
 	initscr();
 	raw();
@@ -59,8 +108,7 @@ int main() {
     for (int n = 0; n < random() % 5 + 1; n++) {
         addGold(map);
     }
-    getOpenLocation(map, &y, &x);
-    newThing(map, T_Item, ':', y, x);
+    addRing(map);
     getOpenLocation(map, &y, &x);
     newThing(map, T_Item, '*', y, x);
     addPotion(map);
@@ -72,17 +120,22 @@ int main() {
     x = 10;
     y =  5;
     newThing(map, T_Sprite, '@', y, x);
-    addArmour(map, "yellow jammies");
-    addArmour(map, "green jammies");
-
-    mvwprintw(status, 1, 1, "Gold: %9d", player->gold);
-    mvwprintw(status, 2, 1, "Constitution: %3d (%3d)", player->constitution, player->wholeConstitution);
+    addArmour(map);
+    addArmour(map);
 
     chtype ch = 0;
     while (ch != 'Q') {
         for (THING* thing = things; thing != NULL; thing = thing->next) {
             if (thing->type == T_Sprite) {
                 ch = sprite_act(map, thing);
+                werase(status);
+                box(status, 0 , 0);
+                mvwprintw(status, 1, 1, "Gold: %9d", player->gold);
+                mvwprintw(status, 2, 1, "Constitution: %3d (%3d)", player->constitution, player->wholeConstitution);
+                mvwprintw(status, 3, 1, "Armour worn: %s", worn==NULL?"none":worn->descr);
+                mvwprintw(status, 4, 1, "Armour value: %d", worn==NULL?0:worn->armour);
+                wrefresh(status);
+
             }
             if (ch == 'Q')
                 break;
@@ -214,7 +267,7 @@ int sprite_act(WINDOW* room, THING* sprite) {
             ch = endPopup(invlist);
             int i = ch-'a';
             if (allowedIndices[i]) {
-                //TODO effect
+                //TODO eatEffect();
                 dumpInventory(i);
             } else {
                 mvaddstr(1, 0, "you can't eat that"); clrtoeol(); refresh();
@@ -234,7 +287,7 @@ int sprite_act(WINDOW* room, THING* sprite) {
             ch = endPopup(invlist);
             int i = ch-'a';
             if (allowedIndices[i]) {
-                //TODO effect
+                equipEffect(i);
                 dumpInventory(i);
             } else {
                 mvaddstr(1, 0, "you can't equip that"); clrtoeol(); refresh();
@@ -304,7 +357,7 @@ int sprite_act(WINDOW* room, THING* sprite) {
             ch = endPopup(invlist);
             int i = ch-'a';
             if (allowedIndices[i]) {
-                //TODO effect
+                readEffect(i);
                 dumpInventory(i);
             } else {
                 mvaddstr(1, 0, "you can't read that"); clrtoeol(); refresh();
@@ -335,13 +388,30 @@ int sprite_act(WINDOW* room, THING* sprite) {
                 }
                 worn = inventory[i];
                 dumpInventory(i);
+                wearEffect(i);
             } else {
                 mvaddstr(1, 0, "you can't wear that"); clrtoeol(); refresh();
             }
         } else if (ch == 'z') {
             //                     ((( z )))
-            mvaddstr(1, 0, "zap in which direction?");
-            clrtoeol();
+            WINDOW* invlist = newPopup(inventoryFill+3);
+            mvwprintw(invlist, 1, 1, "%s", "What do you want to zap with:");
+            for (int i = 0; i < inventoryFill; i++) {
+                if (inventory[i]->glyph == '\\' || inventory[i]->glyph == '/') {
+                    mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
+                    allowedIndices[i] = true;
+                } else {
+                    allowedIndices[i] = false;
+                }
+            }
+            ch = endPopup(invlist);
+            int i = ch-'a';
+            if (allowedIndices[i]) {
+                // TODO find a target as well
+                zapEffect(i);
+            } else {
+                mvaddstr(1, 0, "you can't wear that"); clrtoeol(); refresh();
+            }
         } else if (ch == ',') {
             //                     ((( , )))
             if (sprite->under == ' ') {
@@ -459,6 +529,104 @@ THING* locateSprite(int ypos, int xpos) {
         }
     }
     return NULL;
+}
+
+void zapEffect(int i) {
+    THING* t = inventory[i];
+    mvaddstr(1, 0, t->descr); clrtoeol(); refresh();
+    if (strcmp(t->ident, "wand of do nothing") == 0) {
+        //When zapped, nothing happens. 
+    } else if (strcmp(t->ident, "wand of fire") == 0) {
+        // When zapped, fire shoots out at a target enemy. This is very powerful at lower dungeon levels. However, there is a chance of the fire bouncing off a target and returning to hit you. Of course, it can bounce off of you as well and return to hit your target. It is especially affective against ice monsters.
+    } else if (strcmp(t->ident, "wand of haste monster") == 0) {
+        // When zapped at a monster, that monster may be made quicker.
+    } else if (strcmp(t->ident, "wand of invisibility") == 0) {
+        // 
+    } else if (strcmp(t->ident, "wand of teleport away") == 0) {
+        // When zapped at a monster, the monster is teleported to another random part of the current dungeon level. It is identical to a staff of teleport away.
+    } else if (strcmp(t->ident, "staff of drain life") == 0) {
+        // When zapped, your life is drained by half (rounded down).
+    } else if (strcmp(t->ident, "staff of slow monster") == 0) {
+        // When zapped at a monster, that monster may be made slower.
+    } else if (strcmp(t->ident, "staff of teleport away") == 0) {
+        // When zapped at a monster, the monster is teleported to another random part of the current dungeon level. It is identical to a wand of teleport away.
+    } else {
+    }
+}
+
+void readEffect(int i) {
+    THING* t = inventory[i];
+    mvaddstr(1, 0, t->descr); clrtoeol(); refresh();
+    if (strcmp(t->ident, "scroll of aggravate monster") == 0) {
+        // Its affect reads: "you hear a high pitched humming noise". Monsters that may have been docile are now hostile towards you.
+    } else if (strcmp(t->ident, "scroll of confuse monster") == 0) {
+        // Its affect reads: "your hands glow red for a moment". When you strike enemies using a melee weapon there is a chance that they will become confused.
+    } else if (strcmp(t->ident, "scroll of create monster") == 0) {
+        // Just like its name says, it creates a random monster (suitable for that dungeon level) adjacent to you. This monster will be hostile.
+    } else if (strcmp(t->ident, "scroll of enchant armour") == 0) {
+        // Its affect reads: "your armor glows blue for a moment". It increases the bonus on your armor by 1. If your armor was cursed (e.g. -3), it will no longer be so and the penalty for wearing it will be one less (e.g. -2).
+    } else if (strcmp(t->ident, "scroll of enchant weapon") == 0) {
+        // Its affect reads: "your weapon glows blue for a moment". It increases the bonus on your weapon by +0,+1. If your weapon was cursed, it will no longer be so and the penalty for weilding it will be one less.
+    } else if (strcmp(t->ident, "scroll of hold monster") == 0) {
+        // Its affect reads: "the monster freezes". It keeps monsters from moving, obviously.
+    } else if (strcmp(t->ident, "scroll of identify") == 0) {
+        // It identifies another item of your choosing when used.
+    } else if (strcmp(t->ident, "scroll of magic mapping") == 0) {
+        // Its affect reads: "this scroll seems to have a map on it". It reveals all the rooms, corridors, traps, and stairs down on that dungeon level. It does not show enemies or items.
+    } else if (strcmp(t->ident, "scroll of protect armour") == 0) {
+        // Its affect reads: "your armor is covered by a shimmering gold shield".
+    } else if (strcmp(t->ident, "scroll of remove curse") == 0) {
+        // Its affect reads: "you feel as though someone is watching over you".
+    } else if (strcmp(t->ident, "scroll of scare monster") == 0) {
+        // Its affect reads: "you hear a maniacal laughter in the distance". It has a chance of scaring aggressive monsters away.
+    } else if (strcmp(t->ident, "scroll of sleep") == 0) {
+        // Its affect reads: "you fall asleep". Obviously, you fall asleep for some amount of time (similar to the sleeping gas trap).
+    } else if (strcmp(t->ident, "scroll of teleportation") == 0) {
+        // It teleports you to a random location in the current dungeon level.
+    } else {
+    }
+}
+
+void equipEffect(int i) {
+    // TODO Rings may be worn on either the left or right hand with no change in effect. While worn, however, they will make you hungrier quicker.
+    THING* t = inventory[i];
+    mvaddstr(1, 0, t->descr); clrtoeol(); refresh();
+    if (strcmp(t->ident, "ring of adornment") == 0) {
+        // no special effect
+    } else if (strcmp(t->ident, "ring of dexterity") == 0) {
+        // When put on, your dexterity is adjusted by the ring's stated modifier.
+    } else if (strcmp(t->ident, "ring of maintain armour") == 0) {
+        // When put on, your armor cannot be damaged by traps or enemies (such as the aquator).
+    } else if (strcmp(t->ident, "ring of see invisible") == 0) {
+        // When put on, you will be able to see invisible enemies.
+    } else if (strcmp(t->ident, "ring of teleportation") == 0) {
+        // When put on, you will be randomly teleported to another location in the current dungeon level every few actions. This is a cursed ring and cannot be removed until uncursed.
+    } else {
+    }
+
+}
+
+void wearEffect(int i) {
+    THING* t = inventory[i];
+    mvaddstr(1, 0, t->descr); clrtoeol(); refresh();
+    if (strcmp(t->descr, "banded mail") == 0) {
+        t->armour = 6;
+    } else if (strcmp(t->descr, "chain mail") == 0) {
+        t->armour = 5;
+    } else if (strcmp(t->descr, "leather armour") == 0) {
+        t->armour = 2;
+    } else if (strcmp(t->descr, "plate mail") == 0) {
+        t->armour = 7;
+    } else if (strcmp(t->descr, "ring mail") == 0) {
+        t->armour = 3;
+    } else if (strcmp(t->descr, "scale mail") == 0) {
+        t->armour = 4;
+    } else if (strcmp(t->descr, "splint mail") == 0) {
+        t->armour = 6;
+    } else {
+        t->armour = 0;
+    }
+    // TODO lesser or greater quality variants
 }
 
 void drinkEffect(int i) {
@@ -603,17 +771,140 @@ THING* addMonster(WINDOW* win, const char* descr, int atk, int con) {
     return t;
 }
 
-THING* addArmour(WINDOW* win, const char* descr) {
+THING* addArmour(WINDOW* win) {
+    int i = random() % 7;
+    const char *descrs[] = {
+        "banded mail",
+        "chain mail",
+        "leather armour",
+        "plate mail",
+        "ring mail",
+        "scale mail",
+        "splint mail",
+    };
     int y, x;
     getOpenLocation(win, &y, &x);
     THING* t = newThing(win, T_Item, '&', y, x);
-    t->descr = descr;
+    t->descr = descrs[i];
+    return t;
+}
+
+THING* addWand(WINDOW* win) {
+    int i = random() % 6;
+    int j = random() % 5;
+    const char *descrs[] = {
+        "copper wand",
+        "gold wand",
+        "iron wand",
+        "nickel wand",
+        "silver wand",
+        "titanium wand",
+    };
+    const char *idents[] = {
+        "wand of do nothing",
+        "wand of fire",
+        "wand of haste monster",
+        "wand of invisibility",
+        "wand of teleport away",
+    };
+    int y, x;
+    getOpenLocation(win, &y, &x);
+    THING* t = newThing(win, T_Item, '/', y, x);
+    t->descr = descrs[i];
+    t->isEquippable = true;
+    //TODO if dropped after being identified, should be true
+    t->isIdentified = false;
+    t->ident = idents[j];
+    return t;
+}
+
+THING* addStaff(WINDOW* win) {
+    int i = random() % 7;
+    int j = random() % 5;
+    const char *descrs[] = {
+        "birch staff",
+        "cedar staff",
+        "elm staff",
+        "maple staff",
+        "redwood staff",
+        "teak staff",
+        "walnut staff",
+        "plain staff",
+    };
+    const char *idents[] = {
+        "staff of drain life",
+        "staff of slow monster",
+        "staff of teleport away",
+    };
+    int y, x;
+    getOpenLocation(win, &y, &x);
+    THING* t = newThing(win, T_Item, '/', y, x);
+    t->descr = descrs[i];
+    t->isEquippable = true;
+    //TODO if dropped after being identified, should be true
+    t->isIdentified = false;
+    t->ident = idents[j];
+    return t;
+}
+
+THING* addScroll(WINDOW* win) {
+    int i = random() % 13;
+    const char *idents[] = {
+        "scroll of aggravate monster",
+        "scroll of confuse monster",
+        "scroll of create monster",
+        "scroll of enchant armor",
+        "scroll of enchant weapon",
+        "scroll of hold monster",
+        "scroll of identify",
+        "scroll of magic mapping",
+        "scroll of protect armor",
+        "scroll of remove curse",
+        "scroll of scare monster",
+        "scroll of sleep",
+        "scroll of teleportation",
+    };
+    int y, x;
+    getOpenLocation(win, &y, &x);
+    THING* t = newThing(win, T_Item, '~', y, x);
+    t->descr = "a magical scroll";
+    t->isEquippable = true;
+    //TODO if dropped after being identified, should be true
+    t->isIdentified = false;
+    t->ident = idents[i];
+    return t;
+}
+
+THING* addRing(WINDOW* win) {
+    int i = random() % 5;
+    const char *descrs[] = {
+        "diamond",
+        "emerald",
+        "garnet",
+        "opal",
+        "sapphire",
+    };
+    const char *idents[] = {
+        "ring of adornment",
+        "ring of dexterity",
+        "ring of maintain armor",
+        "ring of see invisible",
+        "ring of teleportation",
+    };
+    int y, x;
+    getOpenLocation(win, &y, &x);
+    THING* t = newThing(win, T_Item, ':', y, x);
+    t->descr = descrs[i];
+    t->isEquippable = true;
+    //TODO if dropped after being identified, should be true
+    t->isIdentified = false;
+    t->ident = idents[i];
     return t;
 }
 
 THING* addPotion(WINDOW* win) {
     int i = random() % 14;
-    const char *colours[] = {
+    const char *descrs[] = {
         "beige potion",
         "black potion",
         "blue potion",
@@ -629,7 +920,7 @@ THING* addPotion(WINDOW* win) {
         "white potion",
         "yellow potion",
     };
-    const char *potionEffects[] = {
+    const char *idents[] = {
         "potion of blindness",
         "potion of confusion",
         "potion of detect monster",
@@ -648,11 +939,11 @@ THING* addPotion(WINDOW* win) {
     int y, x;
     getOpenLocation(win, &y, &x);
     THING* t = newThing(win, T_Item, '!', y, x);
-    t->descr = colours[i];
+    t->descr = descrs[i];
     t->isPotable = true;
     //TODO if dropped after being identified, should be true
     t->isIdentified = false;
-    t->ident = potionEffects[i];
+    t->ident = idents[i];
     return t;
 }
 
@@ -705,16 +996,6 @@ THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x) {
             thing->descr = "the player";
             thing->attack = 5;
             thing->constitution = 5;
-            break;
-        case 'a':
-            thing->descr = "carnivorous ape";
-            thing->attack = 4;
-            thing->constitution = 3;
-            break;
-        case 'b':
-            thing->descr = "barbarian";
-            thing->attack = 3;
-            thing->constitution = 4;
             break;
     }
     thing->gold = 0;
