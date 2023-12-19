@@ -9,6 +9,8 @@ int inventoryFill = 0;
 bool allowedIndices[INVENTORY_SIZE];
 
 THING* worn = NULL;
+THING* right = NULL;
+THING* left = NULL;
 THING* player = NULL;
 
 WINDOW* status;
@@ -18,6 +20,27 @@ static void getOpenLocation(WINDOW* win, int *y, int *x);
 // https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/index.html
 WINDOW *create_newwin(int height, int width, int starty, int startx);
 void destroy_win(WINDOW *local_win);
+
+/* TODO enemies
+ *                           Levels Aggressive?	Experience Award Gold Dropped
+ * bat - symbol B --         1 - 7	sometimes	2
+ * centaur - symbol C --     7 - 15	no	        15
+ * emu - symbol E --         1 - 7	sometimes	2
+ * hobgoblin - symbol H --   1 - 8	yes	        3
+ * ice monster - symbol I -- 1 - 11	no	        5 You have a chance of being frozen with each successful melee hit. There is a small chance of dying of hypothermia as well. It is best to back away and shoot arrows or throw darts at it.
+ * kestrel - symbol K --     1 - 5	sometimes	2
+ * leprechaun - symbol L --  6 - 14	no	        21	             110 - 206 These enemies have a chance of stealing a fair portion of your gold and then disappearing ("your purse feels lighter"). This is similar to the nymph. It is best to either attack from long range or avoid them altogether as they are not aggressive. They will, however, drop gold when defeated
+ * nymph - symbol N --       10 - 13	no	    ?  These enemies have a chance of stealing an item from your inventory and then disappearing ("she stole" and then the item). This is similar to the leprechaun. It is best to either attack from long range or avoid them altogether as they are not aggressive.
+ * orc - symbol O --         2 - 13	sometimes	5 Interestingly, orcs will often move to stand guard over treasure.
+ * quagga - symbol Q --      7 - 12	sometimes	20 A Quagga may drop an item upon death.
+ * rattlesnake - symbol R -- 3 - 12	yes	        10 A rattlesnake's bite may weaken you (-1 current strength).
+ * snake - symbol S --       1 - 9	sometimes	2
+ * troll - symbol T --       14	    yes	        ?
+ * venus fly-trap - symbol F 12 - 13	no	    91 When moved adjacent to, you become held by it until it is defeated. However, it is immobile so missile weapons are very effective.
+ * wraith - symbol W --      14	    no	        55
+ * yeti - symbol Y --        13	    yes	        50
+ * zombie - symbol Z         5 - 14	sometimes	8
+ */
 
 // TODO traps
 /*
@@ -114,9 +137,9 @@ int main() {
     addPotion(map);
     getOpenLocation(map, &y, &x);
     newThing(map, T_Structure, '>', y, x);
-    addMonster(map, "ape", 4, 3);
-    addMonster(map, "ape", 4, 3);
-    addMonster(map, "barbarian", 3, 4);
+    addMonster(map);
+    addMonster(map);
+    addMonster(map);
     x = 10;
     y =  5;
     newThing(map, T_Sprite, '@', y, x);
@@ -132,8 +155,10 @@ int main() {
                 box(status, 0 , 0);
                 mvwprintw(status, 1, 1, "Gold: %9d", player->gold);
                 mvwprintw(status, 2, 1, "Constitution: %3d (%3d)", player->constitution, player->wholeConstitution);
-                mvwprintw(status, 3, 1, "Armour worn: %s", worn==NULL?"none":worn->descr);
-                mvwprintw(status, 4, 1, "Armour value: %d", worn==NULL?0:worn->armour);
+                mvwprintw(status, 3, 1, "Armour worn: %s (%d)", worn==NULL?"none":worn->descr, worn==NULL?0:worn->armour);
+                mvwprintw(status, 4, 1, "RH: %s", right==NULL?"":right->ident);
+                mvwprintw(status, 5, 1, "LH: %s", left==NULL?"":left->ident);
+                mvwprintw(status, 6, 1, "Exp: %d", player->exp);
                 wrefresh(status);
 
             }
@@ -171,43 +196,47 @@ int sprite_act(WINDOW* room, THING* sprite) {
         int diffx = 0;
         int diry = 0;
         int dirx = 0;
-        if (player->ypos > sprite->ypos) {
-            diffy = player->ypos - sprite->ypos;
-            diry = 1;
-        } else if (player->ypos == sprite->ypos) {
-            diry = 0;
-        } else {
-            diffy = sprite->ypos - player->ypos;
-            diry = -1;
-        }
-        if (player->xpos > sprite->xpos) {
-            diffx = player->xpos - sprite->xpos;
-            dirx = 1;
-        } else if (player->xpos == sprite->xpos) {
-            dirx = 0;
-        } else {
-            diffx = sprite->xpos - player->xpos;
-            dirx = -1;
-        }
-        if (diffy < 3 && diffx < 3) {
-            if (diry == 1 && dirx == -1)
-                ch = '1';
-            else if (diry == 1 && dirx == 0)
-                ch = '2';
-            else if (diry == 1 && dirx == 1)
-                ch = '3';
-            else if (diry == 0 && dirx == -1)
-                ch = '4';
-            else if (diry == 0 && dirx == 1)
-                ch = '6';
-            else if (diry == -1 && dirx == -1)
-                ch = '7';
-            else if (diry == -1 && dirx == 0)
-                ch = '8';
-            else if (diry == -1 && dirx == 1)
-                ch = '9';
-            else
-                ch = '5'; // won't happen
+        if (sprite->aggressive) {
+            if (player->ypos > sprite->ypos) {
+                diffy = player->ypos - sprite->ypos;
+                diry = 1;
+            } else if (player->ypos == sprite->ypos) {
+                diry = 0;
+            } else {
+                diffy = sprite->ypos - player->ypos;
+                diry = -1;
+            }
+            if (player->xpos > sprite->xpos) {
+                diffx = player->xpos - sprite->xpos;
+                dirx = 1;
+            } else if (player->xpos == sprite->xpos) {
+                dirx = 0;
+            } else {
+                diffx = sprite->xpos - player->xpos;
+                dirx = -1;
+            }
+            if (diffy < 3 && diffx < 3) {
+                if (diry == 1 && dirx == -1)
+                    ch = '1';
+                else if (diry == 1 && dirx == 0)
+                    ch = '2';
+                else if (diry == 1 && dirx == 1)
+                    ch = '3';
+                else if (diry == 0 && dirx == -1)
+                    ch = '4';
+                else if (diry == 0 && dirx == 1)
+                    ch = '6';
+                else if (diry == -1 && dirx == -1)
+                    ch = '7';
+                else if (diry == -1 && dirx == 0)
+                    ch = '8';
+                else if (diry == -1 && dirx == 1)
+                    ch = '9';
+                else
+                    ch = '5'; // won't happen
+            } else {
+                ch = 49 + random() % 8;
+            }
         } else {
             ch = 49 + random() % 8;
         }
@@ -287,8 +316,29 @@ int sprite_act(WINDOW* room, THING* sprite) {
             ch = endPopup(invlist);
             int i = ch-'a';
             if (allowedIndices[i]) {
-                equipEffect(i);
-                dumpInventory(i);
+                if (inventory[i]->glyph == ':') {
+                    mvaddstr(1, 0, "wear on right hand (R) or left hand (L)?");
+                    clrtoeol();
+                    refresh();
+                    switch (getch()) {
+                        case 'r': case 'R':
+                            if (right != NULL) {
+                                right->inInventory = true;
+                            }
+                            right = inventory[i];
+                            equipEffect(i);
+                            dumpInventory(i);
+                            break;
+                        case 'l': case 'L':
+                            if (left != NULL) {
+                                left->inInventory = true;
+                            }
+                            left = inventory[i];
+                            equipEffect(i);
+                            dumpInventory(i);
+                            break;
+                    }
+                }
             } else {
                 mvaddstr(1, 0, "you can't equip that"); clrtoeol(); refresh();
             }
@@ -387,8 +437,8 @@ int sprite_act(WINDOW* room, THING* sprite) {
                     worn->xpos = sprite->xpos;
                 }
                 worn = inventory[i];
-                dumpInventory(i);
                 wearEffect(i);
+                dumpInventory(i);
             } else {
                 mvaddstr(1, 0, "you can't wear that"); clrtoeol(); refresh();
             }
@@ -552,6 +602,7 @@ void zapEffect(int i) {
         // When zapped at a monster, the monster is teleported to another random part of the current dungeon level. It is identical to a wand of teleport away.
     } else {
     }
+    t->isIdentified = true;
 }
 
 void readEffect(int i) {
@@ -585,6 +636,7 @@ void readEffect(int i) {
         // It teleports you to a random location in the current dungeon level.
     } else {
     }
+    t->isIdentified = true;
 }
 
 void equipEffect(int i) {
@@ -603,6 +655,7 @@ void equipEffect(int i) {
         // When put on, you will be randomly teleported to another location in the current dungeon level every few actions. This is a cursed ring and cannot be removed until uncursed.
     } else {
     }
+    t->isIdentified = true;
 
 }
 
@@ -626,6 +679,7 @@ void wearEffect(int i) {
     } else {
         t->armour = 0;
     }
+    t->isIdentified = true;
     // TODO lesser or greater quality variants
 }
 
@@ -666,6 +720,7 @@ void drinkEffect(int i) {
     } else {
         // shouldn't happen
     }
+    t->isIdentified = true;
 }
 
 void dumpInventory(int i) {
@@ -705,7 +760,7 @@ static void playerStepsOnGold(int toY, int toX) {
     THING* o = locateObject(toY, toX);
     if (o != NULL) {
         player->gold += o->gold;
-        mvwprintw(status, 1, 1, "Gold: %9d", player->gold);
+        //mvwprintw(status, 1, 1, "Gold: %9d", player->gold);
         freeObject(o);
     }
 }
@@ -729,14 +784,16 @@ void combat(THING* sprite, int atY, int atX) {
         mvaddstr(1, 0, "hit!");
         s->constitution--;
         if (s == player) {
-            mvwprintw(status, 2, 1, "Constitution: %3d (%3d)", player->constitution, player->wholeConstitution);
-            wrefresh(status);
+            //mvwprintw(status, 2, 1, "Constitution: %3d (%3d)", player->constitution, player->wholeConstitution);
+            //wrefresh(status);
         }
         if (s->constitution <= 0) {
             // s is killed
             s->glyph = '%';
             present(s);
+            sprite->exp += s->expAward;
         }
+        s->aggressive = true;
     } else {
         mvaddstr(1, 0, "miss!");
     }
@@ -761,13 +818,69 @@ static void getOpenLocation(WINDOW* win, int *y, int *x) {
     *x = rx;
 }
 
-THING* addMonster(WINDOW* win, const char* descr, int atk, int con) {
+THING* addMonster(WINDOW* win) {
     int y, x;
     getOpenLocation(win, &y, &x);
-    THING* t = newThing(win, T_Sprite, descr[0], y, x);
-    t->descr = descr;
-    t->attack = atk;
-    t->constitution = con;
+    THING* t = newThing(win, T_Sprite, 'X', y, x);
+    int i = random() % 6;
+    const char *aggr;
+    switch (i) {
+        case 0:
+            t->descr = "bat";
+            t->glyph = 'B';
+            aggr = "sometimes";
+            t->attack = 1;
+            t->constitution = 1;
+            t->expAward = 2;
+            break;
+        case 1:
+            t->descr = "emu";
+            t->glyph = 'E';
+            aggr = "sometimes";
+            t->attack = 2;
+            t->constitution = 1;
+            t->expAward = 2;
+            break;
+        case 2:
+            t->descr = "goblin";
+            t->glyph = 'G';
+            aggr = "sometimes";
+            t->attack = 2;
+            t->constitution = 2;
+            t->expAward = 2;
+            break;
+        case 3:
+            t->descr = "hobgoblin";
+            t->glyph = 'H';
+            aggr = "yes";
+            t->attack = 3;
+            t->constitution = 3;
+            t->expAward = 3;
+            break;
+        case 4:
+            t->descr = "ice monster";
+            t->glyph = 'I';
+            aggr = "no";
+            t->attack = 4;
+            t->constitution = 4;
+            t->expAward = 5;
+            break;
+        case 5:
+            t->descr = "kestrel";
+            t->glyph = 'K';
+            aggr = "sometimes";
+            t->attack = 1;
+            t->constitution = 2;
+            t->expAward = 2;
+            break;
+    }
+    if (strcmp(aggr, "sometimes") == 0) {
+        t->aggressive = random()%2==1?true:false;
+    } else if (strcmp(aggr, "no") == 0) {
+        t->aggressive = false;
+    } else if (strcmp(aggr, "yes") == 0) {
+        t->aggressive = true;
+    }
     return t;
 }
 
@@ -878,11 +991,11 @@ THING* addScroll(WINDOW* win) {
 THING* addRing(WINDOW* win) {
     int i = random() % 5;
     const char *descrs[] = {
-        "diamond",
-        "emerald",
-        "garnet",
-        "opal",
-        "sapphire",
+        "diamond ring",
+        "emerald ring",
+        "ruby ring",
+        "opal ring",
+        "sapphire ring",
     };
     const char *idents[] = {
         "ring of adornment",
@@ -975,6 +1088,7 @@ THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x) {
     thing->isEquippable = false;
     thing->attack = 0;
     thing->constitution = 0;
+    thing->exp = 0;
     switch (glyph) {
         case '<':
             thing->descr = "stair";

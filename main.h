@@ -32,6 +32,9 @@ typedef struct THING {
     int attack;
     int constitution;
     int wholeConstitution;
+    bool aggressive;
+    int expAward;
+    int exp;
     chtype under;
 } THING;
 
@@ -56,7 +59,7 @@ enum POTIONS {
 
 THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x);
 
-THING* addMonster(WINDOW* win, const char* descr, int atk, int con);
+THING* addMonster(WINDOW* win);
 THING* addArmour(WINDOW* win);
 THING* addWand(WINDOW* win);
 THING* addStaff(WINDOW* win);
