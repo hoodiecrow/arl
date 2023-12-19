@@ -79,3 +79,4 @@ Move randomly unless near the player, in which case they attempt to approach and
 - https://invisible-island.net/ncurses/man/ncurses.3x.html
 - https://invisible-island.net/ncurses/NCURSES-Programming-HOWTO.html
 - https://invisible-island.net/cdk/manpage/cdk.3.html
+- https://www.roguebasin.com/index.php/Roguelike_Dev_FAQ
