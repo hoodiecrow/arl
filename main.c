@@ -63,8 +63,7 @@ int main() {
     newThing(map, T_Item, ':', y, x);
     getOpenLocation(map, &y, &x);
     newThing(map, T_Item, '*', y, x);
-    getOpenLocation(map, &y, &x);
-    newThing(map, T_Item, '!', y, x);
+    addPotion(map);
     getOpenLocation(map, &y, &x);
     newThing(map, T_Structure, '>', y, x);
     addMonster(map, "ape", 4, 3);
@@ -285,7 +284,7 @@ int sprite_act(WINDOW* room, THING* sprite) {
             ch = endPopup(invlist);
             int i = ch-'a';
             if (allowedIndices[i]) {
-                //TODO effect
+                drinkEffect(i);
                 dumpInventory(i);
             } else {
                 mvaddstr(1, 0, "you can't drink that"); clrtoeol(); refresh();
@@ -462,6 +461,45 @@ THING* locateSprite(int ypos, int xpos) {
     return NULL;
 }
 
+void drinkEffect(int i) {
+    THING* t = inventory[i];
+    mvaddstr(1, 0, t->ident); clrtoeol(); refresh();
+    t->isIdentified = true;
+    //TODO replace description
+    //TODO timer for (some) effects
+    if (strcmp(t->ident, "potion of blindness") == 0) {
+        // Its effect reads: "a cloak of darkness falls around you". You are unable to see enemies, items, and the dungeon around you.
+    } else if (strcmp(t->ident, "potion of confusion") == 0) {
+        // Its effect reads: "you feel confused". For a short amount of time, you are unable to move in the direction you press. When its effect wears off it reads: "you feel less confused now".
+    } else if (strcmp(t->ident, "potion of detect monster") == 0) {
+        // When read [sic] no text appears. However, it reveals all monsters on the current dungeon level.
+    } else if (strcmp(t->ident, "potion of detect things") == 0) {
+        // When read no text appears. However, it reveals all items and gold present in the current dungeon level.
+    } else if (strcmp(t->ident, "potion of extra healing") == 0) {
+        // Its effect reads: "you begin to feel much better". It restores a very large number of Hp (27).
+    } else if (strcmp(t->ident, "potion of hallucination") == 0) {
+        // Its effect reads: "oh wow, everything seems so cosmic". When quaffed all enemies and items will change symbol from turn to turn. When its effect wears off it reads: "everything looks SO boring now".
+    } else if (strcmp(t->ident, "potion of haste self") == 0) {
+        //  Its effect reads: "you feel yourself moving much faster". It may appear as though you are moving at your normal speed but you can sometimes move twice before a monster moves once.
+    } else if (strcmp(t->ident, "potion of healing") == 0) {
+        // Its effect reads: "you begin to feel better". It restores a number of Hp (13).
+    } else if (strcmp(t->ident, "potion of increase strength") == 0) {
+        // Its effect reads: "you feel stronger now, what bulging muscles!". When quaffed your current strength increases by one (like a potion of restore strength), however, if you strength is at max, your maximum strength increases by one.
+    } else if (strcmp(t->ident, "potion of levitation") == 0) {
+        // Its effect reads: "you start to float in the air". While levitating you cannot fall into traps or pickup items.
+    } else if (strcmp(t->ident, "potion of poison") == 0) {
+        // Its effect reads: "you feel very sick now". It reduces your current strength by 3.
+    } else if (strcmp(t->ident, "potion of raise level") == 0) {
+        //  Its effect reads: "you suddenly feel much more skillful". You instantly attain the next level (Exp automatically adjusted).
+    } else if (strcmp(t->ident, "potion of restore strength") == 0) {
+        // Its effect reads: "this tastes great, you feel warm all over". Your current strength increases by one up to your maximum strength.
+    } else if (strcmp(t->ident, "potion of see invisible") == 0) {
+        // Its effect reads: "hmm, this potion tastes like slime-mold juice". Presumably it lets you see invisible things...
+    } else {
+        // shouldn't happen
+    }
+}
+
 void dumpInventory(int i) {
     inventory[i]->inInventory = false;
     for (int j = i + 1; j < inventoryFill; i++, j++) {
@@ -573,6 +611,51 @@ THING* addArmour(WINDOW* win, const char* descr) {
     return t;
 }
 
+THING* addPotion(WINDOW* win) {
+    int i = random() % 14;
+    const char *colours[] = {
+        "beige potion",
+        "black potion",
+        "blue potion",
+        "brown potion",
+        "burgundy potion",
+        "clear potion",
+        "green potion",
+        "grey potion",
+        "pink potion",
+        "plaid potion",
+        "purple potion",
+        "red potion",
+        "white potion",
+        "yellow potion",
+    };
+    const char *potionEffects[] = {
+        "potion of blindness",
+        "potion of confusion",
+        "potion of detect monster",
+        "potion of detect things",
+        "potion of extra healing",
+        "potion of hallucination",
+        "potion of haste self",
+        "potion of healing",
+        "potion of increase strength",
+        "potion of levitation",
+        "potion of poison",
+        "potion of raise level",
+        "potion of restore strength",
+        "potion of see invisible",
+    };
+    int y, x;
+    getOpenLocation(win, &y, &x);
+    THING* t = newThing(win, T_Item, '!', y, x);
+    t->descr = colours[i];
+    t->isPotable = true;
+    //TODO if dropped after being identified, should be true
+    t->isIdentified = false;
+    t->ident = potionEffects[i];
+    return t;
+}
+
 THING* addGold(WINDOW* win) {
     int y, x;
     getOpenLocation(win, &y, &x);
@@ -585,6 +668,7 @@ THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x) {
     THING* thing = malloc(sizeof(THING));
     if (thing == NULL) {
         mvaddstr(1, 0, "Out of memory, press any key to exit");
+        refresh();
         getch();
         exit(1);
     }
@@ -616,8 +700,6 @@ THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x) {
             thing->isEquippable = true;
             break;
         case '!':
-            thing->descr = "orange potion";
-            thing->isPotable = true;
             break;
         case '@':
             thing->descr = "the player";
