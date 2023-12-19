@@ -112,7 +112,7 @@ int sprite_act(WINDOW* room, THING* sprite) {
     }
     int maxy = getmaxy(room);
     int maxx = getmaxx(room);
-    if (sprite->badge == '@') {
+    if (sprite->glyph == '@') {
         ch = wgetch(room);
     } else {
         int diffy = 0;
@@ -195,7 +195,7 @@ int sprite_act(WINDOW* room, THING* sprite) {
             attemptMove(room, sprite, -1, +1);
         }
     }
-    if (sprite->badge == '@') {
+    if (sprite->glyph == '@') {
             //                     ((( c )))
         if (ch == 'c') {
             mvaddstr(1, 0, "close what?");
@@ -257,7 +257,7 @@ int sprite_act(WINDOW* room, THING* sprite) {
             // 1st pass: count the items
             int itemcount = 0;
             for (THING* t = things; t != NULL; t = t->next) {
-                if (t->badge != '@' && !t->inInventory && t != worn)
+                if (t->glyph != '@' && !t->inInventory && t != worn)
                     itemcount++;
             }
             WINDOW* invlist = newPopup(inventoryFill+3);
@@ -265,7 +265,7 @@ int sprite_act(WINDOW* room, THING* sprite) {
             int i = 1;
             mvwprintw(invlist, i++, 1, "%s", "Looking around, you see:");
             for (THING* t = things; t != NULL; t = t->next) {
-                if (t->badge != '@' && !t->inInventory && t != worn) {
+                if (t->glyph != '@' && !t->inInventory && t != worn) {
                     mvwprintw(invlist, i++, 1, "%s", t->descr);
                 }
             }
@@ -295,7 +295,7 @@ int sprite_act(WINDOW* room, THING* sprite) {
             WINDOW* invlist = newPopup(inventoryFill+3);
             mvwprintw(invlist, 1, 1, "%s", "What do you want to read:");
             for (int i = 0; i < inventoryFill; i++) {
-                if ((inventory[i]->badge == '~' || inventory[i]->badge == '=')) {
+                if ((inventory[i]->glyph == '~' || inventory[i]->glyph == '=')) {
                     mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
                     allowedIndices[i] = true;
                 } else {
@@ -319,7 +319,7 @@ int sprite_act(WINDOW* room, THING* sprite) {
             WINDOW* invlist = newPopup(inventoryFill+3);
             mvwprintw(invlist, 1, 1, "%s", "What do you want to wear:");
             for (int i = 0; i < inventoryFill; i++) {
-                if (inventory[i]->badge == '&') {
+                if (inventory[i]->glyph == '&') {
                     mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
                     allowedIndices[i] = true;
                 } else {
@@ -330,7 +330,7 @@ int sprite_act(WINDOW* room, THING* sprite) {
             int i = ch-'a';
             if (allowedIndices[i]) {
                 if (worn != NULL) {
-                    sprite->under = worn->badge;
+                    sprite->under = worn->glyph;
                     worn->ypos = sprite->ypos;
                     worn->xpos = sprite->xpos;
                 }
@@ -378,7 +378,7 @@ int sprite_act(WINDOW* room, THING* sprite) {
             if (i >= 0 && i < inventoryFill) {
                 THING* t = inventory[i];
                 dumpInventory(i);
-                sprite->under = t->badge;
+                sprite->under = t->glyph;
                 t->ypos = sprite->ypos;
                 t->xpos = sprite->xpos;
             }
@@ -528,7 +528,7 @@ void combat(THING* sprite, int atY, int atX) {
         }
         if (s->constitution <= 0) {
             // s is killed
-            s->badge = '%';
+            s->glyph = '%';
             present(s);
         }
     } else {
@@ -538,7 +538,7 @@ void combat(THING* sprite, int atY, int atX) {
 }
 
 void present(THING* sprite) {
-    mvwaddch(sprite->room, sprite->ypos, sprite->xpos, sprite->badge);
+    mvwaddch(sprite->room, sprite->ypos, sprite->xpos, sprite->glyph);
     wrefresh(sprite->room);
 }
 
@@ -581,18 +581,18 @@ THING* addGold(WINDOW* win) {
     return t;
 }
 
-THING* newThing(WINDOW* win, ThingType type, chtype badge, int y, int x) {
+THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x) {
     THING* thing = malloc(sizeof(THING));
     if (thing == NULL) {
         mvaddstr(1, 0, "Out of memory, press any key to exit");
         getch();
         exit(1);
     }
-    if (badge == '@')
+    if (glyph == '@')
         player = thing;
     thing->type = type;
     thing->room = win;
-    thing->badge = badge;
+    thing->glyph = glyph;
     thing->ypos = y;
     thing->xpos = x;
     thing->isEdible = false;
@@ -600,10 +600,7 @@ THING* newThing(WINDOW* win, ThingType type, chtype badge, int y, int x) {
     thing->isEquippable = false;
     thing->attack = 0;
     thing->constitution = 0;
-    switch (badge) {
-        case '$':
-            thing->descr = "12 dollars";
-            break;
+    switch (glyph) {
         case '<':
             thing->descr = "stair";
             break;
