@@ -49,6 +49,11 @@ typedef struct TILE {
 
 #define INVENTORY_SIZE 15
 
+extern int inventoryFill;
+extern THING* inventory[];
+extern bool allowedIndices[];
+extern THING *things, *worn, *right, *left;
+
 THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x);
 
 THING* addMonster(WINDOW* win);

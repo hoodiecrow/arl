@@ -1,7 +1,7 @@
 CC=clang
 CFLAGS=-g -I. -W -Wall -Wextra -pedantic
-DEPS=main.h map9.h maps.h
-OBJ=main.o map9.o maps.o
+DEPS=main.h map9.h ah.h maps.h
+OBJ=main.o map9.o ah.o maps.o
 
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
