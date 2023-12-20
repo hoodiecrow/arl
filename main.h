@@ -49,6 +49,7 @@ typedef struct THING {
     int currHp;
     int fullHp;
     int expAward;
+    int modifier;
     chtype under;
 } THING;
 
@@ -63,7 +64,7 @@ typedef struct TILE {
 extern int inventoryFill;
 extern THING* inventory[];
 extern bool allowedIndices[];
-extern THING *things, *worn, *right, *left;
+extern THING *things, *worn, *right, *left, *wielded, *player;
 
 THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x);
 

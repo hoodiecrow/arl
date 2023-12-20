@@ -12,6 +12,7 @@ bool allowedIndices[INVENTORY_SIZE];
 THING* worn = NULL;
 THING* right = NULL;
 THING* left = NULL;
+THING* wielded = NULL;
 THING* player = NULL;
 
 WINDOW* status;
@@ -397,17 +398,25 @@ void zapEffect(int i) {
 
 void readEffect(int i) {
     THING* t = inventory[i];
-    mvaddstr(1, 0, t->descr); clrtoeol(); refresh();
+    mvaddstr(1, 0, "As you read the scroll, it vanishes."); clrtoeol(); refresh();
     if (strcmp(t->ident, "scroll of aggravate monster") == 0) {
         // Its affect reads: "you hear a high pitched humming noise". Monsters that may have been docile are now hostile towards you.
     } else if (strcmp(t->ident, "scroll of confuse monster") == 0) {
         // Its affect reads: "your hands glow red for a moment". When you strike enemies using a melee weapon there is a chance that they will become confused.
     } else if (strcmp(t->ident, "scroll of create monster") == 0) {
         // Just like its name says, it creates a random monster (suitable for that dungeon level) adjacent to you. This monster will be hostile.
+        // TODO make it adjacent
+        addMonster(t->room);
     } else if (strcmp(t->ident, "scroll of enchant armour") == 0) {
         // Its affect reads: "your armor glows blue for a moment". It increases the bonus on your armor by 1. If your armor was cursed (e.g. -3), it will no longer be so and the penalty for wearing it will be one less (e.g. -2).
     } else if (strcmp(t->ident, "scroll of enchant weapon") == 0) {
         // Its affect reads: "your weapon glows blue for a moment". It increases the bonus on your weapon by +0,+1. If your weapon was cursed, it will no longer be so and the penalty for weilding it will be one less.
+        // effect on wielded weapon only
+        if (wielded != NULL) {
+            mvaddstr(1, 0, "your weapon glows blue for a moment");
+            wielded->modifier += random() % 2;
+            // TODO cursed status
+        }
     } else if (strcmp(t->ident, "scroll of hold monster") == 0) {
         // Its affect reads: "the monster freezes". It keeps monsters from moving, obviously.
     } else if (strcmp(t->ident, "scroll of identify") == 0) {
@@ -675,7 +684,7 @@ THING* addMonster(WINDOW* win) {
             t->glyph = 'B';
             aggr = "sometimes";
             t->attack = 1;
-            t->fullConstitution = 1;
+            t->fullHp = 1;
             t->expAward = 2;
             break;
         case 1:
@@ -683,7 +692,7 @@ THING* addMonster(WINDOW* win) {
             t->glyph = 'E';
             aggr = "sometimes";
             t->attack = 2;
-            t->fullConstitution = 1;
+            t->fullHp = 1;
             t->expAward = 2;
             break;
         case 2:
@@ -691,7 +700,7 @@ THING* addMonster(WINDOW* win) {
             t->glyph = 'G';
             aggr = "sometimes";
             t->attack = 2;
-            t->fullConstitution = 2;
+            t->fullHp = 2;
             t->expAward = 2;
             break;
         case 3:
@@ -699,7 +708,7 @@ THING* addMonster(WINDOW* win) {
             t->glyph = 'H';
             aggr = "yes";
             t->attack = 3;
-            t->fullConstitution = 3;
+            t->fullHp = 3;
             t->expAward = 3;
             break;
         case 4:
@@ -707,7 +716,7 @@ THING* addMonster(WINDOW* win) {
             t->glyph = 'K';
             aggr = "sometimes";
             t->attack = 1;
-            t->fullConstitution = 2;
+            t->fullHp = 2;
             t->expAward = 2;
             break;
         case 5:
@@ -715,7 +724,7 @@ THING* addMonster(WINDOW* win) {
             t->glyph = 'S';
             aggr = "sometimes";
             t->attack = 1;
-            t->fullConstitution = 1;
+            t->fullHp = 1;
             t->expAward = 2;
             break;
         case 6:
@@ -723,11 +732,11 @@ THING* addMonster(WINDOW* win) {
             t->glyph = 'I';
             aggr = "no";
             t->attack = 4;
-            t->fullConstitution = 4;
+            t->fullHp = 4;
             t->expAward = 5;
             break;
     }
-    t->currConstitution = t->fullConstitution;
+    t->currHp = t->fullHp;
     if (strcmp(aggr, "sometimes") == 0) {
         t->isAggressive = random()%2==1?true:false;
     } else if (strcmp(aggr, "no") == 0) {
@@ -816,7 +825,7 @@ THING* addStaff(WINDOW* win) {
 
 THING* addScroll(WINDOW* win) {
     int i = random() % 13;
-    i = 11;
+    i = 2;
     const char *idents[] = {
         "scroll of aggravate monster",
         "scroll of confuse monster",
