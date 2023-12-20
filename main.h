@@ -13,6 +13,15 @@ typedef enum {
     T_Structure,
 } ThingType;
 
+typedef struct STATS {
+    int currStrength;
+    int fullStrength;
+    int exp;
+    int level;
+    int currHp;
+    int fullHp;
+} STATS;
+
 typedef struct THING {
     ThingType type;
     chtype glyph;
@@ -21,8 +30,6 @@ typedef struct THING {
     int xpos;
     const char* descr;
     const char* ident;
-    int level;
-    int exp;
     int gold;
     bool inInventory;
     bool isEdible;
@@ -42,15 +49,10 @@ typedef struct THING {
     int armour;
     struct THING* next;
     int attack;
-    int currStrength;
-    int fullStrength;
-    int currConstitution;
-    int fullConstitution;
-    int currHp;
-    int fullHp;
     int expAward;
     int modifier;
     chtype under;
+    STATS *stats;
 } THING;
 
 typedef struct TILE {

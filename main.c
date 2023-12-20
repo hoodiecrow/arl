@@ -184,13 +184,12 @@ int main() {
         werase(status);
         box(status, 0 , 0);
         mvwprintw(status, 1, 1, "Gold: %9d", player->gold);
-        mvwprintw(status, 2, 1, "Hit Points: %d (%d)", player->currHp, player->fullHp);
-        mvwprintw(status, 3, 1, "Strength: %3d (%3d)", player->currStrength, player->fullStrength);
-        mvwprintw(status, 4, 1, "Constitution: %3d (%3d)", player->currConstitution, player->fullConstitution);
-        mvwprintw(status, 5, 1, "Armour: %s (%d)", worn==NULL?"none":worn->descr, worn==NULL?0:worn->armour);
-        mvwprintw(status, 6, 1, "RH: %s", right==NULL?"":right->ident);
-        mvwprintw(status, 7, 1, "LH: %s", left==NULL?"":left->ident);
-        mvwprintw(status, 8, 1, "Level: %d Exp: %d", player->level, player->exp);
+        mvwprintw(status, 2, 1, "Hit Points: %d (%d)", player->stats->currHp, player->stats->fullHp);
+        mvwprintw(status, 3, 1, "Strength: %3d (%3d)", player->stats->currStrength, player->stats->fullStrength);
+        mvwprintw(status, 4, 1, "Armour: %s (%d)", worn==NULL?"none":worn->descr, worn==NULL?0:worn->armour);
+        mvwprintw(status, 5, 1, "RH: %s", right==NULL?"":right->ident);
+        mvwprintw(status, 6, 1, "LH: %s", left==NULL?"":left->ident);
+        mvwprintw(status, 7, 1, "Level: %d Exp: %d", player->stats->level, player->stats->exp);
         wrefresh(status);
         if (player->isLevitating) {
             player->levitationDuration--;
@@ -516,9 +515,9 @@ void drinkEffect(int i) {
     } else if (strcmp(t->ident, "potion of extra healing") == 0) {
         // Its effect reads: "you begin to feel much better". It restores a very large number of Hp (27).
         mvaddstr(1, 0, "you begin to feel much better"); clrtoeol();
-        player->currHp += 27;
-        if (player->currHp > player->fullHp)
-            player->currHp = player->fullHp;
+        player->stats->currHp += 27;
+        if (player->stats->currHp > player->stats->fullHp)
+            player->stats->currHp = player->stats->fullHp;
     } else if (strcmp(t->ident, "potion of hallucination") == 0) {
         // Its effect reads: "oh wow, everything seems so cosmic". When quaffed all enemies and items will change symbol from turn to turn. When its effect wears off it reads: "everything looks SO boring now".
         // TODO
@@ -529,15 +528,15 @@ void drinkEffect(int i) {
     } else if (strcmp(t->ident, "potion of healing") == 0) {
         // Its effect reads: "you begin to feel better". It restores a number of Hp (13).
         mvaddstr(1, 0, "you begin to feel better"); clrtoeol();
-        player->currHp += 13;
-        if (player->currHp > player->fullHp)
-            player->currHp = player->fullHp;
+        player->stats->currHp += 13;
+        if (player->stats->currHp > player->stats->fullHp)
+            player->stats->currHp = player->stats->fullHp;
     } else if (strcmp(t->ident, "potion of increase strength") == 0) {
         // Its effect reads: "you feel stronger now, what bulging muscles!". When quaffed your current strength increases by one (like a potion of restore strength), however, if you strength is at max, your maximum strength increases by one.
         mvaddstr(1, 0, "you feel stronger now, what bulging muscles!");
-        player->currStrength++;
-        if (player->currStrength > player->fullStrength)
-            player->fullStrength++;
+        player->stats->currStrength++;
+        if (player->stats->currStrength > player->stats->fullStrength)
+            player->stats->fullStrength++;
     } else if (strcmp(t->ident, "potion of levitation") == 0) {
         // Its effect reads: "you start to float in the air". While levitating you cannot fall into traps or pickup items.
         mvaddstr(1, 0, "you start to float in the air");
@@ -546,20 +545,20 @@ void drinkEffect(int i) {
     } else if (strcmp(t->ident, "potion of poison") == 0) {
         // Its effect reads: "you feel very sick now". It reduces your current strength by 3.
         mvaddstr(1, 0, "you feel very sick now");
-        player->currStrength -= 3;
+        player->stats->currStrength -= 3;
     } else if (strcmp(t->ident, "potion of raise level") == 0) {
         //  Its effect reads: "you suddenly feel much more skillful". You instantly attain the next level (Exp automatically adjusted).
         mvaddstr(1, 0, "you suddenly feel much more skillful");
-        player->level++;
-        player->exp = expForLevel(player->level);
-        player->fullHp += hpIncrForLevel(player->level);
+        player->stats->level++;
+        player->stats->exp = expForLevel(player->stats->level);
+        player->stats->fullHp += hpIncrForLevel(player->stats->level);
         //TODO exp points
     } else if (strcmp(t->ident, "potion of restore strength") == 0) {
         // Its effect reads: "this tastes great, you feel warm all over". Your current strength increases by one up to your maximum strength.
         mvaddstr(1, 0, "this tastes great, you feel warm all over");
-        player->currStrength++;
-        if (player->currStrength > player->fullStrength)
-            player->currStrength--;
+        player->stats->currStrength++;
+        if (player->stats->currStrength > player->stats->fullStrength)
+            player->stats->currStrength--;
     } else if (strcmp(t->ident, "potion of see invisible") == 0) {
         // Its effect reads: "hmm, this potion tastes like slime-mold juice". Presumably it lets you see invisible things...
         // TODO
@@ -629,16 +628,16 @@ void combat(THING* sprite, int atY, int atX) {
     int combatRoll = random() % 6 + 1;
     if (combatRoll < sprite->attack) {
         mvaddstr(1, 0, "hit!");
-        other->currHp--;
-        if (other->currHp <= 0) {
+        other->stats->currHp--;
+        if (other->stats->currHp <= 0) {
             // other is killed
             other->isDead = true;
             other->glyph = '%';
             present(other);
-            sprite->exp += other->expAward;
-            if (sprite == player && player->exp >= expForLevel(player->level + 1)) {
-                player->level++;
-                player->fullHp += hpIncrForLevel(player->level);
+            sprite->stats->exp += other->expAward;
+            if (sprite == player && player->stats->exp >= expForLevel(player->stats->level + 1)) {
+                player->stats->level++;
+                player->stats->fullHp += hpIncrForLevel(player->stats->level);
             }
         }
         //TODO could attempt to escape instead
@@ -684,7 +683,7 @@ THING* addMonster(WINDOW* win) {
             t->glyph = 'B';
             aggr = "sometimes";
             t->attack = 1;
-            t->fullHp = 1;
+            t->stats->fullHp = 1;
             t->expAward = 2;
             break;
         case 1:
@@ -692,7 +691,7 @@ THING* addMonster(WINDOW* win) {
             t->glyph = 'E';
             aggr = "sometimes";
             t->attack = 2;
-            t->fullHp = 1;
+            t->stats->fullHp = 1;
             t->expAward = 2;
             break;
         case 2:
@@ -700,7 +699,7 @@ THING* addMonster(WINDOW* win) {
             t->glyph = 'G';
             aggr = "sometimes";
             t->attack = 2;
-            t->fullHp = 2;
+            t->stats->fullHp = 2;
             t->expAward = 2;
             break;
         case 3:
@@ -708,7 +707,7 @@ THING* addMonster(WINDOW* win) {
             t->glyph = 'H';
             aggr = "yes";
             t->attack = 3;
-            t->fullHp = 3;
+            t->stats->fullHp = 3;
             t->expAward = 3;
             break;
         case 4:
@@ -716,7 +715,7 @@ THING* addMonster(WINDOW* win) {
             t->glyph = 'K';
             aggr = "sometimes";
             t->attack = 1;
-            t->fullHp = 2;
+            t->stats->fullHp = 2;
             t->expAward = 2;
             break;
         case 5:
@@ -724,7 +723,7 @@ THING* addMonster(WINDOW* win) {
             t->glyph = 'S';
             aggr = "sometimes";
             t->attack = 1;
-            t->fullHp = 1;
+            t->stats->fullHp = 1;
             t->expAward = 2;
             break;
         case 6:
@@ -732,11 +731,11 @@ THING* addMonster(WINDOW* win) {
             t->glyph = 'I';
             aggr = "no";
             t->attack = 4;
-            t->fullHp = 4;
+            t->stats->fullHp = 4;
             t->expAward = 5;
             break;
     }
-    t->currHp = t->fullHp;
+    t->stats->currHp = t->stats->fullHp;
     if (strcmp(aggr, "sometimes") == 0) {
         t->isAggressive = random()%2==1?true:false;
     } else if (strcmp(aggr, "no") == 0) {
@@ -825,7 +824,6 @@ THING* addStaff(WINDOW* win) {
 
 THING* addScroll(WINDOW* win) {
     int i = random() % 13;
-    i = 2;
     const char *idents[] = {
         "scroll of aggravate monster",
         "scroll of confuse monster",
@@ -940,6 +938,19 @@ THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x) {
         getch();
         exit(1);
     }
+    if (type == T_Sprite) {
+        STATS* s = malloc(sizeof(THING));
+        if (s == NULL) {
+            mvaddstr(1, 0, "Out of memory, press any key to exit");
+            refresh();
+            getch();
+            exit(1);
+        }
+        thing->stats = s;
+        thing->stats->level = 1;
+        thing->stats->exp = 0;
+        thing->stats->fullHp = thing->stats->currHp = 12;
+    }
     if (glyph == '@')
         player = thing;
     thing->type = type;
@@ -958,10 +969,6 @@ THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x) {
     thing->isHasted = false;
     thing->isLevitating = false;
     thing->attack = 0;
-    thing->fullConstitution = 0;
-    thing->level = 1;
-    thing->exp = 0;
-    thing->fullHp = thing->currHp = 12;
     switch (glyph) {
         case '<':
             thing->descr = "stair";
@@ -976,13 +983,10 @@ THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x) {
         case '@':
             thing->descr = "the player";
             thing->attack = 5;
-            thing->fullStrength = 12;
-            thing->fullConstitution = 12;
+            thing->stats->currStrength = thing->stats->fullStrength = 12;
             break;
     }
     thing->gold = 0;
-    thing->currStrength = thing->fullStrength;
-    thing->currConstitution = thing->fullConstitution;
     thing->inInventory = false;
     thing->next = things;
     things = thing;
