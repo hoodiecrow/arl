@@ -91,6 +91,8 @@ Level	Quantities of Gold Found	Enemies Encountered
 There is a slim chance of discovering a "monster room". These rooms can be anywhere from normal sized to the size of the whole level. There will be many, many monsters present as well as a fair amount of loot. An enemy may show up in a monster room one level earlier than it would usually first appear.
 */
 
+int dlevel = 1;
+
 int main() {	
 	initscr();
 	raw();
@@ -155,10 +157,10 @@ int main() {
                 box(status, 0 , 0);
                 mvwprintw(status, 1, 1, "Gold: %9d", player->gold);
                 mvwprintw(status, 2, 1, "Constitution: %3d (%3d)", player->constitution, player->wholeConstitution);
-                mvwprintw(status, 3, 1, "Armour worn: %s (%d)", worn==NULL?"none":worn->descr, worn==NULL?0:worn->armour);
+                mvwprintw(status, 3, 1, "Armour: %s (%d)", worn==NULL?"none":worn->descr, worn==NULL?0:worn->armour);
                 mvwprintw(status, 4, 1, "RH: %s", right==NULL?"":right->ident);
                 mvwprintw(status, 5, 1, "LH: %s", left==NULL?"":left->ident);
-                mvwprintw(status, 6, 1, "Exp: %d", player->exp);
+                mvwprintw(status, 6, 1, "Experience: %d", player->exp);
                 wrefresh(status);
 
             }
@@ -191,12 +193,20 @@ int sprite_act(WINDOW* room, THING* sprite) {
     int maxx = getmaxx(room);
     if (sprite->glyph == '@') {
         ch = wgetch(room);
+        if (player->isConfused) {
+            ch = 49 + random() % 8;
+            player->confusionDuration--;
+            if (player->confusionDuration == 0) {
+                player->isConfused = false;
+                mvaddstr(1, 0, "you feel less confused now"); clrtoeol();
+            }
+        }
     } else {
         int diffy = 0;
         int diffx = 0;
         int diry = 0;
         int dirx = 0;
-        if (sprite->aggressive) {
+        if (sprite->isAggressive) {
             if (player->ypos > sprite->ypos) {
                 diffy = player->ypos - sprite->ypos;
                 diry = 1;
@@ -693,6 +703,9 @@ void drinkEffect(int i) {
         // Its effect reads: "a cloak of darkness falls around you". You are unable to see enemies, items, and the dungeon around you.
     } else if (strcmp(t->ident, "potion of confusion") == 0) {
         // Its effect reads: "you feel confused". For a short amount of time, you are unable to move in the direction you press. When its effect wears off it reads: "you feel less confused now".
+        mvaddstr(1, 0, "you feel confused"); clrtoeol();
+        player->isConfused = true;
+        player->confusionDuration = 12;
     } else if (strcmp(t->ident, "potion of detect monster") == 0) {
         // When read [sic] no text appears. However, it reveals all monsters on the current dungeon level.
     } else if (strcmp(t->ident, "potion of detect things") == 0) {
@@ -793,7 +806,7 @@ void combat(THING* sprite, int atY, int atX) {
             present(s);
             sprite->exp += s->expAward;
         }
-        s->aggressive = true;
+        s->isAggressive = true;
     } else {
         mvaddstr(1, 0, "miss!");
     }
@@ -819,11 +832,16 @@ static void getOpenLocation(WINDOW* win, int *y, int *x) {
 }
 
 THING* addMonster(WINDOW* win) {
-    int y, x;
+    int y, x, i;
     getOpenLocation(win, &y, &x);
     THING* t = newThing(win, T_Sprite, 'X', y, x);
-    int i = random() % 6;
     const char *aggr;
+    if (dlevel == 1) 
+        i = random() % 6;
+    else if (dlevel == 1) 
+        i = random() % 7;
+    else
+        i = 0;
     switch (i) {
         case 0:
             t->descr = "bat";
@@ -858,14 +876,6 @@ THING* addMonster(WINDOW* win) {
             t->expAward = 3;
             break;
         case 4:
-            t->descr = "ice monster";
-            t->glyph = 'I';
-            aggr = "no";
-            t->attack = 4;
-            t->constitution = 4;
-            t->expAward = 5;
-            break;
-        case 5:
             t->descr = "kestrel";
             t->glyph = 'K';
             aggr = "sometimes";
@@ -873,13 +883,29 @@ THING* addMonster(WINDOW* win) {
             t->constitution = 2;
             t->expAward = 2;
             break;
+        case 5:
+            t->descr = "snake";
+            t->glyph = 'S';
+            aggr = "sometimes";
+            t->attack = 1;
+            t->constitution = 1;
+            t->expAward = 2;
+            break;
+        case 6:
+            t->descr = "ice monster";
+            t->glyph = 'I';
+            aggr = "no";
+            t->attack = 4;
+            t->constitution = 4;
+            t->expAward = 5;
+            break;
     }
     if (strcmp(aggr, "sometimes") == 0) {
-        t->aggressive = random()%2==1?true:false;
+        t->isAggressive = random()%2==1?true:false;
     } else if (strcmp(aggr, "no") == 0) {
-        t->aggressive = false;
+        t->isAggressive = false;
     } else if (strcmp(aggr, "yes") == 0) {
-        t->aggressive = true;
+        t->isAggressive = true;
     }
     return t;
 }
@@ -1016,7 +1042,8 @@ THING* addRing(WINDOW* win) {
 }
 
 THING* addPotion(WINDOW* win) {
-    int i = random() % 14;
+    //int i = random() % 14;
+    int i = random() % 2;
     const char *descrs[] = {
         "beige potion",
         "black potion",
@@ -1064,7 +1091,7 @@ THING* addGold(WINDOW* win) {
     int y, x;
     getOpenLocation(win, &y, &x);
     THING* t = newThing(win, T_Item, '$', y, x);
-    t->gold = 20 + random() % 100;
+    t->gold = 2 + random() % 14;
     return t;
 }
 
@@ -1099,12 +1126,6 @@ THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x) {
         case '*':
             thing->descr = "leg of lamb";
             thing->isEdible = true;
-            break;
-        case ':':
-            thing->descr = "gold ring";
-            thing->isEquippable = true;
-            break;
-        case '!':
             break;
         case '@':
             thing->descr = "the player";

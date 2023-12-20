@@ -27,12 +27,14 @@ typedef struct THING {
     bool isPotable;
     bool isEquippable;
     bool isIdentified;
+    bool isAggressive;
+    bool isConfused;
+    int confusionDuration;
     int armour;
     struct THING* next;
     int attack;
     int constitution;
     int wholeConstitution;
-    bool aggressive;
     int expAward;
     int exp;
     chtype under;
