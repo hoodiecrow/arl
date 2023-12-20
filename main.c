@@ -139,9 +139,9 @@ int main() {
     addPotion(map);
     getOpenLocation(map, &y, &x);
     newThing(map, T_Structure, '>', y, x);
-    addMonster(map);
-    addMonster(map);
-    addMonster(map);
+    for (int n = 0; n < random() % 4 + 2; n++) {
+        addMonster(map);
+    }
     x = 10;
     y =  5;
     newThing(map, T_Sprite, '@', y, x);
@@ -156,7 +156,7 @@ int main() {
                 werase(status);
                 box(status, 0 , 0);
                 mvwprintw(status, 1, 1, "Gold: %9d", player->gold);
-                mvwprintw(status, 2, 1, "Constitution: %3d (%3d)", player->constitution, player->wholeConstitution);
+                mvwprintw(status, 2, 1, "Constitution: %3d (%3d)", player->currConstitution, player->fullConstitution);
                 mvwprintw(status, 3, 1, "Armour: %s (%d)", worn==NULL?"none":worn->descr, worn==NULL?0:worn->armour);
                 mvwprintw(status, 4, 1, "RH: %s", right==NULL?"":right->ident);
                 mvwprintw(status, 5, 1, "LH: %s", left==NULL?"":left->ident);
@@ -179,19 +179,73 @@ int main() {
 	return 0;
 }
 
+typedef void (*ahptr)(WINDOW* room, THING* sprite);
+
+void ah_1(WINDOW*, THING*); // sw
+void ah_2(WINDOW*, THING*); // s
+void ah_3(WINDOW*, THING*); // se
+void ah_4(WINDOW*, THING*); // w
+void ah_5(WINDOW*, THING*); // rest
+void ah_6(WINDOW*, THING*); // e
+void ah_7(WINDOW*, THING*); // nw
+void ah_8(WINDOW*, THING*); // n
+void ah_9(WINDOW*, THING*); // ne
+void ah_E(WINDOW*, THING*); // equip
+void ah_S(WINDOW*, THING*); // up stair, also <
+void ah__(WINDOW*, THING*); // null action
+void ah_c(WINDOW*, THING*); // close smth
+void ah_d(WINDOW*, THING*); // drop, also .
+void ah_e(WINDOW*, THING*); // eat
+void ah_g(WINDOW*, THING*); // get
+void ah_h(WINDOW*, THING*); // help screen, also ? and F1
+void ah_i(WINDOW*, THING*); // inventory
+void ah_l(WINDOW*, THING*); // look around (broken)
+void ah_p(WINDOW*, THING*); // pick up, also ,
+void ah_q(WINDOW*, THING*); // quaff
+void ah_r(WINDOW*, THING*); // read
+void ah_s(WINDOW*, THING*); // down stair, also >
+void ah_u(WINDOW*, THING*); // use
+void ah_w(WINDOW*, THING*); // wear
+void ah_z(WINDOW*, THING*); // zap
+void ahCS(WINDOW*, THING*); // Ctrl-S: save game
+
+ahptr actionHandlers[256] = {
+    &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, 
+    &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ahCS, 
+    &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, 
+    &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, 
+    &ah__, &ah__, &ah__, &ah__, &ah_p, &ah__, &ah_d, &ah__, &ah__, &ah_1,
+    &ah_2, &ah_3, &ah_4, &ah_5, &ah_6, &ah_7, &ah_8, &ah_9, &ah__, &ah__,
+    &ah_S, &ah__, &ah_s, &ah_h, &ah__, &ah__, &ah__, &ah__, &ah__, &ah_E, 
+    &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, 
+    &ah__, &ah__, &ah__, &ah_S, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, 
+    &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah_c, 
+    &ah_d, &ah_e, &ah__, &ah_g, &ah_h, &ah_i, &ah__, &ah__, &ah_l, &ah__, 
+    &ah__, &ah__, &ah_p, &ah_q, &ah_r, &ah_s, &ah__, &ah_u, &ah__, &ah_w, 
+    &ah__, &ah__, &ah_z, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, 
+    &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, 
+    &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, 
+    &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, 
+    &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, 
+    &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, 
+    &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, 
+    &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, 
+    &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, 
+    &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, 
+    &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, 
+    &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, 
+    &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, 
+    &ah__, &ah__, &ah__, &ah__, &ah__, &ah__,
+};
+
+
 int sprite_act(WINDOW* room, THING* sprite) {
     int ch;
     if (sprite->type != T_Sprite)
         return 0;
-    if (sprite->constitution <= 0) {
-        if (sprite == player) 
+    if (sprite == player) {
+        if (sprite->isDead)
             return 'Q';
-        else
-            return 0;
-    }
-    int maxy = getmaxy(room);
-    int maxx = getmaxx(room);
-    if (sprite->glyph == '@') {
         ch = wgetch(room);
         if (player->isConfused) {
             ch = 49 + random() % 8;
@@ -202,6 +256,8 @@ int sprite_act(WINDOW* room, THING* sprite) {
             }
         }
     } else {
+        if (sprite->isDead)
+            return 0;
         int diffy = 0;
         int diffx = 0;
         int diry = 0;
@@ -251,294 +307,376 @@ int sprite_act(WINDOW* room, THING* sprite) {
             ch = 49 + random() % 8;
         }
     }
-    if (ch == '1') {
-        if (sprite->ypos < maxy-2 && sprite->xpos > 1) {
-            attemptMove(room, sprite, +1, -1);
-        }
-    } else if (ch == '2') {
-        if (sprite->ypos < maxy-2) {
-            attemptMove(room, sprite, +1, +0);
-        }
-    } else if (ch == '3') {
-        if (sprite->ypos < maxy-2 && sprite->xpos < maxx-2) {
-            attemptMove(room, sprite, +1, +1);
-        }
-    } else if (ch == '4') {
-        if (sprite->xpos > 1) {
-            attemptMove(room, sprite, +0, -1);
-        }
-    } else if (ch == '5') {
-        present(sprite);
-    } else if (ch == '6') {
-        if (sprite->xpos < maxx-2) {
-            attemptMove(room, sprite, +0, +1);
-        }
-    } else if (ch == '7') {
-        if (sprite->ypos > 1 && sprite->xpos > 1) {
-            attemptMove(room, sprite, -1, -1);
-        }
-    } else if (ch == '8') {
-        if (sprite->ypos > 1) {
-            attemptMove(room, sprite, -1, +0);
-        }
-    } else if (ch == '9') {
-        if (sprite->ypos > 1 && sprite->xpos < maxx-2) {
-            attemptMove(room, sprite, -1, +1);
-        }
-    }
-    if (sprite->glyph == '@') {
-            //                     ((( c )))
-        if (ch == 'c') {
-            mvaddstr(1, 0, "close what?");
-            clrtoeol();
-        } else if (ch == 'e') {
-            //                     ((( e )))
-            WINDOW* invlist = newPopup(inventoryFill+3);
-            mvwprintw(invlist, 1, 1, "%s", "What do you want to eat:");
-            for (int i = 0; i < inventoryFill; i++) {
-                if (inventory[i]->isEdible) {
-                    mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
-                    allowedIndices[i] = true;
-                } else {
-                    allowedIndices[i] = false;
-                }
-            }
-            ch = endPopup(invlist);
-            int i = ch-'a';
-            if (allowedIndices[i]) {
-                //TODO eatEffect();
-                dumpInventory(i);
-            } else {
-                mvaddstr(1, 0, "you can't eat that"); clrtoeol(); refresh();
-            }
-        } else if (ch == 'E') {
-            //                     ((( E )))
-            WINDOW* invlist = newPopup(inventoryFill+3);
-            mvwprintw(invlist, 1, 1, "%s", "What do you want to equip:");
-            for (int i = 0; i < inventoryFill; i++) {
-                if (inventory[i]->isEquippable) {
-                    mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
-                    allowedIndices[i] = true;
-                } else {
-                    allowedIndices[i] = false;
-                }
-            }
-            ch = endPopup(invlist);
-            int i = ch-'a';
-            if (allowedIndices[i]) {
-                if (inventory[i]->glyph == ':') {
-                    mvaddstr(1, 0, "wear on right hand (R) or left hand (L)?");
-                    clrtoeol();
-                    refresh();
-                    switch (getch()) {
-                        case 'r': case 'R':
-                            if (right != NULL) {
-                                right->inInventory = true;
-                            }
-                            right = inventory[i];
-                            equipEffect(i);
-                            dumpInventory(i);
-                            break;
-                        case 'l': case 'L':
-                            if (left != NULL) {
-                                left->inInventory = true;
-                            }
-                            left = inventory[i];
-                            equipEffect(i);
-                            dumpInventory(i);
-                            break;
-                    }
-                }
-            } else {
-                mvaddstr(1, 0, "you can't equip that"); clrtoeol(); refresh();
-            }
-        } else if (ch == 'g') {
-            //                     ((( g )))
-            mvaddstr(1, 0, "get what?");
-            clrtoeol();
-        } else if (ch == 'i') {
-            //                     ((( i )))
-            WINDOW* invlist = newPopup(15+3);
-            mvwprintw(invlist, 1, 1, "%s", "You are carrying:");
-            for (int i = 0; i < inventoryFill; i++) {
-                mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
-            }
-            ch = endPopup(invlist);
-        } else if (ch == 'l') {
-            //                     ((( l )))
-            // 1st pass: count the items
-            int itemcount = 0;
-            for (THING* t = things; t != NULL; t = t->next) {
-                if (t->glyph != '@' && !t->inInventory && t != worn)
-                    itemcount++;
-            }
-            WINDOW* invlist = newPopup(inventoryFill+3);
-            // 2nd pass: display the items
-            int i = 1;
-            mvwprintw(invlist, i++, 1, "%s", "Looking around, you see:");
-            for (THING* t = things; t != NULL; t = t->next) {
-                if (t->glyph != '@' && !t->inInventory && t != worn) {
-                    mvwprintw(invlist, i++, 1, "%s", t->descr);
-                }
-            }
-            ch = endPopup(invlist);
-        } else if (ch == 'q') {
-            //                     ((( q )))
-            WINDOW* invlist = newPopup(inventoryFill+3);
-            mvwprintw(invlist, 1, 1, "%s", "What do you want to drink:");
-            for (int i = 0; i < inventoryFill; i++) {
-                if (inventory[i]->isPotable) {
-                    mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
-                    allowedIndices[i] = true;
-                } else {
-                    allowedIndices[i] = false;
-                }
-            }
-            ch = endPopup(invlist);
-            int i = ch-'a';
-            if (allowedIndices[i]) {
-                drinkEffect(i);
-                dumpInventory(i);
-            } else {
-                mvaddstr(1, 0, "you can't drink that"); clrtoeol(); refresh();
-            }
-        } else if (ch == 'r') {
-            //                     ((( r )))
-            WINDOW* invlist = newPopup(inventoryFill+3);
-            mvwprintw(invlist, 1, 1, "%s", "What do you want to read:");
-            for (int i = 0; i < inventoryFill; i++) {
-                if ((inventory[i]->glyph == '~' || inventory[i]->glyph == '=')) {
-                    mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
-                    allowedIndices[i] = true;
-                } else {
-                    allowedIndices[i] = false;
-                }
-            }
-            ch = endPopup(invlist);
-            int i = ch-'a';
-            if (allowedIndices[i]) {
-                readEffect(i);
-                dumpInventory(i);
-            } else {
-                mvaddstr(1, 0, "you can't read that"); clrtoeol(); refresh();
-            }
-        } else if (ch == 'u') {
-            //                     ((( u )))
-            mvaddstr(1, 0, "use what?");
-            clrtoeol();
-        } else if (ch == 'w') {
-            //                     ((( w )))
-            WINDOW* invlist = newPopup(inventoryFill+3);
-            mvwprintw(invlist, 1, 1, "%s", "What do you want to wear:");
-            for (int i = 0; i < inventoryFill; i++) {
-                if (inventory[i]->glyph == '&') {
-                    mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
-                    allowedIndices[i] = true;
-                } else {
-                    allowedIndices[i] = false;
-                }
-            }
-            ch = endPopup(invlist);
-            int i = ch-'a';
-            if (allowedIndices[i]) {
-                if (worn != NULL) {
-                    sprite->under = worn->glyph;
-                    worn->ypos = sprite->ypos;
-                    worn->xpos = sprite->xpos;
-                }
-                worn = inventory[i];
-                wearEffect(i);
-                dumpInventory(i);
-            } else {
-                mvaddstr(1, 0, "you can't wear that"); clrtoeol(); refresh();
-            }
-        } else if (ch == 'z') {
-            //                     ((( z )))
-            WINDOW* invlist = newPopup(inventoryFill+3);
-            mvwprintw(invlist, 1, 1, "%s", "What do you want to zap with:");
-            for (int i = 0; i < inventoryFill; i++) {
-                if (inventory[i]->glyph == '\\' || inventory[i]->glyph == '/') {
-                    mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
-                    allowedIndices[i] = true;
-                } else {
-                    allowedIndices[i] = false;
-                }
-            }
-            ch = endPopup(invlist);
-            int i = ch-'a';
-            if (allowedIndices[i]) {
-                // TODO find a target as well
-                zapEffect(i);
-            } else {
-                mvaddstr(1, 0, "you can't wear that"); clrtoeol(); refresh();
-            }
-        } else if (ch == ',') {
-            //                     ((( , )))
-            if (sprite->under == ' ') {
-                mvaddstr(1, 0, "there's nothing to pick up");
-            } else if (inventoryFill == INVENTORY_SIZE) {
-                mvaddstr(1, 0, "you can't carry more items");
-            } else {
-                THING* t = locateObject(sprite->ypos, sprite->xpos);
-                if (t == NULL) {
-                    mvaddstr(1, 0, "there's nothing to pick up");
-                } else if (t->type == T_Structure) {
-                    mvaddstr(1, 0, "you can't pick that up");
-                } else {
-                    inventory[inventoryFill++] = t;
-                    mvprintw(1, 0, "you picked up: %s", t->descr);
-                    //TODO multiple items in same space
-                    sprite->under = ' ';
-                    t->inInventory = true;
-                    t->ypos = -1;
-                    t->xpos = -1;
-                }
-            }
-            clrtoeol();
-        } else if (ch == '.') {
-            //                     ((( . )))
-            WINDOW* invlist = newPopup(inventoryFill+3);
-            mvwprintw(invlist, 1, 1, "%s", "What do you want to drop:");
-            for (int i = 0; i < inventoryFill; i++) {
-                mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
-            }
-            ch = endPopup(invlist);
-            int i = ch-'a';
-            if (i >= 0 && i < inventoryFill) {
-                THING* t = inventory[i];
-                dumpInventory(i);
-                sprite->under = t->glyph;
-                t->ypos = sprite->ypos;
-                t->xpos = sprite->xpos;
-            }
-        } else if (ch == '<') {
-            //                     ((( < )))
-            mvaddstr(1, 0, "you climbed up a stair");
-            clrtoeol();
-        } else if (ch == '>') {
-            //                     ((( > )))
-            mvaddstr(1, 0, "you went down a stair");
-            clrtoeol();
-        } else if (ch == '@') {
-            //                     ((( @ )))
-            mvaddstr(1, 0, "character screen");
-            clrtoeol();
-        } else if (ch == 19) {
-            //                     ((( C^S )))
-            mvaddstr(1, 0, "save game");
-            clrtoeol();
-        } else if (ch == KEY_F(1)) {
-            //                     ((( F1 )))
-            mvaddstr(1, 0, "help screen");
-            clrtoeol();
-            // more keys at roguebasin
-        } else 
-            ;
-    }
     for (int i = 0; i < INVENTORY_SIZE; i++) {
         allowedIndices[i] = false;
     }
+    if (sprite == player) {
+        mvprintw(1, 0, "%d", ch); clrtoeol(); refresh();
+    }
+    switch (ch) {
+        case 258: ch = '2'; break;
+        case 259: ch = '8'; break;
+        case 260: ch = '4'; break;
+        case 261: ch = '5'; break;
+        case 265: ch = 'h'; break;
+    }
+    actionHandlers[ch](room, sprite);
     return ch;
+}
+
+void ah__(WINDOW* room, THING* sprite) {
+    (void)room;
+    (void)sprite;
+}
+
+void ahCS(WINDOW* room, THING* sprite) {
+    (void)room;
+    (void)sprite;
+    mvaddstr(1, 0, "save game");
+    clrtoeol();
+}
+
+void ah_1(WINDOW* room, THING* sprite) {
+    int maxy = getmaxy(room);
+    if (sprite->ypos < maxy-2 && sprite->xpos > 1) {
+        attemptMove(room, sprite, +1, -1);
+    }
+}
+
+void ah_2(WINDOW* room, THING* sprite) {
+    int maxy = getmaxy(room);
+    if (sprite->ypos < maxy-2) {
+        attemptMove(room, sprite, +1, +0);
+    }
+}
+
+void ah_3(WINDOW* room, THING* sprite) {
+    int maxy = getmaxy(room);
+    int maxx = getmaxx(room);
+    if (sprite->ypos < maxy-2 && sprite->xpos < maxx-2) {
+        attemptMove(room, sprite, +1, +1);
+    }
+}
+
+void ah_4(WINDOW* room, THING* sprite) {
+    if (sprite->xpos > 1) {
+        attemptMove(room, sprite, +0, -1);
+    }
+}
+
+void ah_5(WINDOW* room, THING* sprite) {
+    (void)room;
+    present(sprite);
+}
+
+void ah_6(WINDOW* room, THING* sprite) {
+    int maxx = getmaxx(room);
+    if (sprite->xpos < maxx-2) {
+        attemptMove(room, sprite, +0, +1);
+    }
+}
+
+void ah_7(WINDOW* room, THING* sprite) {
+    if (sprite->ypos > 1 && sprite->xpos > 1) {
+        attemptMove(room, sprite, -1, -1);
+    }
+}
+
+void ah_8(WINDOW* room, THING* sprite) {
+    if (sprite->ypos > 1) {
+        attemptMove(room, sprite, -1, +0);
+    }
+}
+
+void ah_9(WINDOW* room, THING* sprite) {
+    int maxx = getmaxx(room);
+    if (sprite->ypos > 1 && sprite->xpos < maxx-2) {
+        attemptMove(room, sprite, -1, +1);
+    }
+}
+
+void ah_c(WINDOW* room, THING* sprite) {
+    (void)room;
+    (void)sprite;
+    mvaddstr(1, 0, "close what?");
+    clrtoeol();
+}
+
+void ah_e(WINDOW* room, THING* sprite) {
+    (void)room;
+    (void)sprite;
+    WINDOW* invlist = newPopup(inventoryFill+3);
+    mvwprintw(invlist, 1, 1, "%s", "What do you want to eat:");
+    for (int i = 0; i < inventoryFill; i++) {
+        if (inventory[i]->isEdible) {
+            mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
+            allowedIndices[i] = true;
+        } else {
+            allowedIndices[i] = false;
+        }
+    }
+    chtype ch = endPopup(invlist);
+    int i = ch-'a';
+    if (allowedIndices[i]) {
+        //TODO eatEffect();
+        dumpInventory(i);
+    } else {
+        mvaddstr(1, 0, "you can't eat that"); clrtoeol(); refresh();
+    }
+}
+
+void ah_E(WINDOW* room, THING* sprite) {
+    (void)room;
+    (void)sprite;
+    WINDOW* invlist = newPopup(inventoryFill+3);
+    mvwprintw(invlist, 1, 1, "%s", "What do you want to equip:");
+    for (int i = 0; i < inventoryFill; i++) {
+        if (inventory[i]->isEquippable) {
+            mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
+            allowedIndices[i] = true;
+        } else {
+            allowedIndices[i] = false;
+        }
+    }
+    chtype ch = endPopup(invlist);
+    int i = ch-'a';
+    if (allowedIndices[i]) {
+        if (inventory[i]->glyph == ':') {
+            mvaddstr(1, 0, "wear on right hand (R) or left hand (L)?");
+            clrtoeol();
+            refresh();
+            switch (getch()) {
+                case 'r': case 'R':
+                    if (right != NULL) {
+                        right->inInventory = true;
+                    }
+                    right = inventory[i];
+                    equipEffect(i);
+                    dumpInventory(i);
+                    break;
+                case 'l': case 'L':
+                    if (left != NULL) {
+                        left->inInventory = true;
+                    }
+                    left = inventory[i];
+                    equipEffect(i);
+                    dumpInventory(i);
+                    break;
+            }
+        }
+    } else {
+        mvaddstr(1, 0, "you can't equip that"); clrtoeol(); refresh();
+    }
+}
+
+void ah_g(WINDOW* room, THING* sprite) {
+    (void)room;
+    (void)sprite;
+    mvaddstr(1, 0, "get what?");
+    clrtoeol();
+}
+
+void ah_h(WINDOW* room, THING* sprite) {
+    (void)room;
+    (void)sprite;
+    mvaddstr(1, 0, "help screen");
+    clrtoeol();
+}
+
+void ah_i(WINDOW* room, THING* sprite) {
+    (void)room;
+    (void)sprite;
+    WINDOW* invlist = newPopup(15+3);
+    mvwprintw(invlist, 1, 1, "%s", "You are carrying:");
+    for (int i = 0; i < inventoryFill; i++) {
+        mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
+    }
+    endPopup(invlist);
+}
+
+void ah_l(WINDOW* room, THING* sprite) {
+    (void)room;
+    (void)sprite;
+    // 1st pass: count the items
+    int itemcount = 0;
+    for (THING* t = things; t != NULL; t = t->next) {
+        if (t->glyph != '@' && !t->inInventory && t != worn)
+            itemcount++;
+    }
+    WINDOW* invlist = newPopup(inventoryFill+3);
+    // 2nd pass: display the items
+    int i = 1;
+    mvwprintw(invlist, i++, 1, "%s", "Looking around, you see:");
+    for (THING* t = things; t != NULL; t = t->next) {
+        if (t->glyph != '@' && !t->inInventory && t != worn) {
+            mvwprintw(invlist, i++, 1, "%s", t->descr);
+        }
+    }
+    endPopup(invlist);
+}
+
+void ah_q(WINDOW* room, THING* sprite) {
+    (void)room;
+    (void)sprite;
+    WINDOW* invlist = newPopup(inventoryFill+3);
+    mvwprintw(invlist, 1, 1, "%s", "What do you want to drink:");
+    for (int i = 0; i < inventoryFill; i++) {
+        if (inventory[i]->isPotable) {
+            mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
+            allowedIndices[i] = true;
+        } else {
+            allowedIndices[i] = false;
+        }
+    }
+    chtype ch = endPopup(invlist);
+    int i = ch-'a';
+    if (allowedIndices[i]) {
+        drinkEffect(i);
+        dumpInventory(i);
+    } else {
+        mvaddstr(1, 0, "you can't drink that"); clrtoeol(); refresh();
+    }
+}
+
+void ah_r(WINDOW* room, THING* sprite) {
+    (void)room;
+    (void)sprite;
+    WINDOW* invlist = newPopup(inventoryFill+3);
+    mvwprintw(invlist, 1, 1, "%s", "What do you want to read:");
+    for (int i = 0; i < inventoryFill; i++) {
+        if ((inventory[i]->glyph == '~' || inventory[i]->glyph == '=')) {
+            mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
+            allowedIndices[i] = true;
+        } else {
+            allowedIndices[i] = false;
+        }
+    }
+    chtype ch = endPopup(invlist);
+    int i = ch-'a';
+    if (allowedIndices[i]) {
+        readEffect(i);
+        dumpInventory(i);
+    } else {
+        mvaddstr(1, 0, "you can't read that"); clrtoeol(); refresh();
+    }
+}
+
+void ah_s(WINDOW* room, THING* sprite) {
+    (void)room;
+    (void)sprite;
+    mvaddstr(1, 0, "you went down a stair");
+    clrtoeol();
+}
+
+void ah_S(WINDOW* room, THING* sprite) {
+    (void)room;
+    (void)sprite;
+    mvaddstr(1, 0, "you went up a stair");
+    clrtoeol();
+}
+
+void ah_u(WINDOW* room, THING* sprite) {
+    (void)room;
+    (void)sprite;
+    mvaddstr(1, 0, "use what?");
+    clrtoeol();
+}
+
+void ah_w(WINDOW* room, THING* sprite) {
+    (void)room;
+    (void)sprite;
+    WINDOW* invlist = newPopup(inventoryFill+3);
+    mvwprintw(invlist, 1, 1, "%s", "What do you want to wear:");
+    for (int i = 0; i < inventoryFill; i++) {
+        if (inventory[i]->glyph == '&') {
+            mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
+            allowedIndices[i] = true;
+        } else {
+            allowedIndices[i] = false;
+        }
+    }
+    chtype ch = endPopup(invlist);
+    int i = ch-'a';
+    if (allowedIndices[i]) {
+        if (worn != NULL) {
+            sprite->under = worn->glyph;
+            worn->ypos = sprite->ypos;
+            worn->xpos = sprite->xpos;
+        }
+        worn = inventory[i];
+        wearEffect(i);
+        dumpInventory(i);
+    } else {
+        mvaddstr(1, 0, "you can't wear that"); clrtoeol(); refresh();
+    }
+}
+
+void ah_z(WINDOW* room, THING* sprite) {
+    (void)room;
+    (void)sprite;
+    WINDOW* invlist = newPopup(inventoryFill+3);
+    mvwprintw(invlist, 1, 1, "%s", "What do you want to zap with:");
+    for (int i = 0; i < inventoryFill; i++) {
+        if (inventory[i]->glyph == '\\' || inventory[i]->glyph == '/') {
+            mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
+            allowedIndices[i] = true;
+        } else {
+            allowedIndices[i] = false;
+        }
+    }
+    chtype ch = endPopup(invlist);
+    int i = ch-'a';
+    if (allowedIndices[i]) {
+        // TODO find a target as well
+        zapEffect(i);
+    } else {
+        mvaddstr(1, 0, "you can't wear that"); clrtoeol(); refresh();
+    }
+}
+
+void ah_p(WINDOW* room, THING* sprite) {
+    (void)room;
+    (void)sprite;
+    if (sprite->under == ' ') {
+        mvaddstr(1, 0, "there's nothing to pick up");
+    } else if (inventoryFill == INVENTORY_SIZE) {
+        mvaddstr(1, 0, "you can't carry more items");
+    } else {
+        THING* t = locateObject(sprite->ypos, sprite->xpos);
+        if (t == NULL) {
+            mvaddstr(1, 0, "there's nothing to pick up");
+        } else if (t->type == T_Structure) {
+            mvaddstr(1, 0, "you can't pick that up");
+        } else {
+            inventory[inventoryFill++] = t;
+            mvprintw(1, 0, "you picked up: %s", t->descr);
+            //TODO multiple items in same space
+            sprite->under = ' ';
+            t->inInventory = true;
+            t->ypos = -1;
+            t->xpos = -1;
+        }
+    }
+    clrtoeol();
+}
+
+void ah_d(WINDOW* room, THING* sprite) {
+    (void)room;
+    (void)sprite;
+    WINDOW* invlist = newPopup(inventoryFill+3);
+    mvwprintw(invlist, 1, 1, "%s", "What do you want to drop:");
+    for (int i = 0; i < inventoryFill; i++) {
+        mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
+    }
+    chtype ch = endPopup(invlist);
+    int i = ch-'a';
+    if (i >= 0 && i < inventoryFill) {
+        THING* t = inventory[i];
+        dumpInventory(i);
+        sprite->under = t->glyph;
+        t->ypos = sprite->ypos;
+        t->xpos = sprite->xpos;
+    }
 }
 
 WINDOW* newPopup(int lines) {
@@ -712,12 +850,20 @@ void drinkEffect(int i) {
         // When read no text appears. However, it reveals all items and gold present in the current dungeon level.
     } else if (strcmp(t->ident, "potion of extra healing") == 0) {
         // Its effect reads: "you begin to feel much better". It restores a very large number of Hp (27).
+        mvaddstr(1, 0, "you begin to feel much better"); clrtoeol();
+        player->currConstitution += 27;
+        if (player->currConstitution > player->fullConstitution)
+            player->currConstitution = player->fullConstitution;
     } else if (strcmp(t->ident, "potion of hallucination") == 0) {
         // Its effect reads: "oh wow, everything seems so cosmic". When quaffed all enemies and items will change symbol from turn to turn. When its effect wears off it reads: "everything looks SO boring now".
     } else if (strcmp(t->ident, "potion of haste self") == 0) {
         //  Its effect reads: "you feel yourself moving much faster". It may appear as though you are moving at your normal speed but you can sometimes move twice before a monster moves once.
     } else if (strcmp(t->ident, "potion of healing") == 0) {
         // Its effect reads: "you begin to feel better". It restores a number of Hp (13).
+        mvaddstr(1, 0, "you begin to feel better"); clrtoeol();
+        player->currConstitution += 13;
+        if (player->currConstitution > player->fullConstitution)
+            player->currConstitution = player->fullConstitution;
     } else if (strcmp(t->ident, "potion of increase strength") == 0) {
         // Its effect reads: "you feel stronger now, what bulging muscles!". When quaffed your current strength increases by one (like a potion of restore strength), however, if you strength is at max, your maximum strength increases by one.
     } else if (strcmp(t->ident, "potion of levitation") == 0) {
@@ -791,22 +937,20 @@ void stepSprite(WINDOW* room, THING* sprite, chtype floor, int toY, int toX) {
 }
 
 void combat(THING* sprite, int atY, int atX) {
-    THING* s = locateSprite(atY, atX);
+    THING* other = locateSprite(atY, atX);
     int combatRoll = random() % 6 + 1;
     if (combatRoll < sprite->attack) {
         mvaddstr(1, 0, "hit!");
-        s->constitution--;
-        if (s == player) {
-            //mvwprintw(status, 2, 1, "Constitution: %3d (%3d)", player->constitution, player->wholeConstitution);
-            //wrefresh(status);
+        other->currConstitution--;
+        if (other->currConstitution <= 0) {
+            // other is killed
+            other->isDead = true;
+            other->glyph = '%';
+            present(other);
+            sprite->exp += other->expAward;
         }
-        if (s->constitution <= 0) {
-            // s is killed
-            s->glyph = '%';
-            present(s);
-            sprite->exp += s->expAward;
-        }
-        s->isAggressive = true;
+        //TODO could attempt to escape instead
+        other->isAggressive = true;
     } else {
         mvaddstr(1, 0, "miss!");
     }
@@ -848,7 +992,7 @@ THING* addMonster(WINDOW* win) {
             t->glyph = 'B';
             aggr = "sometimes";
             t->attack = 1;
-            t->constitution = 1;
+            t->fullConstitution = 1;
             t->expAward = 2;
             break;
         case 1:
@@ -856,7 +1000,7 @@ THING* addMonster(WINDOW* win) {
             t->glyph = 'E';
             aggr = "sometimes";
             t->attack = 2;
-            t->constitution = 1;
+            t->fullConstitution = 1;
             t->expAward = 2;
             break;
         case 2:
@@ -864,7 +1008,7 @@ THING* addMonster(WINDOW* win) {
             t->glyph = 'G';
             aggr = "sometimes";
             t->attack = 2;
-            t->constitution = 2;
+            t->fullConstitution = 2;
             t->expAward = 2;
             break;
         case 3:
@@ -872,7 +1016,7 @@ THING* addMonster(WINDOW* win) {
             t->glyph = 'H';
             aggr = "yes";
             t->attack = 3;
-            t->constitution = 3;
+            t->fullConstitution = 3;
             t->expAward = 3;
             break;
         case 4:
@@ -880,7 +1024,7 @@ THING* addMonster(WINDOW* win) {
             t->glyph = 'K';
             aggr = "sometimes";
             t->attack = 1;
-            t->constitution = 2;
+            t->fullConstitution = 2;
             t->expAward = 2;
             break;
         case 5:
@@ -888,7 +1032,7 @@ THING* addMonster(WINDOW* win) {
             t->glyph = 'S';
             aggr = "sometimes";
             t->attack = 1;
-            t->constitution = 1;
+            t->fullConstitution = 1;
             t->expAward = 2;
             break;
         case 6:
@@ -896,10 +1040,11 @@ THING* addMonster(WINDOW* win) {
             t->glyph = 'I';
             aggr = "no";
             t->attack = 4;
-            t->constitution = 4;
+            t->fullConstitution = 4;
             t->expAward = 5;
             break;
     }
+    t->currConstitution = t->fullConstitution;
     if (strcmp(aggr, "sometimes") == 0) {
         t->isAggressive = random()%2==1?true:false;
     } else if (strcmp(aggr, "no") == 0) {
@@ -1042,8 +1187,7 @@ THING* addRing(WINDOW* win) {
 }
 
 THING* addPotion(WINDOW* win) {
-    //int i = random() % 14;
-    int i = random() % 2;
+    int i = random() % 14;
     const char *descrs[] = {
         "beige potion",
         "black potion",
@@ -1114,7 +1258,8 @@ THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x) {
     thing->isPotable = false;
     thing->isEquippable = false;
     thing->attack = 0;
-    thing->constitution = 0;
+    thing->fullConstitution = 0;
+    thing->isDead = false;
     thing->exp = 0;
     switch (glyph) {
         case '<':
@@ -1130,11 +1275,11 @@ THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x) {
         case '@':
             thing->descr = "the player";
             thing->attack = 5;
-            thing->constitution = 5;
+            thing->fullConstitution = 5;
             break;
     }
     thing->gold = 0;
-    thing->wholeConstitution = thing->constitution;
+    thing->currConstitution = thing->fullConstitution;
     thing->inInventory = false;
     thing->next = things;
     things = thing;

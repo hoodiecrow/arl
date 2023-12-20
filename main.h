@@ -28,34 +28,24 @@ typedef struct THING {
     bool isEquippable;
     bool isIdentified;
     bool isAggressive;
+    bool isDead;
     bool isConfused;
     int confusionDuration;
     int armour;
     struct THING* next;
     int attack;
-    int constitution;
-    int wholeConstitution;
+    int currConstitution;
+    int fullConstitution;
     int expAward;
     int exp;
     chtype under;
 } THING;
 
-enum POTIONS {
-    BLINDNESS,
-    CONFUSION,
-    DETECT_MONSTER,
-    DETECT_THINGS,
-    EXTRA_HEALING,
-    HALLUCINATION,
-    HASTE_SELF,
-    HEALING,
-    INCREASE_STRENGTH,
-    LEVITATION,
-    POISON,
-    RAISE_LEVEL,
-    RESTORE_STRENGTH,
-    SEE_INVISIBLE,
-};
+typedef struct TILE {
+	bool isFloor;
+	bool isBearTrap;
+	THING *item;
+} TILE;
 
 #define INVENTORY_SIZE 15
 
