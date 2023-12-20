@@ -81,3 +81,4 @@ Move randomly unless near the player, in which case they attempt to approach and
 - https://invisible-island.net/cdk/manpage/cdk.3.html
 - https://www.roguebasin.com/index.php/Roguelike_Dev_FAQ
 - http://roguelike.pbworks.com/w/page/7833587/Rogue
+- https://nethackwiki.com/wiki/Rogue_(game)
