@@ -151,24 +151,33 @@ int main() {
 
     chtype ch = 0;
     while (ch != 'Q') {
-        for (THING* thing = things; thing != NULL; thing = thing->next) {
-            if (thing->type == T_Sprite) {
-                werase(status);
-                box(status, 0 , 0);
-                mvwprintw(status, 1, 1, "Gold: %9d", player->gold);
-                mvwprintw(status, 2, 1, "Constitution: %3d (%3d)", player->currConstitution, player->fullConstitution);
-                mvwprintw(status, 3, 1, "Armour: %s (%d)", worn==NULL?"none":worn->descr, worn==NULL?0:worn->armour);
-                mvwprintw(status, 4, 1, "RH: %s", right==NULL?"":right->ident);
-                mvwprintw(status, 5, 1, "LH: %s", left==NULL?"":left->ident);
-                mvwprintw(status, 6, 1, "Experience: %d", player->exp);
-                wrefresh(status);
-                ch = sprite_act(map, thing);
-
+        werase(status);
+        box(status, 0 , 0);
+        mvwprintw(status, 1, 1, "Gold: %9d", player->gold);
+        mvwprintw(status, 2, 1, "Constitution: %3d (%3d)", player->currConstitution, player->fullConstitution);
+        mvwprintw(status, 3, 1, "Armour: %s (%d)", worn==NULL?"none":worn->descr, worn==NULL?0:worn->armour);
+        mvwprintw(status, 4, 1, "RH: %s", right==NULL?"":right->ident);
+        mvwprintw(status, 5, 1, "LH: %s", left==NULL?"":left->ident);
+        mvwprintw(status, 6, 1, "Experience: %d", player->exp);
+        wrefresh(status);
+        if (player->isHasted) {
+            player_act(map, player);
+            player->hasteDuration--;
+        }
+        ch = player_act(map, player);
+        for (THING* thing = things; ch != 'Q' && thing != NULL; thing = thing->next) {
+            if (thing->type == T_Sprite && thing != player) {
+                sprite_act(map, thing);
             }
-            if (ch == 'Q')
-                break;
         }
 
+        if (player->isHasted && player->hasteDuration == 0) {
+            player->isHasted = false;
+        }
+        if (player->isConfused && player->confusionDuration == 0) {
+            player->isConfused = false;
+            mvaddstr(1, 0, "you feel less confused now"); clrtoeol();
+        }
         refresh();
         wrefresh(map);
         wrefresh(status);
@@ -180,73 +189,14 @@ int main() {
 	return 0;
 }
 
-int sprite_act(WINDOW* room, THING* sprite) {
-    int ch;
-    if (sprite->type != T_Sprite)
-        return 0;
-    if (sprite == player) {
-        if (sprite->isDead)
-            return 'Q';
-        ch = wgetch(room);
-        if (player->isConfused) {
-            ch = 49 + random() % 8;
-            player->confusionDuration--;
-            if (player->confusionDuration == 0) {
-                player->isConfused = false;
-                mvaddstr(1, 0, "you feel less confused now"); clrtoeol();
-            }
-        }
-    } else {
-        if (sprite->isDead)
-            return 0;
-        int diffy = 0;
-        int diffx = 0;
-        int diry = 0;
-        int dirx = 0;
-        if (sprite->isAggressive) {
-            if (player->ypos > sprite->ypos) {
-                diffy = player->ypos - sprite->ypos;
-                diry = 1;
-            } else if (player->ypos == sprite->ypos) {
-                diry = 0;
-            } else {
-                diffy = sprite->ypos - player->ypos;
-                diry = -1;
-            }
-            if (player->xpos > sprite->xpos) {
-                diffx = player->xpos - sprite->xpos;
-                dirx = 1;
-            } else if (player->xpos == sprite->xpos) {
-                dirx = 0;
-            } else {
-                diffx = sprite->xpos - player->xpos;
-                dirx = -1;
-            }
-            if (diffy < 3 && diffx < 3) {
-                if (diry == 1 && dirx == -1)
-                    ch = '1';
-                else if (diry == 1 && dirx == 0)
-                    ch = '2';
-                else if (diry == 1 && dirx == 1)
-                    ch = '3';
-                else if (diry == 0 && dirx == -1)
-                    ch = '4';
-                else if (diry == 0 && dirx == 1)
-                    ch = '6';
-                else if (diry == -1 && dirx == -1)
-                    ch = '7';
-                else if (diry == -1 && dirx == 0)
-                    ch = '8';
-                else if (diry == -1 && dirx == 1)
-                    ch = '9';
-                else
-                    ch = '5'; // won't happen
-            } else {
-                ch = 49 + random() % 8;
-            }
-        } else {
-            ch = 49 + random() % 8;
-        }
+int player_act(WINDOW* room, THING* sprite) {
+    chtype ch;
+    if (sprite->isDead)
+        return 'Q';
+    ch = wgetch(room);
+    if (player->isConfused) {
+        ch = 49 + random() % 8;
+        player->confusionDuration--;
     }
     for (int i = 0; i < INVENTORY_SIZE; i++) {
         allowedIndices[i] = false;
@@ -260,6 +210,62 @@ int sprite_act(WINDOW* room, THING* sprite) {
         case 260: ch = '4'; break;
         case 261: ch = '5'; break;
         case 265: ch = 'h'; break;
+    }
+    actionHandlers[ch](room, sprite);
+    return ch;
+}
+
+int sprite_act(WINDOW* room, THING* sprite) {
+    int ch;
+    if (sprite->isDead)
+        return 0;
+    int diffy = 0;
+    int diffx = 0;
+    int diry = 0;
+    int dirx = 0;
+    if (sprite->isAggressive) {
+        if (player->ypos > sprite->ypos) {
+            diffy = player->ypos - sprite->ypos;
+            diry = 1;
+        } else if (player->ypos == sprite->ypos) {
+            diry = 0;
+        } else {
+            diffy = sprite->ypos - player->ypos;
+            diry = -1;
+        }
+        if (player->xpos > sprite->xpos) {
+            diffx = player->xpos - sprite->xpos;
+            dirx = 1;
+        } else if (player->xpos == sprite->xpos) {
+            dirx = 0;
+        } else {
+            diffx = sprite->xpos - player->xpos;
+            dirx = -1;
+        }
+        if (diffy < 3 && diffx < 3) {
+            if (diry == 1 && dirx == -1)
+                ch = '1';
+            else if (diry == 1 && dirx == 0)
+                ch = '2';
+            else if (diry == 1 && dirx == 1)
+                ch = '3';
+            else if (diry == 0 && dirx == -1)
+                ch = '4';
+            else if (diry == 0 && dirx == 1)
+                ch = '6';
+            else if (diry == -1 && dirx == -1)
+                ch = '7';
+            else if (diry == -1 && dirx == 0)
+                ch = '8';
+            else if (diry == -1 && dirx == 1)
+                ch = '9';
+            else
+                ch = '5'; // won't happen
+        } else {
+            ch = 49 + random() % 8;
+        }
+    } else {
+        ch = 49 + random() % 8;
     }
     actionHandlers[ch](room, sprite);
     return ch;
@@ -444,6 +450,8 @@ void drinkEffect(int i) {
         // Its effect reads: "oh wow, everything seems so cosmic". When quaffed all enemies and items will change symbol from turn to turn. When its effect wears off it reads: "everything looks SO boring now".
     } else if (strcmp(t->ident, "potion of haste self") == 0) {
         //  Its effect reads: "you feel yourself moving much faster". It may appear as though you are moving at your normal speed but you can sometimes move twice before a monster moves once.
+        mvaddstr(1, 0, "you feel yourself moving much faster");
+        player->hasteDuration = 12;
     } else if (strcmp(t->ident, "potion of healing") == 0) {
         // Its effect reads: "you begin to feel better". It restores a number of Hp (13).
         mvaddstr(1, 0, "you begin to feel better"); clrtoeol();

@@ -31,6 +31,8 @@ typedef struct THING {
     bool isDead;
     bool isConfused;
     int confusionDuration;
+    bool isHasted;
+    int hasteDuration;
     int armour;
     struct THING* next;
     int attack;
@@ -70,6 +72,7 @@ void equipEffect(int i);
 void wearEffect(int i);
 void drinkEffect(int i);
 void present(THING* thing);
+int player_act(WINDOW* room, THING* sprite);
 int sprite_act(WINDOW* room, THING* sprite);
 THING* locateThing(int ypos, int xpos);
 THING* locateObject(int ypos, int xpos);
