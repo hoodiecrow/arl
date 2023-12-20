@@ -37,6 +37,8 @@ typedef struct THING {
     int hasteDuration;
     bool isLevitating;
     int  levitationDuration;
+    bool isAsleep;
+    int sleepDuration;
     int armour;
     struct THING* next;
     int attack;

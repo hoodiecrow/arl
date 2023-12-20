@@ -163,6 +163,7 @@ int main() {
         addGold(map);
     }
     addRing(map);
+    addScroll(map);
     getOpenLocation(map, &y, &x);
     newThing(map, T_Item, '*', y, x);
     addPotion(map);
@@ -200,6 +201,9 @@ int main() {
         if (player->isConfused) {
             player->confusionDuration--;
         }
+        if (player->isAsleep) {
+            player->sleepDuration--;
+        }
         ch = player_act(map, player);
         for (THING* thing = things; ch != 'Q' && thing != NULL; thing = thing->next) {
             if (thing->type == T_Sprite && thing != player) {
@@ -207,16 +211,20 @@ int main() {
             }
         }
 
-        if (player->isHasted && player->hasteDuration == 0) {
+        if (player->isHasted && player->hasteDuration <= 0) {
             player->isHasted = false;
         }
-        if (player->isLevitating && player->levitationDuration == 0) {
+        if (player->isLevitating && player->levitationDuration <= 0) {
             player->isLevitating = false;
             mvaddstr(1, 0, "your feet touch the ground again"); clrtoeol();
         }
-        if (player->isConfused && player->confusionDuration == 0) {
+        if (player->isConfused && player->confusionDuration <= 0) {
             player->isConfused = false;
             mvaddstr(1, 0, "you feel less confused now"); clrtoeol();
+        }
+        if (player->isAsleep && player->sleepDuration <= 0) {
+            player->isAsleep = false;
+            mvaddstr(1, 0, "you wake up"); clrtoeol();
         }
         refresh();
         wrefresh(map);
@@ -236,6 +244,9 @@ int player_act(WINDOW* room, THING* sprite) {
     ch = wgetch(room);
     if (player->isConfused) {
         ch = 49 + random() % 8;
+    }
+    if (player->isAsleep) {
+        ch = '5';
     }
     for (int i = 0; i < INVENTORY_SIZE; i++) {
         allowedIndices[i] = false;
@@ -411,8 +422,19 @@ void readEffect(int i) {
         // Its affect reads: "you hear a maniacal laughter in the distance". It has a chance of scaring aggressive monsters away.
     } else if (strcmp(t->ident, "scroll of sleep") == 0) {
         // Its affect reads: "you fall asleep". Obviously, you fall asleep for some amount of time (similar to the sleeping gas trap).
+        player->isAsleep = true;
+        mvaddstr(1, 0, "you fall asleep"); clrtoeol();
+        player->sleepDuration = 50;
     } else if (strcmp(t->ident, "scroll of teleportation") == 0) {
         // It teleports you to a random location in the current dungeon level.
+        mvwaddch(player->room, player->ypos, player->xpos, player->under);
+        int y, x;
+        getOpenLocation(player->room, &y, &x);
+        player->ypos = y;
+        player->xpos = x;
+        player->under = ' ';
+        present(player);
+
     } else {
     }
     t->isIdentified = true;
@@ -470,15 +492,18 @@ void drinkEffect(int i) {
     //TODO timer for (some) effects
     if (strcmp(t->ident, "potion of blindness") == 0) {
         // Its effect reads: "a cloak of darkness falls around you". You are unable to see enemies, items, and the dungeon around you.
+        // TODO
     } else if (strcmp(t->ident, "potion of confusion") == 0) {
         // Its effect reads: "you feel confused". For a short amount of time, you are unable to move in the direction you press. When its effect wears off it reads: "you feel less confused now".
         mvaddstr(1, 0, "you feel confused"); clrtoeol();
         player->isConfused = true;
-        player->confusionDuration = 12;
+        player->confusionDuration = 50;
     } else if (strcmp(t->ident, "potion of detect monster") == 0) {
         // When read [sic] no text appears. However, it reveals all monsters on the current dungeon level.
+        // TODO
     } else if (strcmp(t->ident, "potion of detect things") == 0) {
         // When read no text appears. However, it reveals all items and gold present in the current dungeon level.
+        // TODO
     } else if (strcmp(t->ident, "potion of extra healing") == 0) {
         // Its effect reads: "you begin to feel much better". It restores a very large number of Hp (27).
         mvaddstr(1, 0, "you begin to feel much better"); clrtoeol();
@@ -487,10 +512,11 @@ void drinkEffect(int i) {
             player->currHp = player->fullHp;
     } else if (strcmp(t->ident, "potion of hallucination") == 0) {
         // Its effect reads: "oh wow, everything seems so cosmic". When quaffed all enemies and items will change symbol from turn to turn. When its effect wears off it reads: "everything looks SO boring now".
+        // TODO
     } else if (strcmp(t->ident, "potion of haste self") == 0) {
         //  Its effect reads: "you feel yourself moving much faster". It may appear as though you are moving at your normal speed but you can sometimes move twice before a monster moves once.
         mvaddstr(1, 0, "you feel yourself moving much faster");
-        player->hasteDuration = 12;
+        player->hasteDuration = 50;
     } else if (strcmp(t->ident, "potion of healing") == 0) {
         // Its effect reads: "you begin to feel better". It restores a number of Hp (13).
         mvaddstr(1, 0, "you begin to feel better"); clrtoeol();
@@ -507,7 +533,7 @@ void drinkEffect(int i) {
         // Its effect reads: "you start to float in the air". While levitating you cannot fall into traps or pickup items.
         mvaddstr(1, 0, "you start to float in the air");
         player->isLevitating = true;
-        player->levitationDuration = 12;
+        player->levitationDuration = 50;
     } else if (strcmp(t->ident, "potion of poison") == 0) {
         // Its effect reads: "you feel very sick now". It reduces your current strength by 3.
         mvaddstr(1, 0, "you feel very sick now");
@@ -527,6 +553,7 @@ void drinkEffect(int i) {
             player->currStrength--;
     } else if (strcmp(t->ident, "potion of see invisible") == 0) {
         // Its effect reads: "hmm, this potion tastes like slime-mold juice". Presumably it lets you see invisible things...
+        // TODO
     } else {
         // shouldn't happen
     }
@@ -569,6 +596,7 @@ static void freeObject(THING* o) {
 static void playerStepsOnGold(int toY, int toX) {
     THING* o = locateObject(toY, toX);
     if (o != NULL) {
+        // TODO exp for gold?
         player->gold += o->gold;
         //mvwprintw(status, 1, 1, "Gold: %9d", player->gold);
         freeObject(o);
@@ -788,6 +816,7 @@ THING* addStaff(WINDOW* win) {
 
 THING* addScroll(WINDOW* win) {
     int i = random() % 13;
+    i = 11;
     const char *idents[] = {
         "scroll of aggravate monster",
         "scroll of confuse monster",
@@ -843,7 +872,6 @@ THING* addRing(WINDOW* win) {
 
 THING* addPotion(WINDOW* win) {
     int i = random() % 14;
-    i = 12;
     const char *descrs[] = {
         "beige potion",
         "black potion",
@@ -913,9 +941,15 @@ THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x) {
     thing->isEdible = false;
     thing->isPotable = false;
     thing->isEquippable = false;
+    thing->isIdentified = false;
+    thing->isAggressive = false;
+    thing->isDead = false;
+    thing->isConfused = false;
+    thing->isAsleep = false;
+    thing->isHasted = false;
+    thing->isLevitating = false;
     thing->attack = 0;
     thing->fullConstitution = 0;
-    thing->isDead = false;
     thing->level = 1;
     thing->exp = 0;
     thing->fullHp = thing->currHp = 12;
