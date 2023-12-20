@@ -21,6 +21,8 @@ typedef struct THING {
     int xpos;
     const char* descr;
     const char* ident;
+    int level;
+    int exp;
     int gold;
     bool inInventory;
     bool isEdible;
@@ -33,13 +35,18 @@ typedef struct THING {
     int confusionDuration;
     bool isHasted;
     int hasteDuration;
+    bool isLevitating;
+    int  levitationDuration;
     int armour;
     struct THING* next;
     int attack;
+    int currStrength;
+    int fullStrength;
     int currConstitution;
     int fullConstitution;
+    int currHp;
+    int fullHp;
     int expAward;
-    int exp;
     chtype under;
 } THING;
 

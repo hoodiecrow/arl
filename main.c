@@ -66,6 +66,34 @@ Level	Experience Required	Max Hp
 8	640	62 - 66
  */
 
+int expForLevel(int i) {
+    switch (i) {
+        case 1: return 0;
+        case 2: return 10;
+        case 3: return 20;
+        case 4: return 40;
+        case 5: return 80;
+        case 6: return 160;
+        case 7: return 320;
+        case 8: return 640;
+        default: return -1;
+    }
+}
+
+int hpIncrForLevel(int i) {
+    switch (i) {
+        case 1: return 0;
+        case 2: return 3 + random() % (22-15);
+        case 3: return 3 + random() % (29-18);
+        case 4: return 8 + random() % (37-26);
+        case 5: return 8 + random() % (44-34);
+        case 6: return 7 + random() % (50-41);
+        case 7: return 15 + random() % (57-56); // weird
+        case 8: return 6 + random() % (66-62);
+        default: return -1;
+    }
+}
+
 /* TODO
  * At least one new enemy type may appear on each subsequent level of the dungeon past level one, though exactly which enemies spawn is randomly generated. A monster's symbol in bold designates his natural entry level.
 
@@ -154,15 +182,23 @@ int main() {
         werase(status);
         box(status, 0 , 0);
         mvwprintw(status, 1, 1, "Gold: %9d", player->gold);
-        mvwprintw(status, 2, 1, "Constitution: %3d (%3d)", player->currConstitution, player->fullConstitution);
-        mvwprintw(status, 3, 1, "Armour: %s (%d)", worn==NULL?"none":worn->descr, worn==NULL?0:worn->armour);
-        mvwprintw(status, 4, 1, "RH: %s", right==NULL?"":right->ident);
-        mvwprintw(status, 5, 1, "LH: %s", left==NULL?"":left->ident);
-        mvwprintw(status, 6, 1, "Experience: %d", player->exp);
+        mvwprintw(status, 2, 1, "Hit Points: %d (%d)", player->currHp, player->fullHp);
+        mvwprintw(status, 3, 1, "Strength: %3d (%3d)", player->currStrength, player->fullStrength);
+        mvwprintw(status, 4, 1, "Constitution: %3d (%3d)", player->currConstitution, player->fullConstitution);
+        mvwprintw(status, 5, 1, "Armour: %s (%d)", worn==NULL?"none":worn->descr, worn==NULL?0:worn->armour);
+        mvwprintw(status, 6, 1, "RH: %s", right==NULL?"":right->ident);
+        mvwprintw(status, 7, 1, "LH: %s", left==NULL?"":left->ident);
+        mvwprintw(status, 8, 1, "Level: %d Exp: %d", player->level, player->exp);
         wrefresh(status);
+        if (player->isLevitating) {
+            player->levitationDuration--;
+        }
         if (player->isHasted) {
             player_act(map, player);
             player->hasteDuration--;
+        }
+        if (player->isConfused) {
+            player->confusionDuration--;
         }
         ch = player_act(map, player);
         for (THING* thing = things; ch != 'Q' && thing != NULL; thing = thing->next) {
@@ -173,6 +209,10 @@ int main() {
 
         if (player->isHasted && player->hasteDuration == 0) {
             player->isHasted = false;
+        }
+        if (player->isLevitating && player->levitationDuration == 0) {
+            player->isLevitating = false;
+            mvaddstr(1, 0, "your feet touch the ground again"); clrtoeol();
         }
         if (player->isConfused && player->confusionDuration == 0) {
             player->isConfused = false;
@@ -196,7 +236,6 @@ int player_act(WINDOW* room, THING* sprite) {
     ch = wgetch(room);
     if (player->isConfused) {
         ch = 49 + random() % 8;
-        player->confusionDuration--;
     }
     for (int i = 0; i < INVENTORY_SIZE; i++) {
         allowedIndices[i] = false;
@@ -443,9 +482,9 @@ void drinkEffect(int i) {
     } else if (strcmp(t->ident, "potion of extra healing") == 0) {
         // Its effect reads: "you begin to feel much better". It restores a very large number of Hp (27).
         mvaddstr(1, 0, "you begin to feel much better"); clrtoeol();
-        player->currConstitution += 27;
-        if (player->currConstitution > player->fullConstitution)
-            player->currConstitution = player->fullConstitution;
+        player->currHp += 27;
+        if (player->currHp > player->fullHp)
+            player->currHp = player->fullHp;
     } else if (strcmp(t->ident, "potion of hallucination") == 0) {
         // Its effect reads: "oh wow, everything seems so cosmic". When quaffed all enemies and items will change symbol from turn to turn. When its effect wears off it reads: "everything looks SO boring now".
     } else if (strcmp(t->ident, "potion of haste self") == 0) {
@@ -455,19 +494,37 @@ void drinkEffect(int i) {
     } else if (strcmp(t->ident, "potion of healing") == 0) {
         // Its effect reads: "you begin to feel better". It restores a number of Hp (13).
         mvaddstr(1, 0, "you begin to feel better"); clrtoeol();
-        player->currConstitution += 13;
-        if (player->currConstitution > player->fullConstitution)
-            player->currConstitution = player->fullConstitution;
+        player->currHp += 13;
+        if (player->currHp > player->fullHp)
+            player->currHp = player->fullHp;
     } else if (strcmp(t->ident, "potion of increase strength") == 0) {
         // Its effect reads: "you feel stronger now, what bulging muscles!". When quaffed your current strength increases by one (like a potion of restore strength), however, if you strength is at max, your maximum strength increases by one.
+        mvaddstr(1, 0, "you feel stronger now, what bulging muscles!");
+        player->currStrength++;
+        if (player->currStrength > player->fullStrength)
+            player->fullStrength++;
     } else if (strcmp(t->ident, "potion of levitation") == 0) {
         // Its effect reads: "you start to float in the air". While levitating you cannot fall into traps or pickup items.
+        mvaddstr(1, 0, "you start to float in the air");
+        player->isLevitating = true;
+        player->levitationDuration = 12;
     } else if (strcmp(t->ident, "potion of poison") == 0) {
         // Its effect reads: "you feel very sick now". It reduces your current strength by 3.
+        mvaddstr(1, 0, "you feel very sick now");
+        player->currStrength -= 3;
     } else if (strcmp(t->ident, "potion of raise level") == 0) {
         //  Its effect reads: "you suddenly feel much more skillful". You instantly attain the next level (Exp automatically adjusted).
+        mvaddstr(1, 0, "you suddenly feel much more skillful");
+        player->level++;
+        player->exp = expForLevel(player->level);
+        player->fullHp += hpIncrForLevel(player->level);
+        //TODO exp points
     } else if (strcmp(t->ident, "potion of restore strength") == 0) {
         // Its effect reads: "this tastes great, you feel warm all over". Your current strength increases by one up to your maximum strength.
+        mvaddstr(1, 0, "this tastes great, you feel warm all over");
+        player->currStrength++;
+        if (player->currStrength > player->fullStrength)
+            player->currStrength--;
     } else if (strcmp(t->ident, "potion of see invisible") == 0) {
         // Its effect reads: "hmm, this potion tastes like slime-mold juice". Presumably it lets you see invisible things...
     } else {
@@ -535,13 +592,17 @@ void combat(THING* sprite, int atY, int atX) {
     int combatRoll = random() % 6 + 1;
     if (combatRoll < sprite->attack) {
         mvaddstr(1, 0, "hit!");
-        other->currConstitution--;
-        if (other->currConstitution <= 0) {
+        other->currHp--;
+        if (other->currHp <= 0) {
             // other is killed
             other->isDead = true;
             other->glyph = '%';
             present(other);
             sprite->exp += other->expAward;
+            if (sprite == player && player->exp >= expForLevel(player->level + 1)) {
+                player->level++;
+                player->fullHp += hpIncrForLevel(player->level);
+            }
         }
         //TODO could attempt to escape instead
         other->isAggressive = true;
@@ -782,6 +843,7 @@ THING* addRing(WINDOW* win) {
 
 THING* addPotion(WINDOW* win) {
     int i = random() % 14;
+    i = 12;
     const char *descrs[] = {
         "beige potion",
         "black potion",
@@ -854,7 +916,9 @@ THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x) {
     thing->attack = 0;
     thing->fullConstitution = 0;
     thing->isDead = false;
+    thing->level = 1;
     thing->exp = 0;
+    thing->fullHp = thing->currHp = 12;
     switch (glyph) {
         case '<':
             thing->descr = "stair";
@@ -869,10 +933,12 @@ THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x) {
         case '@':
             thing->descr = "the player";
             thing->attack = 5;
-            thing->fullConstitution = 5;
+            thing->fullStrength = 12;
+            thing->fullConstitution = 12;
             break;
     }
     thing->gold = 0;
+    thing->currStrength = thing->fullStrength;
     thing->currConstitution = thing->fullConstitution;
     thing->inInventory = false;
     thing->next = things;
