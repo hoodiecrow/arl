@@ -3,6 +3,9 @@ A roguelike
 
 I have no plan and little knowledge, but I'm going to see how far I can get on just curiosity and a lot of googling.
 
+2023-12-21: Tomorrow it will be a week of working on this. State of the code: a mess. State of the game: just barely playable. Tomorrow I can claim a 7DRL (seven day roguelike challenge) and pack it up. I think I will keep at it for some time, though.
+
+## Controls
 Move around with keypad
 ```
 7  8  9
