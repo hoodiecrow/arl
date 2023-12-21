@@ -23,7 +23,8 @@ Bolded commands have some kind of mechanism to them.
 - `q` **drink**
 - `r` **read**
 - `u` use
-- `w` **wear**
+- `w` **wield**
+- `W` **wear**
 - `z` zap
 - `,` **pick up**
 - `.` **drop**
