@@ -15,8 +15,6 @@ THING* left = NULL;
 THING* wielded = NULL;
 THING* player = NULL;
 
-WINDOW* status;
-
 static void getOpenLocation(WINDOW* win, int *y, int *x);
 
 // https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/index.html
@@ -139,9 +137,6 @@ int main() {
     WINDOW* map = create_newwin(37, 72, 2, 0);
     keypad(map, TRUE);
 
-    status = create_newwin(19, 30, 20, 72);
-    keypad(status, TRUE);
-
     //genMap(35, 90, 35, 5, 1, 10);
     genMap9(35, 70);
 
@@ -149,15 +144,6 @@ int main() {
     showMap9(map);
     wrefresh(map);
             
-#if 0
-    int height = 16;
-    int width = 20;
-    int starty = (LINES - height) / 2;
-    int startx = (COLS - width) / 2;
-    WINDOW *room = create_newwin(height, width, starty, startx);
-    keypad(room, TRUE);
-#endif
-
     curs_set(0);
     int y, x;
     for (int n = 0; n < random() % 5 + 1; n++) {
@@ -181,16 +167,10 @@ int main() {
 
     chtype ch = 0;
     while (ch != 'Q') {
-        werase(status);
-        box(status, 0 , 0);
-        mvwprintw(status, 1, 1, "Gold: %9d", player->gold);
-        mvwprintw(status, 2, 1, "Hit Points: %d (%d)", player->stats->currHp, player->stats->fullHp);
-        mvwprintw(status, 3, 1, "Strength: %3d (%3d)", player->stats->currStrength, player->stats->fullStrength);
-        mvwprintw(status, 4, 1, "Armour: %s (%d)", worn==NULL?"none":worn->descr, worn==NULL?0:player->armour);
-        mvwprintw(status, 5, 1, "RH: %s", right==NULL?"":right->ident);
-        mvwprintw(status, 6, 1, "LH: %s", left==NULL?"":left->ident);
-        mvwprintw(status, 7, 1, "Level: %d Exp: %d", player->stats->level, player->stats->exp);
-        wrefresh(status);
+        mvprintw(LINES-1, 0, "Level: %d  Gold: %d    HP: %d(%d)  Str: %d  AC: %d  Level/Exp: %d/%d",
+                dlevel, player->gold, player->stats->currHp, player->stats->fullHp, 
+                player->stats->currStrength, worn==NULL?0:player->armour, player->stats->level,
+                player->stats->exp); clrtoeol(); refresh();
         if (player->isLevitating) {
             player->levitationDuration--;
         }
@@ -228,7 +208,6 @@ int main() {
         }
         refresh();
         wrefresh(map);
-        wrefresh(status);
     }
 
     destroy_win(map);
@@ -255,11 +234,11 @@ int player_act(WINDOW* room, THING* sprite) {
         mvprintw(1, 0, "%d", ch); clrtoeol(); refresh();
     }
     switch (ch) {
-        case 258: ch = '2'; break;
-        case 259: ch = '8'; break;
-        case 260: ch = '4'; break;
-        case 261: ch = '5'; break;
-        case 265: ch = 'h'; break;
+        case 258: ch = '2'; break; //down
+        case 259: ch = '8'; break; //up
+        case 260: ch = '4'; break; //left
+        case 261: ch = '5'; break; //right
+        case 265: ch = 'h'; break; //F1
     }
     actionHandlers[ch](room, sprite);
     return ch;
@@ -371,7 +350,7 @@ THING* locateSprite(int ypos, int xpos) {
     return NULL;
 }
 
-/* From weapons.c of Rogue3.6.3. For reference only.
+/* From weapons.c of Rogue3.6.3. For reference only, delete before release TODO.
 static struct init_weps {
     char *iw_dam;
     char *iw_hrl;
@@ -648,7 +627,6 @@ static void playerStepsOnGold(int toY, int toX) {
     if (o != NULL) {
         // TODO exp for gold?
         player->gold += o->gold;
-        //mvwprintw(status, 1, 1, "Gold: %9d", player->gold);
         freeObject(o);
     }
 }
@@ -692,12 +670,12 @@ void combat(THING* sprite, int atY, int atX) {
     THING* other = locateSprite(atY, atX);
     int combatRoll = random() % 20 + 1;
     if (combatRoll+sprite->wplus >= (21-sprite->stats->level)-other->armour) {
-        mvaddstr(1, 0, "hit!"); clrtoeol(); refresh();
-    mvprintw(1, 0, "DEBUG: %s", sprite->damage); refresh();
+        mvaddstr(1, 0, "hit!");
         int damage = dice2(sprite->damage);
         other->stats->currHp -= damage;
         if (other->stats->currHp <= 0) {
             // other is killed
+            mvprintw(1, 0, "%c is killed!", other->glyph);
             other->isDead = true;
             other->glyph = '%';
             present(other);
@@ -733,7 +711,7 @@ static void getOpenLocation(WINDOW* win, int *y, int *x) {
     *x = rx;
 }
 
-/* from init.c of Rogue3.6.3. For reference only.
+/* from init.c of Rogue3.6.3. For reference only, delete before release TODO.
 #define ___ 1
 #define _x {1,1}
 struct monster monsters[26] = {
