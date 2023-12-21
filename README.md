@@ -42,8 +42,8 @@ Still figuring these out...
 - `%` carcass
 - `&` garments or armour
 - `'`
-- `(` weapon
-- `)` shield
+- `(` 
+- `)` weapon
 - `*` food
 - `+`
 - `-`
