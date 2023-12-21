@@ -38,6 +38,8 @@ typedef struct THING {
     bool isIdentified;
     bool isAggressive;
     bool isImmobile;
+    bool isInCombat;
+    bool isInjured;
     bool isDead;
     bool isConfused;
     int confusionDuration;
@@ -47,6 +49,7 @@ typedef struct THING {
     int  levitationDuration;
     bool isAsleep;
     int sleepDuration;
+    int healingCycle;
     int armour;
     struct THING* next;
     int attack;

@@ -184,6 +184,15 @@ int main() {
         if (player->isAsleep) {
             player->sleepDuration--;
         }
+        if (player->isInjured) {
+            if (player->healingCycle <= 0)
+                player->healingCycle = 10;
+            if (player->isInCombat) {
+                player->isInCombat = false;
+            } else {
+                player->healingCycle--;
+            }
+        }
         ch = player_act(map, player);
         for (THING* thing = things; ch != 'Q' && thing != NULL; thing = thing->next) {
             if (thing->type == T_Sprite && thing != player) {
@@ -205,6 +214,15 @@ int main() {
         if (player->isAsleep && player->sleepDuration <= 0) {
             player->isAsleep = false;
             mvaddstr(1, 0, "you wake up"); clrtoeol();
+        }
+        if (player->isInjured) {
+            if (player->healingCycle <= 0) {
+                if (player->stats->currHp < player->stats->fullHp) {
+                    player->stats->currHp++;
+                } else if (player->stats->currHp == player->stats->fullHp) {
+                    player->isInjured = false;
+                }
+            }
         }
         refresh();
         wrefresh(map);
@@ -668,11 +686,16 @@ static int dice2(const char* code) {
 
 void combat(THING* sprite, int atY, int atX) {
     THING* other = locateSprite(atY, atX);
+    if (sprite == player || other == player)
+        player->isInCombat = true;
     int combatRoll = random() % 20 + 1;
     if (combatRoll+sprite->wplus >= (21-sprite->stats->level)-other->armour) {
         mvaddstr(1, 0, "hit!");
         int damage = dice2(sprite->damage);
         other->stats->currHp -= damage;
+        if (other == player) {
+            player->isInjured = true;
+        }
         if (other->stats->currHp <= 0) {
             // other is killed
             mvprintw(1, 0, "%c is killed!", other->glyph);
@@ -1065,6 +1088,9 @@ THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x) {
     thing->isAsleep = false;
     thing->isHasted = false;
     thing->isLevitating = false;
+    thing->isInCombat = false;
+    thing->isInjured = false;
+    thing->healingCycle = 0;
     thing->attack = 0;
     switch (glyph) {
         case '<':
