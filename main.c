@@ -371,17 +371,44 @@ THING* locateSprite(int ypos, int xpos) {
     return NULL;
 }
 
+/* From weapons.c of Rogue3.6.3. For reference only.
+static struct init_weps {
+    char *iw_dam;
+    char *iw_hrl;
+    char iw_launch;
+    int iw_flags;
+} init_dam[MAXWEAPONS] = {
+    "2d4", "1d3", NONE, 0,		           // Mace
+    "1d10", "1d2", NONE,0,		           // Long sword
+    "1d1", "1d1", NONE,	0,		           // Bow
+    "1d1", "1d6", BOW,	ISMANY|ISMISL,	   // Arrow
+    "1d6", "1d4", NONE,	ISMISL,		       // Dagger
+    "1d2", "1d4", SLING,ISMANY|ISMISL,	   // Rock
+    "3d6", "1d2", NONE,	0,		           // 2h sword
+    "0d0", "0d0", NONE, 0,		           // Sling
+    "1d1", "1d3", NONE,	ISMANY|ISMISL,	   // Dart
+    "1d1", "1d1", NONE, 0,		           // Crossbow
+    "1d2", "1d10", CROSSBOW, ISMANY|ISMISL,// Crossbow bolt
+    "1d8", "1d6", NONE, ISMISL,		       // Spear
+};
+ */
+
 void wieldEffect(int i) {
     //TODO
-    (void)i;
     THING* t = inventory[i];
     mvaddstr(1, 0, t->descr); clrtoeol(); refresh();
-    if (strcmp(t->descr, "") == 0) {
-        (void)t->modifier;
-    } else if (strcmp(t->descr, "") == 0) {
-        (void)t->modifier;
+    if (strcmp(t->descr, "mace") == 0) {
+        t->damage = "2d4";
+    } else if (strcmp(t->descr, "Longsword") == 0) {
+        t->damage = "1d10";
+    } else if (strcmp(t->descr, "Dagger") == 0) {
+        t->damage = "1d6";
+    } else if (strcmp(t->descr, "Two-handed sword") == 0) {
+        t->damage = "3d6";
+    } else if (strcmp(t->descr, "Spear") == 0) {
+        t->damage = "1d8";
     } else {
-        t->armour = 0;
+        t->damage = "1d4";
     }
     // TODO lesser or greater quality variants
 }
@@ -428,7 +455,7 @@ void readEffect(int i) {
         // effect on wielded weapon only
         if (wielded != NULL) {
             mvaddstr(1, 0, "your weapon glows blue for a moment");
-            wielded->modifier += random() % 2;
+            wielded->damage += random() % 2;
             // TODO cursed status
         }
     } else if (strcmp(t->ident, "scroll of hold monster") == 0) {
@@ -486,20 +513,20 @@ void equipEffect(int i) {
 void wearEffect(int i) {
     THING* t = inventory[i];
     mvaddstr(1, 0, t->descr); clrtoeol(); refresh();
-    if (strcmp(t->descr, "banded mail") == 0) {
+    if (strcmp(t->descr, "leather armour") == 0) {
+        player->armour = t->armour = 8;
+    } else if (strcmp(t->descr, "ring mail") == 0) {
+        player->armour = t->armour = 7;
+    } else if (strcmp(t->descr, "scale mail") == 0) {
         player->armour = t->armour = 6;
     } else if (strcmp(t->descr, "chain mail") == 0) {
         player->armour = t->armour = 5;
-    } else if (strcmp(t->descr, "leather armour") == 0) {
-        player->armour = t->armour = 2;
-    } else if (strcmp(t->descr, "plate mail") == 0) {
-        player->armour = t->armour = 7;
-    } else if (strcmp(t->descr, "ring mail") == 0) {
-        player->armour = t->armour = 3;
-    } else if (strcmp(t->descr, "scale mail") == 0) {
-        player->armour = t->armour = 4;
     } else if (strcmp(t->descr, "splint mail") == 0) {
-        player->armour = t->armour = 6;
+        player->armour = t->armour = 4;
+    } else if (strcmp(t->descr, "banded mail") == 0) {
+        player->armour = t->armour = 4;
+    } else if (strcmp(t->descr, "plate mail") == 0) {
+        player->armour = t->armour = 3;
     } else {
         player->armour = t->armour = 0;
     }
@@ -638,12 +665,37 @@ void stepSprite(WINDOW* room, THING* sprite, chtype floor, int toY, int toX) {
     present(sprite);
 }
 
+static int dice(int n, int s) {
+    // n=number of dice
+    // s=size of the die
+    int total = 0;
+    for (int i = 0; i < n; i++) {
+        total += random() % s + 1;
+    }
+    return total;
+}
+
+static int dice2(const char* code) {
+    int n, s;
+    int r = sscanf(code, "%dd%d", &n, &s);
+    if (r != 2) {
+        mvprintw(1, 0, "can't scan \"%s\"", code);
+        clrtoeol();
+        refresh();
+        getch();
+        exit(1);
+    }
+    return dice(n, s);
+}
+
 void combat(THING* sprite, int atY, int atX) {
     THING* other = locateSprite(atY, atX);
     int combatRoll = random() % 20 + 1;
-    if (combatRoll+sprite->wplus-other->armour >= (21-sprite->stats->level)) {
-        mvaddstr(1, 0, "hit!");
-        other->stats->currHp--;
+    if (combatRoll+sprite->wplus >= (21-sprite->stats->level)-other->armour) {
+        mvaddstr(1, 0, "hit!"); clrtoeol(); refresh();
+    mvprintw(1, 0, "DEBUG: %s", sprite->damage); refresh();
+        int damage = dice2(sprite->damage);
+        other->stats->currHp -= damage;
         if (other->stats->currHp <= 0) {
             // other is killed
             other->isDead = true;
@@ -681,6 +733,41 @@ static void getOpenLocation(WINDOW* win, int *y, int *x) {
     *x = rx;
 }
 
+/* from init.c of Rogue3.6.3. For reference only.
+#define ___ 1
+#define _x {1,1}
+struct monster monsters[26] = {
+	// Name		 CARRY	FLAG             str, exp, lvl, amr, hpt, dmg
+	{ "giant ant",	 0,	 ISMEAN,	    { _x, 10,   2,   3, ___, "1d6" } },
+	{ "bat",	     0,	 0,	            { _x,  1,   1,   3, ___, "1d2" } },
+	{ "centaur",	 15, 0,	            { _x, 15,   4,   4, ___, "1d6/1d6" } },
+	{ "dragon",	     100,ISGREED,       { _x,9000, 10,  -1, ___, "1d8/1d8/3d10" } },
+	{ "floating eye",0,	 0,	            { _x,  5,   1,   9, ___, "0d0" } },
+	{ "violet fungi",0,	 ISMEAN,	    { _x, 85,   8,   3, ___, "000d0" } },
+	{ "gnome",	     10, 0,	            { _x,  8,   1,   5, ___, "1d6" } },
+	{ "hobgoblin",	 0,	 ISMEAN,	    { _x,  3,   1,   5, ___, "1d8" } },
+	{ "inv. stalker",0,  ISINVIS,       { _x,120,   8,   3, ___, "4d4" } },
+	{ "jackal",	     0,	 ISMEAN,	    { _x,  2,   1,   7, ___, "1d2" } },
+	{ "kobold",	     0,	 ISMEAN,	    { _x,  1,   1,   7, ___, "1d4" } },
+	{ "leprechaun",	 0,	 0,	            { _x, 10,   3,   8, ___, "1d1" } },
+	{ "mimic",	     30, 0,	            { _x,140,   7,   7, ___, "3d4" } },
+	{ "nymph",	     100,0,	            { _x, 40,   3,   9, ___, "0d0" } },
+	{ "orc",	     15, ISBLOCK,       { _x,  5,   1,   6, ___, "1d8" } },
+	{ "purple worm", 70, 0,	            { _x,7000, 15,   6, ___, "2d12/2d4" } },
+	{ "quasit",	     30, ISMEAN,	    { _x, 35,   3,   2, ___, "1d2/1d2/1d4" } },
+	{ "rust monster",0,	 ISMEAN,	    { _x, 25,   5,   2, ___, "0d0/0d0" } },
+	{ "snake",	     0,	 ISMEAN,	    { _x,  3,   1,   5, ___, "1d3" } },
+	{ "troll",	     50, ISREGEN|ISMEAN,{ _x, 55,   6,   4, ___, "1d8/1d8/2d6" } },
+	{ "umber hulk",	 40, ISMEAN,	    { _x,130,   8,   2, ___, "3d4/3d4/2d5" } },
+	{ "vampire",	 20, ISREGEN|ISMEAN,{ _x,380,   8,   1, ___, "1d10" } },
+	{ "wraith",	     0,	 0,	            { _x, 55,   5,   4, ___, "1d6" } },
+	{ "xorn",	     0,	 ISMEAN,	    { _x,120,   7,  -2, ___, "1d3/1d3/1d3/4d6" } },
+	{ "yeti",	     30, 0,	            { _x, 50,   4,   6, ___, "1d6/1d6" } },
+	{ "zombie",	     0,	 ISMEAN,	    { _x,  7,   2,   8, ___, "1d8" } }
+};
+#undef ___
+ */
+
 THING* addMonster(WINDOW* win) {
     int y, x, i;
     getOpenLocation(win, &y, &x);
@@ -698,23 +785,31 @@ THING* addMonster(WINDOW* win) {
             t->glyph = 'B';
             aggr = "sometimes";
             t->attack = 1;
-            t->stats->fullHp = 1;
+            t->stats->fullHp = dice(1, 8);
+            t->damage = "1d2";
+            t->armour = 3;
             t->expAward = 2;
             break;
         case 1:
-            t->descr = "emu";
+            t->descr = "floating eye";
             t->glyph = 'E';
             aggr = "sometimes";
             t->attack = 2;
-            t->stats->fullHp = 1;
+            t->stats->fullHp = dice(1, 8);
+            t->damage = "0d0";
+            //TODO
+            t->armour = 9;
             t->expAward = 2;
+            t->isImmobile = true;
             break;
         case 2:
             t->descr = "goblin";
             t->glyph = 'G';
             aggr = "sometimes";
             t->attack = 2;
-            t->stats->fullHp = 2;
+            t->stats->fullHp = dice(1, 8);
+            t->damage = "1d6";
+            t->armour = 5;
             t->expAward = 2;
             break;
         case 3:
@@ -722,23 +817,29 @@ THING* addMonster(WINDOW* win) {
             t->glyph = 'H';
             aggr = "yes";
             t->attack = 3;
-            t->stats->fullHp = 3;
+            t->stats->fullHp = dice(1, 8);
+            t->damage = "1d8";
+            t->armour = 5;
             t->expAward = 3;
             break;
         case 4:
-            t->descr = "kestrel";
+            t->descr = "kobold";
             t->glyph = 'K';
-            aggr = "sometimes";
+            aggr = "yes";
             t->attack = 1;
-            t->stats->fullHp = 2;
+            t->stats->fullHp = dice(1, 8);
+            t->damage = "1d4";
+            t->armour = 7;
             t->expAward = 2;
             break;
         case 5:
             t->descr = "snake";
             t->glyph = 'S';
-            aggr = "sometimes";
+            aggr = "yes";
             t->attack = 1;
-            t->stats->fullHp = 1;
+            t->stats->fullHp = dice(1, 8);
+            t->damage = "1d3";
+            t->armour = 5;
             t->expAward = 2;
             break;
         case 6:
@@ -746,10 +847,13 @@ THING* addMonster(WINDOW* win) {
             t->glyph = 'I';
             aggr = "no";
             t->attack = 4;
-            t->stats->fullHp = 4;
+            t->stats->fullHp = dice(1, 8);
+            t->damage = "4d4";
+            t->armour = 5;
             t->expAward = 5;
             break;
     }
+    t->wplus = 0;
     t->stats->currHp = t->stats->fullHp;
     if (strcmp(aggr, "sometimes") == 0) {
         t->isAggressive = random()%2==1?true:false;
@@ -1003,9 +1107,9 @@ THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x) {
     }
     thing->gold = 0;
     thing->inInventory = false;
-    thing->modifier = 0;
+    thing->damage = "1d4";
     thing->wplus = 0;
-    thing->armour = 0;
+    thing->armour = 11;
     thing->next = things;
     things = thing;
     thing->under = ' ';
@@ -1017,7 +1121,7 @@ WINDOW *create_newwin(int height, int width, int starty, int startx) {
     WINDOW *local_win;
 
     local_win = newwin(height, width, starty, startx);
-    box(local_win, 0 , 0);
+    box(local_win, 0, 0);
     wrefresh(local_win);
 
     return local_win;

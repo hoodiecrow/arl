@@ -37,6 +37,7 @@ typedef struct THING {
     bool isEquippable;
     bool isIdentified;
     bool isAggressive;
+    bool isImmobile;
     bool isDead;
     bool isConfused;
     int confusionDuration;
@@ -50,7 +51,7 @@ typedef struct THING {
     struct THING* next;
     int attack;
     int expAward;
-    int modifier;
+    const char* damage;
     int wplus;
     chtype under;
     STATS *stats;
