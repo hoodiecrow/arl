@@ -167,10 +167,12 @@ int main() {
 
     chtype ch = 0;
     while (ch != 'Q') {
+        // status line
         mvprintw(LINES-1, 0, "Level: %d  Gold: %d    HP: %d(%d)  Str: %d  AC: %d  Level/Exp: %d/%d",
                 dlevel, player->gold, player->stats->currHp, player->stats->fullHp, 
                 player->stats->currStrength, worn==NULL?0:player->armour, player->stats->level,
                 player->stats->exp); clrtoeol(); refresh();
+
         if (player->isLevitating) {
             player->levitationDuration--;
         }
@@ -368,7 +370,7 @@ THING* locateSprite(int ypos, int xpos) {
     return NULL;
 }
 
-/* From weapons.c of Rogue3.6.3. For reference only, delete before release TODO.
+/* From weapons.c of Rogue3.6.3. For inspiration only, delete before release TODO.
 static struct init_weps {
     char *iw_dam;
     char *iw_hrl;
@@ -698,7 +700,11 @@ void combat(THING* sprite, int atY, int atX) {
         }
         if (other->stats->currHp <= 0) {
             // other is killed
-            mvprintw(1, 0, "%c is killed!", other->glyph);
+            if ('A' <= other->glyph && other->glyph <= 'Z') {
+                mvprintw(1, 0, "The %s is killed!", monsterNames[other->glyph-'A']);
+            } else {
+                mvprintw(1, 0, "The other is killed!");
+            }
             other->isDead = true;
             other->glyph = '%';
             present(other);
@@ -734,7 +740,7 @@ static void getOpenLocation(WINDOW* win, int *y, int *x) {
     *x = rx;
 }
 
-/* from init.c of Rogue3.6.3. For reference only, delete before release TODO.
+/* from init.c of Rogue3.6.3. For inspiration only, delete before release TODO.
 #define ___ 1
 #define _x {1,1}
 struct monster monsters[26] = {
@@ -768,6 +774,35 @@ struct monster monsters[26] = {
 };
 #undef ___
  */
+
+const char* monsterNames[26] = {
+    "giant ant",    // A
+    "bat",          // B
+    "centaur",      // C
+    "dragon",       // D
+    "floating eye", // E
+    "violet fungi", // F
+    "goblin",       // G
+    "hobgoblin",    // H
+    "ice monster",  // I
+    "jackal",       // J
+    "kobold",       // K
+    "leprechaun",   // L
+    "mimic",        // M
+    "nymph",        // N
+    "orc",          // O
+    "purple worm",  // P
+    "quasit",       // Q
+    "rust monster", // R
+    "snake",        // S
+    "troll",        // T
+    "umber hulk",   // U
+    "vampire",      // V
+    "wraith",       // W
+    "xorn",         // X
+    "yeti",         // Y
+    "zombie"        // Z
+};
 
 THING* addMonster(WINDOW* win) {
     int y, x, i;
