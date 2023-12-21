@@ -78,6 +78,7 @@ THING* addScroll(WINDOW* win);
 THING* addRing(WINDOW* win);
 THING* addPotion(WINDOW* win);
 THING* addGold(WINDOW* win);
+void wieldEffect(int i);
 void zapEffect(int i);
 void readEffect(int i);
 void equipEffect(int i);

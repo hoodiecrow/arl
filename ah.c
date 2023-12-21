@@ -10,7 +10,7 @@ ahptr actionHandlers[256] = {
     &ah_2, &ah_3, &ah_4, &ah_5, &ah_6, &ah_7, &ah_8, &ah_9, &ah__, &ah__,
     &ah_S, &ah__, &ah_s, &ah_h, &ah__, &ah__, &ah__, &ah__, &ah__, &ah_E, 
     &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, 
-    &ah__, &ah__, &ah__, &ah_S, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, 
+    &ah__, &ah__, &ah__, &ah_S, &ah__, &ah__, &ah__, &ah_W, &ah__, &ah__, 
     &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah_c, 
     &ah_d, &ah_e, &ah__, &ah_g, &ah_h, &ah_i, &ah__, &ah__, &ah_l, &ah__, 
     &ah__, &ah__, &ah_p, &ah_q, &ah_r, &ah_s, &ah__, &ah_u, &ah__, &ah_w, 
@@ -291,6 +291,34 @@ void ah_u(WINDOW* room, THING* sprite) {
 }
 
 void ah_w(WINDOW* room, THING* sprite) {
+    // wield a weapon
+    (void)room;
+    (void)sprite;
+    WINDOW* invlist = newPopup(inventoryFill+3);
+    mvwprintw(invlist, 1, 1, "%s", "What do you want to wield:");
+    for (int i = 0; i < inventoryFill; i++) {
+        if (inventory[i]->glyph == ')') {
+            mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
+            allowedIndices[i] = true;
+        } else {
+            allowedIndices[i] = false;
+        }
+    }
+    chtype ch = endPopup(invlist);
+    int i = ch-'a';
+    if (allowedIndices[i]) {
+        if (wielded != NULL) {
+            wielded->inInventory = true;
+        }
+        wielded = inventory[i];
+        wieldEffect(i);
+        dumpInventory(i);
+    } else {
+        mvaddstr(1, 0, "you can't wield that"); clrtoeol(); refresh();
+    }
+}
+
+void ah_W(WINDOW* room, THING* sprite) {
     (void)room;
     (void)sprite;
     WINDOW* invlist = newPopup(inventoryFill+3);

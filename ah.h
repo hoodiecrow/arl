@@ -29,7 +29,8 @@ void ah_q(WINDOW*, THING*); // q quaff
 void ah_r(WINDOW*, THING*); // r read
 void ah_s(WINDOW*, THING*); // s down stair, also >
 void ah_u(WINDOW*, THING*); // u use
-void ah_w(WINDOW*, THING*); // w wear
+void ah_w(WINDOW*, THING*); // w wield
+void ah_W(WINDOW*, THING*); // W wear
 void ah_z(WINDOW*, THING*); // z zap
 void ahCS(WINDOW*, THING*); // Ctrl-S: save game
                             // Q quit game

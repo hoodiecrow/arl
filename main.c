@@ -371,6 +371,11 @@ THING* locateSprite(int ypos, int xpos) {
     return NULL;
 }
 
+void wieldEffect(int i) {
+    //TODO
+    (void)i;
+}
+
 void zapEffect(int i) {
     THING* t = inventory[i];
     mvaddstr(1, 0, t->descr); clrtoeol(); refresh();
