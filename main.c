@@ -186,7 +186,7 @@ int main() {
         mvwprintw(status, 1, 1, "Gold: %9d", player->gold);
         mvwprintw(status, 2, 1, "Hit Points: %d (%d)", player->stats->currHp, player->stats->fullHp);
         mvwprintw(status, 3, 1, "Strength: %3d (%3d)", player->stats->currStrength, player->stats->fullStrength);
-        mvwprintw(status, 4, 1, "Armour: %s (%d)", worn==NULL?"none":worn->descr, worn==NULL?0:worn->armour);
+        mvwprintw(status, 4, 1, "Armour: %s (%d)", worn==NULL?"none":worn->descr, worn==NULL?0:player->armour);
         mvwprintw(status, 5, 1, "RH: %s", right==NULL?"":right->ident);
         mvwprintw(status, 6, 1, "LH: %s", left==NULL?"":left->ident);
         mvwprintw(status, 7, 1, "Level: %d Exp: %d", player->stats->level, player->stats->exp);
@@ -374,6 +374,16 @@ THING* locateSprite(int ypos, int xpos) {
 void wieldEffect(int i) {
     //TODO
     (void)i;
+    THING* t = inventory[i];
+    mvaddstr(1, 0, t->descr); clrtoeol(); refresh();
+    if (strcmp(t->descr, "") == 0) {
+        (void)t->modifier;
+    } else if (strcmp(t->descr, "") == 0) {
+        (void)t->modifier;
+    } else {
+        t->armour = 0;
+    }
+    // TODO lesser or greater quality variants
 }
 
 void zapEffect(int i) {
@@ -477,21 +487,21 @@ void wearEffect(int i) {
     THING* t = inventory[i];
     mvaddstr(1, 0, t->descr); clrtoeol(); refresh();
     if (strcmp(t->descr, "banded mail") == 0) {
-        t->armour = 6;
+        player->armour = t->armour = 6;
     } else if (strcmp(t->descr, "chain mail") == 0) {
-        t->armour = 5;
+        player->armour = t->armour = 5;
     } else if (strcmp(t->descr, "leather armour") == 0) {
-        t->armour = 2;
+        player->armour = t->armour = 2;
     } else if (strcmp(t->descr, "plate mail") == 0) {
-        t->armour = 7;
+        player->armour = t->armour = 7;
     } else if (strcmp(t->descr, "ring mail") == 0) {
-        t->armour = 3;
+        player->armour = t->armour = 3;
     } else if (strcmp(t->descr, "scale mail") == 0) {
-        t->armour = 4;
+        player->armour = t->armour = 4;
     } else if (strcmp(t->descr, "splint mail") == 0) {
-        t->armour = 6;
+        player->armour = t->armour = 6;
     } else {
-        t->armour = 0;
+        player->armour = t->armour = 0;
     }
     t->isIdentified = true;
     // TODO lesser or greater quality variants
@@ -630,8 +640,8 @@ void stepSprite(WINDOW* room, THING* sprite, chtype floor, int toY, int toX) {
 
 void combat(THING* sprite, int atY, int atX) {
     THING* other = locateSprite(atY, atX);
-    int combatRoll = random() % 6 + 1;
-    if (combatRoll < sprite->attack) {
+    int combatRoll = random() % 20 + 1;
+    if (combatRoll+sprite->wplus-other->armour >= (21-sprite->stats->level)) {
         mvaddstr(1, 0, "hit!");
         other->stats->currHp--;
         if (other->stats->currHp <= 0) {
@@ -993,6 +1003,9 @@ THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x) {
     }
     thing->gold = 0;
     thing->inInventory = false;
+    thing->modifier = 0;
+    thing->wplus = 0;
+    thing->armour = 0;
     thing->next = things;
     things = thing;
     thing->under = ' ';

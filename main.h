@@ -51,6 +51,7 @@ typedef struct THING {
     int attack;
     int expAward;
     int modifier;
+    int wplus;
     chtype under;
     STATS *stats;
 } THING;
