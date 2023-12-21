@@ -66,6 +66,7 @@ Level	Experience Required	Max Hp
  */
 
 int expForLevel(int i) {
+    // take a level number, return the exp needed for that level
     switch (i) {
         case 1: return 0;
         case 2: return 10;
@@ -80,6 +81,7 @@ int expForLevel(int i) {
 }
 
 int hpIncrForLevel(int i) {
+    // take a level number, return the HP increase for that level
     switch (i) {
         case 1: return 0;
         case 2: return 3 + random() % (22-15);
@@ -132,7 +134,6 @@ int main() {
     refresh();
 
     srandom(time(NULL));
-    //srand(time (NULL));
 
     WINDOW* map = create_newwin(37, 72, 2, 0);
     keypad(map, TRUE);
@@ -237,9 +238,18 @@ int main() {
 }
 
 int player_act(WINDOW* room, THING* sprite) {
+    // take a window and a thing (which is the player), return a command key
     chtype ch;
-    if (sprite->isDead)
+    if (sprite != player) {
+        mvaddstr(1, 0, "wrong sprite, expected player");
+        refresh(); 
+        getch();
+        exit(1);
+    }
+    // return immediately (with a quit command) if player is dead
+    if (player->isDead)
         return 'Q';
+    // get player (user) command
     ch = wgetch(room);
     if (player->isConfused) {
         ch = 49 + random() % 8;
@@ -247,12 +257,11 @@ int player_act(WINDOW* room, THING* sprite) {
     if (player->isAsleep) {
         ch = '5';
     }
+    // clear the indices array for selecting inventory objects
     for (int i = 0; i < INVENTORY_SIZE; i++) {
         allowedIndices[i] = false;
     }
-    if (sprite == player) {
-        mvprintw(1, 0, "%d", ch); clrtoeol(); refresh();
-    }
+    // deal with some extended key codes
     switch (ch) {
         case 258: ch = '2'; break; //down
         case 259: ch = '8'; break; //up
@@ -260,72 +269,92 @@ int player_act(WINDOW* room, THING* sprite) {
         case 261: ch = '5'; break; //right
         case 265: ch = 'h'; break; //F1
     }
-    actionHandlers[ch](room, sprite);
+    // call a handler for the selected action
+    actionHandlers[ch](room, player);
     return ch;
 }
 
-int sprite_act(WINDOW* room, THING* sprite) {
-    int ch;
-    if (sprite->isDead)
-        return 0;
+chtype seekPlayer(THING* sprite) {
+    // take a sprite, calculate distance and direction to player, return a command to close distance if close enough
+    chtype ch;
     int diffy = 0;
     int diffx = 0;
     int diry = 0;
     int dirx = 0;
-    if (sprite->isAggressive) {
-        if (player->ypos > sprite->ypos) {
-            diffy = player->ypos - sprite->ypos;
-            diry = 1;
-        } else if (player->ypos == sprite->ypos) {
-            diry = 0;
-        } else {
-            diffy = sprite->ypos - player->ypos;
-            diry = -1;
-        }
-        if (player->xpos > sprite->xpos) {
-            diffx = player->xpos - sprite->xpos;
-            dirx = 1;
-        } else if (player->xpos == sprite->xpos) {
-            dirx = 0;
-        } else {
-            diffx = sprite->xpos - player->xpos;
-            dirx = -1;
-        }
-        if (diffy < 3 && diffx < 3) {
-            if (diry == 1 && dirx == -1)
-                ch = '1';
-            else if (diry == 1 && dirx == 0)
-                ch = '2';
-            else if (diry == 1 && dirx == 1)
-                ch = '3';
-            else if (diry == 0 && dirx == -1)
-                ch = '4';
-            else if (diry == 0 && dirx == 1)
-                ch = '6';
-            else if (diry == -1 && dirx == -1)
-                ch = '7';
-            else if (diry == -1 && dirx == 0)
-                ch = '8';
-            else if (diry == -1 && dirx == 1)
-                ch = '9';
-            else
-                ch = '5'; // won't happen
-        } else {
-            ch = 49 + random() % 8;
-        }
+    if (player->ypos > sprite->ypos) {
+        diffy = player->ypos - sprite->ypos;
+        diry = 1;
+    } else if (player->ypos == sprite->ypos) {
+        diry = 0;
     } else {
+        diffy = sprite->ypos - player->ypos;
+        diry = -1;
+    }
+    if (player->xpos > sprite->xpos) {
+        diffx = player->xpos - sprite->xpos;
+        dirx = 1;
+    } else if (player->xpos == sprite->xpos) {
+        dirx = 0;
+    } else {
+        diffx = sprite->xpos - player->xpos;
+        dirx = -1;
+    }
+    if (diffy < 3 && diffx < 3) {
+        if (diry == 1 && dirx == -1)
+            ch = '1';
+        else if (diry == 1 && dirx == 0)
+            ch = '2';
+        else if (diry == 1 && dirx == 1)
+            ch = '3';
+        else if (diry == 0 && dirx == -1)
+            ch = '4';
+        else if (diry == 0 && dirx == 1)
+            ch = '6';
+        else if (diry == -1 && dirx == -1)
+            ch = '7';
+        else if (diry == -1 && dirx == 0)
+            ch = '8';
+        else if (diry == -1 && dirx == 1)
+            ch = '9';
+        else
+            ch = '5'; // won't happen
+    } else {
+        // player too far away, just wander
         ch = 49 + random() % 8;
     }
+    return ch;
+}
+
+int sprite_act(WINDOW* room, THING* sprite) {
+    // take a window and a sprite, which is not the player, return a command key
+    int ch;
+    if (sprite == player) {
+        mvaddstr(1, 0, "wrong sprite, did not expect player");
+        refresh(); 
+        getch();
+        exit(1);
+    }
+    // return immediately (with a null command) if sprite is dead
+    if (sprite->isDead)
+        return 0;
+    if (sprite->isAggressive) {
+        ch = seekPlayer(sprite);
+    } else {
+        // not interested in seeking out player
+        ch = 49 + random() % 8;
+    }
+    // call a handler for the selected (movement) action
     actionHandlers[ch](room, sprite);
     return ch;
 }
 
 WINDOW* newPopup(int lines) {
-    WINDOW* win = create_newwin(lines, 30, 2, 72);
-    return win;
+    // take a number of lines, return a new window
+    return create_newwin(lines, 30, 2, 72);
 }
 
 chtype endPopup(WINDOW* win) {
+    // take a window, return a character code from it and destroy the window
     wrefresh(win);
     chtype ch = wgetch(win);
     werase(win);
@@ -334,37 +363,31 @@ chtype endPopup(WINDOW* win) {
 }
 
 THING* locateThing(int ypos, int xpos) {
-    THING* thing = things;
-    while (thing != NULL) {
+    // take y, x coordinates, traverse thing list and return the first to occupy that place
+    for (THING* thing = things; thing != NULL; thing = thing->next) {
         if (ypos == thing->ypos && xpos == thing->xpos) {
             return thing;
-        } else {
-            thing = thing->next;
         }
     }
     return NULL;
 }
 
 THING* locateObject(int ypos, int xpos) {
-    THING* thing = things;
-    while (thing != NULL) {
+    // take y, x coordinates, traverse thing list and return the first object to occupy that place
+    for (THING* thing = things; thing != NULL; thing = thing->next) {
         if ((thing->type == T_Item || thing->type == T_Structure)
                 && ypos == thing->ypos && xpos == thing->xpos) {
             return thing;
-        } else {
-            thing = thing->next;
         }
     }
     return NULL;
 }
 
 THING* locateSprite(int ypos, int xpos) {
-    THING* thing = things;
-    while (thing != NULL) {
+    // take y, x coordinates, traverse thing list and return the first sprite to occupy that place
+    for (THING* thing = things; thing != NULL; thing = thing->next) {
         if (thing->type == T_Sprite && ypos == thing->ypos && xpos == thing->xpos) {
             return thing;
-        } else {
-            thing = thing->next;
         }
     }
     return NULL;
@@ -393,6 +416,7 @@ static struct init_weps {
  */
 
 void wieldEffect(int i) {
+    // take an inventory number, set wielded to that weapon
     //TODO
     THING* t = inventory[i];
     mvaddstr(1, 0, t->descr); clrtoeol(); refresh();
@@ -410,6 +434,7 @@ void wieldEffect(int i) {
         t->damage = "1d4";
     }
     // TODO lesser or greater quality variants
+    wielded = t;
 }
 
 void zapEffect(int i) {
