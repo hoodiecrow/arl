@@ -151,6 +151,7 @@ int main() {
         addGold(map);
     }
     addRing(map);
+    addWeapon(map);
     addScroll(map);
     getOpenLocation(map, &y, &x);
     newThing(map, T_Item, '*', y, x);
@@ -169,7 +170,7 @@ int main() {
     chtype ch = 0;
     while (ch != 'Q') {
         // status line
-        mvprintw(LINES-1, 0, "Level: %d  Gold: %d    HP: %d(%d)  Str: %d  AC: %d  Level/Exp: %d/%d",
+        mvprintw(LINES-1, 0, "Level: %d  Gold: %-5d  HP: %d(%d)  Str: %-2d  AC: %-2d  Level/Exp: %d/%ld",
                 dlevel, player->gold, player->stats->currHp, player->stats->fullHp, 
                 player->stats->currStrength, worn==NULL?0:player->armour, player->stats->level,
                 player->stats->exp); clrtoeol(); refresh();
@@ -415,226 +416,398 @@ static struct init_weps {
 };
  */
 
+const char* weaponNames[] = {
+    "mace",
+    "long sword",
+    "dagger",
+    "two-handed sword",
+    "spear",
+};
+
+const char* weaponDamage[] = {
+    "2d4",
+    "3d4",
+    "1d6",
+    "4d4",
+    "2d3",
+};
+
 void wieldEffect(int i) {
     // take an inventory number, set wielded to that weapon
     //TODO
     THING* t = inventory[i];
-    mvaddstr(1, 0, t->descr); clrtoeol(); refresh();
-    if (strcmp(t->descr, "mace") == 0) {
-        t->damage = "2d4";
-    } else if (strcmp(t->descr, "Longsword") == 0) {
-        t->damage = "1d10";
-    } else if (strcmp(t->descr, "Dagger") == 0) {
-        t->damage = "1d6";
-    } else if (strcmp(t->descr, "Two-handed sword") == 0) {
-        t->damage = "3d6";
-    } else if (strcmp(t->descr, "Spear") == 0) {
-        t->damage = "1d8";
-    } else {
-        t->damage = "1d4";
-    }
-    // TODO lesser or greater quality variants
     wielded = t;
+    player->damage = wielded->damage;
 }
+
+const char* wandNames[] = {
+    "wand of light",
+    "wand of striking",
+    "wand of lightning",
+    "wand of fire",	
+    "wand of cold",
+    "wand of polymorph",
+    "wand of magic missile",
+    "wand of haste monster",
+    "wand of slow monster",
+    "wand of drain life",
+    "wand of nothing",	
+    "wand of teleport away",
+    "wand of teleport to",
+    "wand of cancellation",
+};
+
+const char* staffNames[] = {
+    "staff of light",
+    "staff of striking",
+    "staff of lightning",
+    "staff of fire",	
+    "staff of cold",
+    "staff of polymorph",
+    "staff of magic missile",
+    "staff of haste monster",
+    "staff of slow monster",
+    "staff of drain life",
+    "staff of nothing",	
+    "staff of teleport away",
+    "staff of teleport to",
+    "staff of cancellation",
+};
 
 void zapEffect(int i) {
+    // take an inventory number, check typeId for that stick and handle effect
     THING* t = inventory[i];
-    mvaddstr(1, 0, t->descr); clrtoeol(); refresh();
-    if (strcmp(t->ident, "wand of do nothing") == 0) {
-        //When zapped, nothing happens. 
-    } else if (strcmp(t->ident, "wand of fire") == 0) {
-        // When zapped, fire shoots out at a target enemy. This is very powerful at lower dungeon levels. However, there is a chance of the fire bouncing off a target and returning to hit you. Of course, it can bounce off of you as well and return to hit your target. It is especially affective against ice monsters.
-    } else if (strcmp(t->ident, "wand of haste monster") == 0) {
-        // When zapped at a monster, that monster may be made quicker.
-    } else if (strcmp(t->ident, "wand of invisibility") == 0) {
-        // 
-    } else if (strcmp(t->ident, "wand of teleport away") == 0) {
-        // When zapped at a monster, the monster is teleported to another random part of the current dungeon level. It is identical to a staff of teleport away.
-    } else if (strcmp(t->ident, "staff of drain life") == 0) {
-        // When zapped, your life is drained by half (rounded down).
-    } else if (strcmp(t->ident, "staff of slow monster") == 0) {
-        // When zapped at a monster, that monster may be made slower.
-    } else if (strcmp(t->ident, "staff of teleport away") == 0) {
-        // When zapped at a monster, the monster is teleported to another random part of the current dungeon level. It is identical to a wand of teleport away.
-    } else {
+    switch (t->typeId) {
+        case WS_LIGHT:
+            // Has 10-19 charges. Illuminates the room.
+            break;
+        case WS_HIT:
+            // W/S of Striking, which normally does 2d8 + 4 damage, or it has a 5% chance of doing 3d8 + 9 damage.
+            break;
+        case WS_ELECT:
+            // Inflicts 6d6 damage for up to 6 tiles. Bounces off walls.
+            break;
+        case WS_FIRE:
+            // Inflicts 6d6 damage for up to 6 tiles. Bounces off walls. Dragons are immune.
+            break;
+        case WS_COLD:
+            // Inflicts 6d6 damage for up to 6 tiles. Bounces off walls. Yetis are immune.
+            break;
+        case WS_POLYMORPH:
+            // Changes a monster type.
+            break;
+        case WS_MISSILE:
+            // Inflicts 1d4 damage on a single target.
+            break;
+        case WS_HASTE_M:
+            // Hastens a monster.
+            break;
+        case WS_SLOW_M:
+            // Slows a monster.
+            break;
+        case WS_DRAIN:
+            // Drains half of the hero's hp, then removes the same amount of health evenly from visible monsters.
+            break;
+        case WS_NOP:
+            // Doesn't do anything.
+            break;
+        case WS_TELAWAY:
+            // Teleports a monster randomly on the map.
+            break;
+        case WS_TELTO:
+            // Causes the monster to teleport next to the player.
+            break;
+        case WS_CANCEL:
+            // Suppresses monster's special abilities.
+            break;
     }
-    t->isIdentified = true;
 }
+
+static void msg(const char *msg) {
+    mvprintw(1, 0, "%s", msg);
+    clrtoeol();
+    refresh();
+}
+
+const char* scrollNames[] = {
+    "scroll of confuse monster",
+    "scroll of magic mapping",
+    "scroll of light",
+    "scroll of hold monster",
+    "scroll of sleep",
+    "scroll of enchant armour",
+    "scroll of identify",
+    "scroll of protect armour",
+    "scroll of scare monster",
+    "scroll of gold detection",
+    "scroll of teleportation",
+    "scroll of enchant weapon",
+    "scroll of create monster",
+    "scroll of remove curse",
+    "scroll of aggravate monster",
+    "scroll of blank paper"
+};
 
 void readEffect(int i) {
+    // take an inventory number, check typeId for that scroll and handle effect
     THING* t = inventory[i];
-    mvaddstr(1, 0, "As you read the scroll, it vanishes."); clrtoeol(); refresh();
-    if (strcmp(t->ident, "scroll of aggravate monster") == 0) {
-        // Its affect reads: "you hear a high pitched humming noise". Monsters that may have been docile are now hostile towards you.
-    } else if (strcmp(t->ident, "scroll of confuse monster") == 0) {
-        // Its affect reads: "your hands glow red for a moment". When you strike enemies using a melee weapon there is a chance that they will become confused.
-    } else if (strcmp(t->ident, "scroll of create monster") == 0) {
-        // Just like its name says, it creates a random monster (suitable for that dungeon level) adjacent to you. This monster will be hostile.
-        // TODO make it adjacent
-        addMonster(t->room);
-    } else if (strcmp(t->ident, "scroll of enchant armour") == 0) {
-        // Its affect reads: "your armor glows blue for a moment". It increases the bonus on your armor by 1. If your armor was cursed (e.g. -3), it will no longer be so and the penalty for wearing it will be one less (e.g. -2).
-    } else if (strcmp(t->ident, "scroll of enchant weapon") == 0) {
-        // Its affect reads: "your weapon glows blue for a moment". It increases the bonus on your weapon by +0,+1. If your weapon was cursed, it will no longer be so and the penalty for weilding it will be one less.
-        // effect on wielded weapon only
-        if (wielded != NULL) {
-            mvaddstr(1, 0, "your weapon glows blue for a moment");
-            wielded->damage += random() % 2;
-            // TODO cursed status
-        }
-    } else if (strcmp(t->ident, "scroll of hold monster") == 0) {
-        // Its affect reads: "the monster freezes". It keeps monsters from moving, obviously.
-    } else if (strcmp(t->ident, "scroll of identify") == 0) {
-        // It identifies another item of your choosing when used.
-    } else if (strcmp(t->ident, "scroll of magic mapping") == 0) {
-        // Its affect reads: "this scroll seems to have a map on it". It reveals all the rooms, corridors, traps, and stairs down on that dungeon level. It does not show enemies or items.
-    } else if (strcmp(t->ident, "scroll of protect armour") == 0) {
-        // Its affect reads: "your armor is covered by a shimmering gold shield".
-    } else if (strcmp(t->ident, "scroll of remove curse") == 0) {
-        // Its affect reads: "you feel as though someone is watching over you".
-    } else if (strcmp(t->ident, "scroll of scare monster") == 0) {
-        // Its affect reads: "you hear a maniacal laughter in the distance". It has a chance of scaring aggressive monsters away.
-    } else if (strcmp(t->ident, "scroll of sleep") == 0) {
-        // Its affect reads: "you fall asleep". Obviously, you fall asleep for some amount of time (similar to the sleeping gas trap).
-        player->isAsleep = true;
-        mvaddstr(1, 0, "you fall asleep"); clrtoeol();
-        player->sleepDuration = 50;
-    } else if (strcmp(t->ident, "scroll of teleportation") == 0) {
-        // It teleports you to a random location in the current dungeon level.
-        mvwaddch(player->room, player->ypos, player->xpos, player->under);
-        int y, x;
-        getOpenLocation(player->room, &y, &x);
-        player->ypos = y;
-        player->xpos = x;
-        player->under = ' ';
-        present(player);
-
-    } else {
+    msg("As you read the scroll, it vanishes.");
+    switch (t->typeId) {
+        case S_CONFUSE_M:
+            // When you strike enemies using a melee weapon there is a chance that they will become confused.
+            msg("Your hands begin to glow red");
+            player->canConfuse = true;
+            //TODO expire?
+            break;
+        case S_MAGIC_MAP:
+            // Its affect reads: "this scroll seems to have a map on it". It reveals all the rooms, corridors, traps, and stairs down on that dungeon level. It does not show enemies or items.
+            msg("Oh, now this scroll has a map on it.");
+            break;
+        case S_LIGHT:
+            break;
+        case S_HOLD_MONS:
+            // Its affect reads: "the monster freezes". It keeps monsters from moving, obviously.
+            break;
+        case S_SLEEP:
+            // Its affect reads: "you fall asleep". Obviously, you fall asleep for some amount of time (similar to the sleeping gas trap).
+            player->isAsleep = true;
+            mvaddstr(1, 0, "you fall asleep"); clrtoeol();
+            player->sleepDuration = 50;
+            break;
+        case S_ENCH_ARM:
+            // Its affect reads: "your armor glows blue for a moment". It increases the bonus on your armor by 1. If your armor was cursed (e.g. -3), it will no longer be so and the penalty for wearing it will be one less (e.g. -2).
+            if (worn != NULL) {
+                msg("Your armour glows faintly for a moment");
+                //TODO reduce ac
+                //TODO remove curse
+            }
+            break;
+        case S_IDENTIFY:
+            // It identifies another item of your choosing when used.
+            msg("This scroll is an identify scroll");
+            //TODO identify
+            break;
+        case S_PROT_ARM:
+            // Its affect reads: "your armor is covered by a shimmering gold shield".
+            break;
+        case S_SCARE_M:
+            msg("You hear maniacal laughter in the distance.");
+            break;
+        case S_GOLD_DET:
+            break;
+        case S_TELEPORT:
+            // It teleports you to a random location in the current dungeon level.
+            mvwaddch(player->room, player->ypos, player->xpos, player->under);
+            int y, x;
+            getOpenLocation(player->room, &y, &x);
+            player->ypos = y;
+            player->xpos = x;
+            player->under = ' ';
+            present(player);
+            break;
+        case S_ENCH_WPN:
+            // Its affect reads: "your weapon glows blue for a moment". It increases the bonus on your weapon by +0,+1. If your weapon was cursed, it will no longer be so and the penalty for weilding it will be one less.
+            // effect on wielded weapon only
+            if (wielded == NULL) {
+                msg("You feel a strange sense of loss.");
+            } else {
+                mvaddstr(1, 0, "your weapon glows blue for a moment");
+                wielded->wplus += random() % 2;
+                // TODO cursed status
+            }
+            break;
+        case S_CREATE_M:
+            // Just like its name says, it creates a random monster (suitable for that dungeon level) adjacent to you. This monster will be hostile.
+            // TODO make it adjacent
+            addMonster(t->room);
+            break;
+        case S_REM_CURS:
+            if (worn != NULL)
+                worn->isCursed = false;
+            if (wielded != NULL)
+                wielded->isCursed = false;
+            if (left != NULL)
+                left->isCursed = false;
+            if (right != NULL)
+                right->isCursed = false;
+            msg("You feel as if somebody is watching over you.");
+            break;
+        case S_AGGR_MON:
+            // Monsters that may have been docile are now hostile towards you.
+            msg("You hear a high pitched humming noise.");
+            //TODO aggravate
+            break;
+        case S_BLNK_PAP:
+            msg("This scroll seems to be blank.");
+            break;
     }
-    t->isIdentified = true;
 }
+
+const char *ringNames[] = {
+    "ring of adornment",
+    "ring of dexterity",
+    "ring of maintain armor",
+    "ring of see invisible",
+    "ring of teleportation",
+};
 
 void equipEffect(int i) {
+    // take an inventory number, check typeId for that ring and handle effect
     // TODO Rings may be worn on either the left or right hand with no change in effect. While worn, however, they will make you hungrier quicker.
     THING* t = inventory[i];
-    mvaddstr(1, 0, t->descr); clrtoeol(); refresh();
-    if (strcmp(t->ident, "ring of adornment") == 0) {
-        // no special effect
-    } else if (strcmp(t->ident, "ring of dexterity") == 0) {
-        // When put on, your dexterity is adjusted by the ring's stated modifier.
-    } else if (strcmp(t->ident, "ring of maintain armour") == 0) {
-        // When put on, your armor cannot be damaged by traps or enemies (such as the aquator).
-    } else if (strcmp(t->ident, "ring of see invisible") == 0) {
-        // When put on, you will be able to see invisible enemies.
-    } else if (strcmp(t->ident, "ring of teleportation") == 0) {
-        // When put on, you will be randomly teleported to another location in the current dungeon level every few actions. This is a cursed ring and cannot be removed until uncursed.
-    } else {
+    switch (t->typeId) {
+        case R_ADORN:
+            // no special effect
+            break;
+        case R_DEXT:
+            // When put on, your dexterity is adjusted by the ring's stated modifier.
+            break;
+        case R_MNT_ARM:
+            // When put on, your armor cannot be damaged by traps or enemies (such as the aquator).
+            break;
+        case R_SEE_INVIS:
+            // When put on, you will be able to see invisible enemies.
+            break;
+        case R_TELEPORT:
+            // When put on, you will be randomly teleported to another location in the current dungeon level every few actions. This is a cursed ring and cannot be removed until uncursed.
+            break;
     }
-    t->isIdentified = true;
-
 }
 
+const char *armourNames[] = {
+    "none",
+    "leather armour",
+    "ring mail",
+    "scale mail",
+    "chain mail",
+    "splint mail",
+    "banded mail",
+    "plate mail",
+};
+
+int acValue[] = {
+    10,
+    8,
+    7,
+    6,
+    5,
+    4,
+    4,
+    3
+};
+
 void wearEffect(int i) {
+    // take an inventory number, set worn to that armour, copy armour value to player
     THING* t = inventory[i];
-    mvaddstr(1, 0, t->descr); clrtoeol(); refresh();
-    if (strcmp(t->descr, "leather armour") == 0) {
-        player->armour = t->armour = 8;
-    } else if (strcmp(t->descr, "ring mail") == 0) {
-        player->armour = t->armour = 7;
-    } else if (strcmp(t->descr, "scale mail") == 0) {
-        player->armour = t->armour = 6;
-    } else if (strcmp(t->descr, "chain mail") == 0) {
-        player->armour = t->armour = 5;
-    } else if (strcmp(t->descr, "splint mail") == 0) {
-        player->armour = t->armour = 4;
-    } else if (strcmp(t->descr, "banded mail") == 0) {
-        player->armour = t->armour = 4;
-    } else if (strcmp(t->descr, "plate mail") == 0) {
-        player->armour = t->armour = 3;
-    } else {
-        player->armour = t->armour = 0;
-    }
-    t->isIdentified = true;
+    worn = t;
+    player->armour = worn->armour;
     // TODO lesser or greater quality variants
 }
 
+const char *potionNames[] = {
+    "potion of blindness",
+    "potion of confusion",
+    "potion of detect monster",
+    "potion of detect things",
+    "potion of extra healing",
+    "potion of hallucination",
+    "potion of haste self",
+    "potion of healing",
+    "potion of increase strength",
+    "potion of levitation",
+    "potion of poison",
+    "potion of raise level",
+    "potion of restore strength",
+    "potion of see invisible",
+};
+
 void drinkEffect(int i) {
+    // take an inventory number, check typeId for that potion and handle effect
     THING* t = inventory[i];
-    mvaddstr(1, 0, t->ident); clrtoeol(); refresh();
-    t->isIdentified = true;
     //TODO replace description
     //TODO timer for (some) effects
-    if (strcmp(t->ident, "potion of blindness") == 0) {
-        // Its effect reads: "a cloak of darkness falls around you". You are unable to see enemies, items, and the dungeon around you.
-        // TODO
-    } else if (strcmp(t->ident, "potion of confusion") == 0) {
-        // Its effect reads: "you feel confused". For a short amount of time, you are unable to move in the direction you press. When its effect wears off it reads: "you feel less confused now".
-        mvaddstr(1, 0, "you feel confused"); clrtoeol();
-        player->isConfused = true;
-        player->confusionDuration = 50;
-    } else if (strcmp(t->ident, "potion of detect monster") == 0) {
-        // When read [sic] no text appears. However, it reveals all monsters on the current dungeon level.
-        // TODO
-    } else if (strcmp(t->ident, "potion of detect things") == 0) {
-        // When read no text appears. However, it reveals all items and gold present in the current dungeon level.
-        // TODO
-    } else if (strcmp(t->ident, "potion of extra healing") == 0) {
-        // Its effect reads: "you begin to feel much better". It restores a very large number of Hp (27).
-        mvaddstr(1, 0, "you begin to feel much better"); clrtoeol();
-        player->stats->currHp += 27;
-        if (player->stats->currHp > player->stats->fullHp)
-            player->stats->currHp = player->stats->fullHp;
-    } else if (strcmp(t->ident, "potion of hallucination") == 0) {
-        // Its effect reads: "oh wow, everything seems so cosmic". When quaffed all enemies and items will change symbol from turn to turn. When its effect wears off it reads: "everything looks SO boring now".
-        // TODO
-    } else if (strcmp(t->ident, "potion of haste self") == 0) {
-        //  Its effect reads: "you feel yourself moving much faster". It may appear as though you are moving at your normal speed but you can sometimes move twice before a monster moves once.
-        mvaddstr(1, 0, "you feel yourself moving much faster");
-        player->hasteDuration = 50;
-    } else if (strcmp(t->ident, "potion of healing") == 0) {
-        // Its effect reads: "you begin to feel better". It restores a number of Hp (13).
-        mvaddstr(1, 0, "you begin to feel better"); clrtoeol();
-        player->stats->currHp += 13;
-        if (player->stats->currHp > player->stats->fullHp)
-            player->stats->currHp = player->stats->fullHp;
-    } else if (strcmp(t->ident, "potion of increase strength") == 0) {
-        // Its effect reads: "you feel stronger now, what bulging muscles!". When quaffed your current strength increases by one (like a potion of restore strength), however, if you strength is at max, your maximum strength increases by one.
-        mvaddstr(1, 0, "you feel stronger now, what bulging muscles!");
-        player->stats->currStrength++;
-        if (player->stats->currStrength > player->stats->fullStrength)
-            player->stats->fullStrength++;
-    } else if (strcmp(t->ident, "potion of levitation") == 0) {
-        // Its effect reads: "you start to float in the air". While levitating you cannot fall into traps or pickup items.
-        mvaddstr(1, 0, "you start to float in the air");
-        player->isLevitating = true;
-        player->levitationDuration = 50;
-    } else if (strcmp(t->ident, "potion of poison") == 0) {
-        // Its effect reads: "you feel very sick now". It reduces your current strength by 3.
-        mvaddstr(1, 0, "you feel very sick now");
-        player->stats->currStrength -= 3;
-    } else if (strcmp(t->ident, "potion of raise level") == 0) {
-        //  Its effect reads: "you suddenly feel much more skillful". You instantly attain the next level (Exp automatically adjusted).
-        mvaddstr(1, 0, "you suddenly feel much more skillful");
-        player->stats->level++;
-        player->stats->exp = expForLevel(player->stats->level);
-        player->stats->fullHp += hpIncrForLevel(player->stats->level);
-        //TODO exp points
-    } else if (strcmp(t->ident, "potion of restore strength") == 0) {
-        // Its effect reads: "this tastes great, you feel warm all over". Your current strength increases by one up to your maximum strength.
-        mvaddstr(1, 0, "this tastes great, you feel warm all over");
-        player->stats->currStrength++;
-        if (player->stats->currStrength > player->stats->fullStrength)
-            player->stats->currStrength--;
-    } else if (strcmp(t->ident, "potion of see invisible") == 0) {
-        // Its effect reads: "hmm, this potion tastes like slime-mold juice". Presumably it lets you see invisible things...
-        // TODO
-    } else {
-        // shouldn't happen
+    switch (t->typeId) {
+        case P_BLIND:
+            // Its effect reads: "a cloak of darkness falls around you". You are unable to see enemies, items, and the dungeon around you.
+            // TODO
+            break;
+        case P_CONFUS:
+            // For a short amount of time, you are unable to move in the direction you press. 
+            msg("you feel confused");
+            player->isConfused = true;
+            player->confusionDuration = 50;
+            break;
+        case P_DET_MON:
+            // When read [sic] no text appears. However, it reveals all monsters on the current dungeon level.
+            // TODO
+            break;
+        case P_DET_THG:
+            // When read no text appears. However, it reveals all items and gold present in the current dungeon level.
+            // TODO
+            break;
+        case P_EXT_HEAL:
+            msg("you begin to feel much better");
+            player->stats->currHp += 27;
+            if (player->stats->currHp > player->stats->fullHp)
+                player->stats->currHp = player->stats->fullHp;
+            break;
+        case P_HALLUC:
+            // Its effect reads: "oh wow, everything seems so cosmic". When quaffed all enemies and items will change symbol from turn to turn. When its effect wears off it reads: "everything looks SO boring now".
+            // TODO
+            break;
+        case P_HASTE:
+            //  It may appear as though you are moving at your normal speed but you can sometimes move twice before a monster moves once.
+            mvaddstr(1, 0, "you feel yourself moving much faster");
+            player->hasteDuration = 50;
+            break;
+        case P_HEALING:
+            // Its effect reads: "you begin to feel better". It restores a number of Hp (13).
+            mvaddstr(1, 0, "you begin to feel better"); clrtoeol();
+            player->stats->currHp += 13;
+            if (player->stats->currHp > player->stats->fullHp)
+                player->stats->currHp = player->stats->fullHp;
+            break;
+        case P_INC_STR:
+            // When quaffed your current strength increases by one (like a potion of restore strength), however, if you strength is at max, your maximum strength increases by one.
+            mvaddstr(1, 0, "you feel stronger now, what bulging muscles!");
+            player->stats->currStrength++;
+            if (player->stats->currStrength > player->stats->fullStrength)
+                player->stats->fullStrength++;
+            break;
+        case P_LEVIT:
+            // While levitating you cannot fall into traps or pickup items.
+            mvaddstr(1, 0, "you start to float in the air");
+            player->isLevitating = true;
+            player->levitationDuration = 50;
+            break;
+        case P_POISON:
+            // It reduces your current strength by 3.
+            mvaddstr(1, 0, "you feel very sick now");
+            player->stats->currStrength -= 3;
+            break;
+        case P_RS_LVL:
+            //  You instantly attain the next level (Exp automatically adjusted).
+            mvaddstr(1, 0, "you suddenly feel much more skillful");
+            player->stats->level++;
+            player->stats->exp = expForLevel(player->stats->level);
+            player->stats->fullHp += hpIncrForLevel(player->stats->level);
+            break;
+        case P_REST_STR:
+            // Your current strength increases by one up to your maximum strength.
+            mvaddstr(1, 0, "this tastes great, you feel warm all over");
+            player->stats->currStrength++;
+            if (player->stats->currStrength > player->stats->fullStrength)
+                player->stats->currStrength--;
+            break;
+        case P_SEE_INVIS:
+            // Its effect reads: "hmm, this potion tastes like slime-mold juice". Presumably it lets you see invisible things...
+            // TODO
+            break;
     }
-    t->isIdentified = true;
 }
 
 void dumpInventory(int i) {
+    // take an inventory number, remove that item
     inventory[i]->inInventory = false;
     for (int j = i + 1; j < inventoryFill; i++, j++) {
         inventory[i] = inventory[j];
@@ -643,19 +816,24 @@ void dumpInventory(int i) {
 }
 
 void attemptMove(WINDOW* room, THING* sprite, int incrY, int incrX) {
+    // take a window, a sprite, and a pair of coord modifiers, move if possible
     int toY = sprite->ypos+incrY;
     int toX = sprite->xpos+incrX;
+    // look at the glyph on the tile
     chtype floor = mvwinch(room, toY, toX);
     if (floor == '@' || isalpha(floor)) {
+        // if it is the player or a monster, fight
         combat(sprite, toY, toX);
     } else if (floor == '#') {
         // a wall
     } else if (floor == ' ' || ispunct(floor)) {
+        // if it is blank or an object, move
         stepSprite(room, sprite, floor, toY, toX);
     }
 }
 
 static void freeObject(THING* o) {
+    // take a thing, remove it from the list and free it
     if (things == o) {
         things = o->next;
     } else {
@@ -667,19 +845,16 @@ static void freeObject(THING* o) {
     free(o);
 }
 
-static void playerStepsOnGold(int toY, int toX) {
-    THING* o = locateObject(toY, toX);
-    if (o != NULL) {
-        // TODO exp for gold?
-        player->gold += o->gold;
-        freeObject(o);
-    }
-}
-
 void stepSprite(WINDOW* room, THING* sprite, chtype floor, int toY, int toX) {
+    // take a window, a sprite, a floor glyph, and a pair of coords, and move there
     mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
     if (floor == '$' && sprite == player) {
-        playerStepsOnGold(toY, toX);
+        THING* o = locateObject(toY, toX);
+        if (o != NULL) {
+            player->gold += o->gold;
+            freeObject(o);
+        }
+        sprite->under = ' ';
     } else {
         sprite->under = floor;
     }
@@ -689,6 +864,7 @@ void stepSprite(WINDOW* room, THING* sprite, chtype floor, int toY, int toX) {
 }
 
 static int dice(int n, int s) {
+    // take a number n of dice of size s, return a dice roll
     // n=number of dice
     // s=size of the die
     int total = 0;
@@ -699,6 +875,7 @@ static int dice(int n, int s) {
 }
 
 static int dice2(const char* code) {
+    // take a dice code, return a dice roll
     int n, s;
     int r = sscanf(code, "%dd%d", &n, &s);
     if (r != 2) {
@@ -712,8 +889,10 @@ static int dice2(const char* code) {
 }
 
 void combat(THING* sprite, int atY, int atX) {
+    // take a sprite and a pair of coords, resolve one round of combat there
     THING* other = locateSprite(atY, atX);
     if (sprite == player || other == player)
+        // note that the player is in combat and not healing
         player->isInCombat = true;
     int combatRoll = random() % 20 + 1;
     if (combatRoll+sprite->wplus >= (21-sprite->stats->level)-other->armour) {
@@ -748,11 +927,13 @@ void combat(THING* sprite, int atY, int atX) {
 }
 
 void present(THING* sprite) {
+    // take a sprite, show its glyph
     mvwaddch(sprite->room, sprite->ypos, sprite->xpos, sprite->glyph);
     wrefresh(sprite->room);
 }
 
 static void getOpenLocation(WINDOW* win, int *y, int *x) {
+    // take a window and a pair of coords addresses, fill the coords with an open location
     int maxy, maxx;
     getmaxyx(win, maxy, maxx);
     int ry = random() % maxy;
@@ -830,13 +1011,14 @@ const char* monsterNames[26] = {
 };
 
 THING* addMonster(WINDOW* win) {
+    // take a window, create a monster and return it
     int y, x, i;
     getOpenLocation(win, &y, &x);
     THING* t = newThing(win, T_Sprite, 'X', y, x);
     const char *aggr;
     if (dlevel == 1) 
         i = random() % 6;
-    else if (dlevel == 1) 
+    else if (dlevel == 2) 
         i = random() % 7;
     else
         i = 0;
@@ -926,112 +1108,142 @@ THING* addMonster(WINDOW* win) {
     return t;
 }
 
+THING* addWeapon(WINDOW* win) {
+    int i = random() % NWEAPONS;
+    int y, x;
+    getOpenLocation(win, &y, &x);
+    THING* t = newThing(win, T_Item, ')', y, x);
+    t->descr = weaponNames[i];
+    t->damage = weaponDamage[i];
+    t->typeId = i;
+    return t;
+}
+
 THING* addArmour(WINDOW* win) {
-    int i = random() % 7;
-    const char *descrs[] = {
-        "banded mail",
-        "chain mail",
-        "leather armour",
-        "plate mail",
-        "ring mail",
-        "scale mail",
-        "splint mail",
-    };
+    // take a window, create an armour and return it
+    // avoid getting the "none" armour
+    int i = random() % (NARMOURS-1) + 1;
     int y, x;
     getOpenLocation(win, &y, &x);
     THING* t = newThing(win, T_Item, '&', y, x);
-    t->descr = descrs[i];
+    t->descr = armourNames[i];
+    t->armour = acValue[i];
+    t->typeId = i;
     return t;
 }
 
 THING* addWand(WINDOW* win) {
-    int i = random() % 6;
-    int j = random() % 5;
+    // take a window, create a wand and return it
+    int i = random() % NSTICKS;
     const char *descrs[] = {
+        "aluminium wand",
+        "brass wand",
+        "bronze wand",
         "copper wand",
         "gold wand",
         "iron wand",
+        "lead wand",
         "nickel wand",
+        "pewter wand",
         "silver wand",
+        "steel wand",
+        "tin wand",
         "titanium wand",
-    };
-    const char *idents[] = {
-        "wand of do nothing",
-        "wand of fire",
-        "wand of haste monster",
-        "wand of invisibility",
-        "wand of teleport away",
+        "zinc wand",
     };
     int y, x;
     getOpenLocation(win, &y, &x);
     THING* t = newThing(win, T_Item, '/', y, x);
     t->descr = descrs[i];
     t->isEquippable = true;
-    //TODO if dropped after being identified, should be true
-    t->isIdentified = false;
-    t->ident = idents[j];
+    t->typeId = i;
     return t;
 }
 
 THING* addStaff(WINDOW* win) {
-    int i = random() % 7;
-    int j = random() % 5;
+    // take a window, create a staff and return it
+    int i = random() % NSTICKS;
     const char *descrs[] = {
+        "banyan staff",
         "birch staff",
         "cedar staff",
+        "cherry staff",
+        "driftwood staff",
+        "ebony staff",
         "elm staff",
+        "eucalyptus staff",
+        "ironwood staff",
+        "mahogany staff",
         "maple staff",
+        "oak staff",
+        "plain staff",
         "redwood staff",
         "teak staff",
         "walnut staff",
-        "plain staff",
-    };
-    const char *idents[] = {
-        "staff of drain life",
-        "staff of slow monster",
-        "staff of teleport away",
     };
     int y, x;
     getOpenLocation(win, &y, &x);
     THING* t = newThing(win, T_Item, '/', y, x);
     t->descr = descrs[i];
     t->isEquippable = true;
-    //TODO if dropped after being identified, should be true
-    t->isIdentified = false;
-    t->ident = idents[j];
+    t->typeId = i;
     return t;
 }
 
+/* From init.c of Rogue3.6.3. For inspiration only, remove before release TODO
+struct magic_item s_magic[MAXSCROLLS] = {
+    { "monster confusion",	 8, 170 },
+    { "magic mapping",		 5, 180 },
+    { "light",			10, 100 },
+    { "hold monster",		 2, 200 },
+    { "sleep",			 5,  50 },
+    { "enchant armor",		 8, 130 },
+    { "identify",		21, 100 },
+    { "scare monster",		 4, 180 },
+    { "gold detection",		 4, 110 },
+    { "teleportation",		 7, 175 },
+    { "enchant weapon",		10, 150 },
+    { "create monster",		 5,  75 },
+    { "remove curse",		 8, 105 },
+    { "aggravate monsters",	 1,  60 },
+    { "blank paper",		 1,  50 },
+    { "genocide",		 1, 200 },
+};*/
+
 THING* addScroll(WINDOW* win) {
-    int i = random() % 13;
+    // take a window, create a scroll and return it
+    int i = random() % NSCROLLS;
+#if 0
     const char *idents[] = {
-        "scroll of aggravate monster",
         "scroll of confuse monster",
-        "scroll of create monster",
-        "scroll of enchant armor",
-        "scroll of enchant weapon",
-        "scroll of hold monster",
-        "scroll of identify",
         "scroll of magic mapping",
-        "scroll of protect armor",
-        "scroll of remove curse",
-        "scroll of scare monster",
+        "scroll of light",
+        "scroll of hold monster",
         "scroll of sleep",
+        "scroll of enchant armour",
+        "scroll of identify",
+        "scroll of protect armour",
+        "scroll of scare monster",
+        "scroll of gold detection",
         "scroll of teleportation",
+        "scroll of enchant weapon",
+        "scroll of create monster",
+        "scroll of remove curse",
+        "scroll of aggravate monster",
+        "scroll of blank paper",
     };
+#endif
     int y, x;
     getOpenLocation(win, &y, &x);
     THING* t = newThing(win, T_Item, '~', y, x);
     t->descr = "a magical scroll";
-    t->isEquippable = true;
-    //TODO if dropped after being identified, should be true
-    t->isIdentified = false;
-    t->ident = idents[i];
+    t->typeId = i;
     return t;
 }
 
 THING* addRing(WINDOW* win) {
-    int i = random() % 5;
+    // take a window, create a ring and return it
+    int i = random() % NRINGS;
     const char *descrs[] = {
         "diamond ring",
         "emerald ring",
@@ -1039,6 +1251,7 @@ THING* addRing(WINDOW* win) {
         "opal ring",
         "sapphire ring",
     };
+#if 0
     const char *idents[] = {
         "ring of adornment",
         "ring of dexterity",
@@ -1046,19 +1259,20 @@ THING* addRing(WINDOW* win) {
         "ring of see invisible",
         "ring of teleportation",
     };
+#endif
     int y, x;
     getOpenLocation(win, &y, &x);
     THING* t = newThing(win, T_Item, ':', y, x);
     t->descr = descrs[i];
     t->isEquippable = true;
     //TODO if dropped after being identified, should be true
-    t->isIdentified = false;
-    t->ident = idents[i];
+    t->typeId = i;
     return t;
 }
 
 THING* addPotion(WINDOW* win) {
-    int i = random() % 14;
+    // take a window, create a potion and return it
+    int i = random() % NPOTIONS;
     const char *descrs[] = {
         "beige potion",
         "black potion",
@@ -1075,6 +1289,7 @@ THING* addPotion(WINDOW* win) {
         "white potion",
         "yellow potion",
     };
+#if 0
     const char *idents[] = {
         "potion of blindness",
         "potion of confusion",
@@ -1091,18 +1306,19 @@ THING* addPotion(WINDOW* win) {
         "potion of restore strength",
         "potion of see invisible",
     };
+#endif
     int y, x;
     getOpenLocation(win, &y, &x);
     THING* t = newThing(win, T_Item, '!', y, x);
     t->descr = descrs[i];
     t->isPotable = true;
     //TODO if dropped after being identified, should be true
-    t->isIdentified = false;
-    t->ident = idents[i];
+    t->typeId = i;
     return t;
 }
 
 THING* addGold(WINDOW* win) {
+    // take a window, place some gold and return it
     int y, x;
     getOpenLocation(win, &y, &x);
     THING* t = newThing(win, T_Item, '$', y, x);
@@ -1111,6 +1327,7 @@ THING* addGold(WINDOW* win) {
 }
 
 THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x) {
+    // take a window, a thing type, a glyph, and a pair of coords, create a thing and return it
     THING* thing = malloc(sizeof(THING));
     if (thing == NULL) {
         mvaddstr(1, 0, "Out of memory, press any key to exit");
@@ -1141,7 +1358,6 @@ THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x) {
     thing->isEdible = false;
     thing->isPotable = false;
     thing->isEquippable = false;
-    thing->isIdentified = false;
     thing->isAggressive = false;
     thing->isDead = false;
     thing->isConfused = false;
@@ -1149,9 +1365,13 @@ THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x) {
     thing->isHasted = false;
     thing->isLevitating = false;
     thing->isInCombat = false;
+    thing->isCursed = false;
     thing->isInjured = false;
     thing->healingCycle = 0;
     thing->attack = 0;
+    thing->descr = NULL;
+    thing->ident = NULL;
+    thing->typeId = -1;
     switch (glyph) {
         case '<':
             thing->descr = "stair";
