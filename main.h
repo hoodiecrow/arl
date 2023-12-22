@@ -76,20 +76,20 @@ enum RINGTYPES {
 };
 
 enum POTIONTYPES {
-	P_BLIND,
 	P_CONFUS,
+	P_HALLUC,
+	P_POISON,
+	P_INC_STR,
+	P_SEE_INVIS,
+	P_HEALING,
 	P_DET_MON,
 	P_DET_THG,
-	P_EXT_HEAL,
-	P_HALLUC,
-	P_HASTE,
-	P_HEALING,
-	P_INC_STR,
-	P_LEVIT,
-	P_POISON,
 	P_RS_LVL,
+	P_EXT_HEAL,
+	P_HASTE,
 	P_REST_STR,
-	P_SEE_INVIS,
+	P_BLIND,
+	P_LEVIT,
 	NPOTIONS
 };
 
@@ -161,7 +161,10 @@ extern int inventoryFill;
 extern THING* inventory[];
 extern bool allowedIndices[];
 extern THING *things, *worn, *right, *left, *wielded, *player;
+extern int dlevel;
 extern const char* monsterNames[];
+extern const char *armourNames[];
+extern int acValue[];
 
 THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x);
 
@@ -174,6 +177,7 @@ THING* addScroll(WINDOW* win);
 THING* addRing(WINDOW* win);
 THING* addPotion(WINDOW* win);
 THING* addGold(WINDOW* win);
+void freeObject(THING* o);
 void wieldEffect(int i);
 void zapEffect(int i);
 void readEffect(int i);
@@ -181,12 +185,19 @@ void equipEffect(int i);
 void wearEffect(int i);
 void drinkEffect(int i);
 void present(THING* thing);
+int dice(int n, int s);
+int dice2(const char* code);
+void msg(const char *msg);
+int expForLevel(int i);
+int hpIncrForLevel(int i);
 int player_act(WINDOW* room, THING* sprite);
 int sprite_act(WINDOW* room, THING* sprite);
 THING* locateThing(int ypos, int xpos);
 THING* locateObject(int ypos, int xpos);
+THING* locateSprite(int ypos, int xpos);
 void drinkEffect(int i);
 void dumpInventory(int i);
+void getOpenLocation(WINDOW* win, int *y, int *x);
 void attemptMove(WINDOW* room, THING* sprite, int incrY, int incrX);
 void stepSprite(WINDOW* room, THING* thing, chtype floor, int toY, int toX);
 void combat(THING* thing, int atY, int atX);
