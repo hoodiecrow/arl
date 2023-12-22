@@ -29,24 +29,24 @@ const char* monsterNames[26] = {
     "zombie"        // Z
 };
 
-THING* addMonsterAt(WINDOW* win, chtype kind, int y, int x) {
-    THING* m = addMonster(win, kind);
+THING* addMonsterAt(chtype kind, int y, int x) {
+    THING* m = addMonster(kind);
     m->ypos = y;
     m->xpos = x;
     return m;
 }
 
-THING* addMonster(WINDOW* win, chtype kind) {
+THING* addMonster(chtype kind) {
     // take a window, create a monster and return it
     int y, x, i;
-    getOpenLocation(win, &y, &x);
-    THING* t = newThing(win, T_Sprite, 'X', y, x);
+    getOpenLocation(&y, &x);
+    THING* t = newThing(T_Sprite, 'X', y, x);
     const char *aggr;
     if (kind == 0) {
         if (dlevel == 1) 
-            i = random() % 6;
+            i = rnd(6);
         else if (dlevel == 2) 
-            i = random() % 7;
+            i = rnd(7);
         else
             i = 0;
     } else {
@@ -129,7 +129,7 @@ THING* addMonster(WINDOW* win, chtype kind) {
     t->wplus = 0;
     t->stats->currHp = t->stats->fullHp;
     if (strcmp(aggr, "sometimes") == 0) {
-        t->isAggressive = random()%2==1?true:false;
+        t->isAggressive = rnd(2)==1?true:false;
     } else if (strcmp(aggr, "no") == 0) {
         t->isAggressive = false;
     } else if (strcmp(aggr, "yes") == 0) {

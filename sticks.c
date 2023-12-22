@@ -34,9 +34,9 @@ const char* staffNames[] = {
     "staff of cancellation",
 };
 
-THING* addWand(WINDOW* win) {
-    // take a window, create a wand and return it
-    int i = random() % NSTICKS;
+THING* addWand() {
+    // create a wand and return it
+    int i = rnd(NSTICKS);
     const char *descrs[] = {
         "aluminium wand",
         "brass wand",
@@ -54,17 +54,17 @@ THING* addWand(WINDOW* win) {
         "zinc wand",
     };
     int y, x;
-    getOpenLocation(win, &y, &x);
-    THING* t = newThing(win, T_Item, '/', y, x);
+    getOpenLocation(&y, &x);
+    THING* t = newThing(T_Item, '/', y, x);
     t->descr = descrs[i];
     t->isEquippable = true;
     t->typeId = i;
     return t;
 }
 
-THING* addStaff(WINDOW* win) {
-    // take a window, create a staff and return it
-    int i = random() % NSTICKS;
+THING* addStaff() {
+    // create a staff and return it
+    int i = rnd(NSTICKS);
     const char *descrs[] = {
         "banyan staff",
         "birch staff",
@@ -84,11 +84,11 @@ THING* addStaff(WINDOW* win) {
         "walnut staff",
     };
     int y, x;
-    getOpenLocation(win, &y, &x);
-    THING* t = newThing(win, T_Item, '/', y, x);
+    getOpenLocation(&y, &x);
+    THING* t = newThing(T_Item, '/', y, x);
     t->descr = descrs[i];
     t->isEquippable = true;
-    t->ncharges = random() % 5 + 3;
+    t->ncharges = rnd(5) + 3;
     t->typeId = i;
     return t;
 }
@@ -105,12 +105,7 @@ void zapEffect(int i) {
         msg("Nothing happens");
         return; 
     }
-    if (!getDir(t->room)) {
-        do {
-            deltaY = dice(1, 3) - 1;
-            deltaX = dice(1, 3) - 1;
-        } while (deltaY == 0 && deltaX == 0);
-    }
+    getDir(t->room);
     switch (t->typeId) {
         case WS_LIGHT:
             // Has 10-19 charges. Illuminates the room.
@@ -121,7 +116,7 @@ void zapEffect(int i) {
             x = player->xpos + deltaX;
             THING* other = locateSprite(y, x);
             if (other != NULL) {
-                if (random() % 100 + 1 <= 95) {
+                if (rnd(100) + 1 <= 95) {
                     other->stats->currHp -= (dice2("2d8") + 4);
                 } else {
                     other->stats->currHp -= (dice2("3d8") + 9);
@@ -161,7 +156,7 @@ void zapEffect(int i) {
                     freeObject(other);
                     deltaY = y;
                     deltaX = x;
-                    addMonsterAt(player->room, random() % 26 + 'A', deltaY, deltaX);
+                    addMonsterAt(rnd(26) + 'A', deltaY, deltaX);
                     // TODO player knows that it's a W/S of Polymorph unless new kind = old
                 } else if (t->typeId == WS_CANCEL) {
                     other->isCanceled = true;
@@ -169,7 +164,7 @@ void zapEffect(int i) {
                 } else if (t->typeId == WS_TELAWAY) {
                     mvwaddch(other->room, other->ypos, other->xpos, other->under);
                     int y, x;
-                    getOpenLocation(other->room, &y, &x);
+                    getOpenLocation(&y, &x);
                     other->ypos = y;
                     other->xpos = x;
                     other->under = ' ';
@@ -187,7 +182,7 @@ void zapEffect(int i) {
             // Inflicts 1d4 damage on a single target.
             y = player->ypos + deltaY;
             x = player->xpos + deltaX;
-            THING* z = newThing(player->room, T_Item, '*', y, x);
+            THING* z = newThing(T_Item, '*', y, x);
             for (;;) {
                 if (z->under == '#' || isupper(z->under)) {
                     if (isupper(z->under)) {

@@ -65,6 +65,36 @@ Level	Experience Required	Max Hp
 8	640	62 - 66
  */
 
+int rnd(int i) {
+    // take an integer and return random() % that integer: i=0 yields 0
+    return i == 0 ? 0 : random() % i;
+}
+
+int dice(int n, int s) {
+    // take a number n of dice of size s, return a dice roll
+    // n=number of dice
+    // s=size of the die
+    int total = 0;
+    for (int i = 0; i < n; i++) {
+        total += rnd(s) + 1;
+    }
+    return total;
+}
+
+int dice2(const char* code) {
+    // take a dice code, return a dice roll
+    int n, s;
+    int r = sscanf(code, "%dd%d", &n, &s);
+    if (r != 2) {
+        mvprintw(1, 0, "can't scan \"%s\"", code);
+        clrtoeol();
+        refresh();
+        getch();
+        exit(1);
+    }
+    return dice(n, s);
+}
+
 int expForLevel(int i) {
     // take a level number, return the exp needed for that level
     switch (i) {
@@ -84,13 +114,13 @@ int hpIncrForLevel(int i) {
     // take a level number, return the HP increase for that level
     switch (i) {
         case 1: return 0;
-        case 2: return 3 + random() % (22-15);
-        case 3: return 3 + random() % (29-18);
-        case 4: return 8 + random() % (37-26);
-        case 5: return 8 + random() % (44-34);
-        case 6: return 7 + random() % (50-41);
-        case 7: return 15 + random() % (57-56); // weird
-        case 8: return 6 + random() % (66-62);
+        case 2: return 3 + rnd(22-15);
+        case 3: return 3 + rnd(29-18);
+        case 4: return 8 + rnd(37-26);
+        case 5: return 8 + rnd(44-34);
+        case 6: return 7 + rnd(50-41);
+        case 7: return 15+ rnd(57-56); // weird
+        case 8: return 6 + rnd(66-62);
         default: return -1;
     }
 }
@@ -121,7 +151,11 @@ Level	Quantities of Gold Found	Enemies Encountered
 There is a slim chance of discovering a "monster room". These rooms can be anywhere from normal sized to the size of the whole level. There will be many, many monsters present as well as a fair amount of loot. An enemy may show up in a monster room one level earlier than it would usually first appear.
 */
 
+void initGame();
+void runGame();
+
 int dlevel = 1;
+WINDOW* map;
 
 int main() {	
 	initscr();
@@ -131,11 +165,9 @@ int main() {
     intrflush(stdscr, FALSE);
 	keypad(stdscr, TRUE);
 
-    refresh();
-
     srandom(time(NULL));
 
-    WINDOW* map = create_newwin(37, 72, 2, 0);
+    map = create_newwin(37, 72, 2, 0);
     keypad(map, TRUE);
 
     //genMap(35, 90, 35, 5, 1, 10);
@@ -146,42 +178,57 @@ int main() {
     wrefresh(map);
             
     curs_set(0);
+    
+    initGame();
+    runGame();
+
+    destroy_win(map);
+	endwin();
+
+	return 0;
+}
+
+void initGame() {
     int y, x;
-    for (int n = 0; n < random() % 5 + 1; n++) {
+    for (int n = 0; n < rnd(5) + 1; n++) {
         addGold(map);
     }
-    addRing(map);
-    addWeapon(map);
-    addScroll(map);
-    addWand(map);
-    addStaff(map);
-    getOpenLocation(map, &y, &x);
-    newThing(map, T_Item, '*', y, x);
-    addPotion(map);
-    getOpenLocation(map, &y, &x);
-    newThing(map, T_Structure, '>', y, x);
-    for (int n = 0; n < random() % 4 + 2; n++) {
-        addMonster(map, 0);
+    addRing();
+    addWeapon();
+    addScroll();
+    addWand();
+    addStaff();
+    getOpenLocation(&y, &x);
+    newThing(T_Item, '*', y, x);
+    addPotion();
+    getOpenLocation(&y, &x);
+    newThing(T_Structure, '>', y, x);
+    for (int n = 0; n < rnd(4) + 2; n++) {
+        addMonster(0);
     }
     x = 10;
     y =  5;
-    newThing(map, T_Sprite, '@', y, x);
-    addArmour(map);
-    addArmour(map);
+    newThing(T_Sprite, '@', y, x);
+    addArmour();
+    addArmour();
+}
 
+void runGame() {
     chtype ch = 0;
     while (ch != 'Q') {
         // status line
         mvprintw(LINES-1, 0, "Level: %d  Gold: %-5d  HP: %d(%d)  Str: %-2d  AC: %-2d  Level/Exp: %d/%ld",
                 dlevel, player->gold, player->stats->currHp, player->stats->fullHp, 
-                player->stats->currStrength, worn==NULL?0:player->armour, player->stats->level,
-                player->stats->exp); clrtoeol(); refresh();
+                player->stats->currStrength, worn==NULL?0:player->armour,
+                player->stats->level, player->stats->exp); clrtoeol(); refresh();
 
         if (player->isLevitating) {
             player->levitationDuration--;
         }
         if (player->isHasted) {
-            player_act(player);
+            ch = player_act(player);
+            if (ch == 'Q')
+                break;
             player->hasteDuration--;
         }
         if (player->isConfused) {
@@ -201,7 +248,7 @@ int main() {
             if (player->teleportationCycle == 0) {
                 mvwaddch(player->room, player->ypos, player->xpos, player->under);
                 int y, x;
-                getOpenLocation(player->room, &y, &x);
+                getOpenLocation(&y, &x);
                 player->ypos = y;
                 player->xpos = x;
                 player->under = ' ';
@@ -229,15 +276,15 @@ int main() {
         }
         if (player->isLevitating && player->levitationDuration <= 0) {
             player->isLevitating = false;
-            mvaddstr(1, 0, "your feet touch the ground again"); clrtoeol();
+            msg("your feet touch the ground again");
         }
         if (player->isConfused && player->confusionDuration <= 0) {
             player->isConfused = false;
-            mvaddstr(1, 0, "you feel less confused now"); clrtoeol();
+            msg("you feel less confused now");
         }
         if (player->isAsleep && player->sleepDuration <= 0) {
             player->isAsleep = false;
-            mvaddstr(1, 0, "you wake up"); clrtoeol();
+            msg("you wake up");
         }
         if (player->isHallucinating && player->hallucinationDuration <= 0) {
             player->isHallucinating = false;
@@ -246,7 +293,7 @@ int main() {
             player->isBlind = false;
         }
         if (player->wearingTeleportRing && player->teleportationCycle <= 0) {
-            player->teleportationCycle = random() % 6 + 1;
+            player->teleportationCycle = rnd(6) + 1;
         }
         if (player->isInjured) {
             if (player->healingCycle <= 0) {
@@ -260,11 +307,6 @@ int main() {
         refresh();
         wrefresh(map);
     }
-
-    destroy_win(map);
-	endwin();
-
-	return 0;
 }
 
 static void stepSprite(THING* sprite, int toY, int toX) {
@@ -287,7 +329,7 @@ static void stepSprite(THING* sprite, int toY, int toX) {
 }
 
 void attemptMove(THING* sprite, int incrY, int incrX) {
-    // take a window, a sprite, and a pair of coord modifiers, make a move if possible
+    // take a sprite and a pair of coord modifiers, make a move if possible
     int toY = sprite->ypos+incrY;
     int toX = sprite->xpos+incrX;
     // look at the glyph on the tile
@@ -318,7 +360,7 @@ int player_act(THING* sprite) {
     // get player (user) command
     ch = wgetch(player->room);
     if (player->isConfused) {
-        ch = 49 + random() % 8;
+        ch = 49 + rnd(8);
     }
     if (player->isAsleep) {
         ch = '5';
@@ -327,7 +369,7 @@ int player_act(THING* sprite) {
     for (int i = 0; i < INVENTORY_SIZE; i++) {
         allowedIndices[i] = false;
     }
-    // deal with some extended key codes
+    // handle some extended key codes
     switch (ch) {
         case 258: ch = '2'; break; //down
         case 259: ch = '8'; break; //up
@@ -386,7 +428,7 @@ static chtype seekPlayer(THING* sprite) {
             ch = '5'; // won't happen
     } else {
         // player is too far away, just wander
-        ch = 49 + random() % 8;
+        ch = 49 + rnd(8);
     }
     return ch;
 }
@@ -409,7 +451,7 @@ int sprite_act(THING* sprite) {
         ch = seekPlayer(sprite);
     } else {
         // not interested in seeking out player
-        ch = 49 + random() % 8;
+        ch = 49 + rnd(8);
     }
     // call a handler for the selected (movement) action
     actionHandlers[ch](sprite);
@@ -445,38 +487,13 @@ void dumpInventory(int i) {
     inventoryFill--;
 }
 
-int dice(int n, int s) {
-    // take a number n of dice of size s, return a dice roll
-    // n=number of dice
-    // s=size of the die
-    int total = 0;
-    for (int i = 0; i < n; i++) {
-        total += random() % s + 1;
-    }
-    return total;
-}
-
-int dice2(const char* code) {
-    // take a dice code, return a dice roll
-    int n, s;
-    int r = sscanf(code, "%dd%d", &n, &s);
-    if (r != 2) {
-        mvprintw(1, 0, "can't scan \"%s\"", code);
-        clrtoeol();
-        refresh();
-        getch();
-        exit(1);
-    }
-    return dice(n, s);
-}
-
 void combat(THING* sprite, int atY, int atX) {
     // take a sprite and a pair of coords, resolve one round of combat there
     THING* other = locateSprite(atY, atX);
     if (sprite == player || other == player)
         // note that the player is in combat and not healing
         player->isInCombat = true;
-    int combatRoll = random() % 20 + 1;
+    int combatRoll = rnd(20) + 1;
     if (combatRoll+sprite->wplus >= (21-sprite->stats->level)-other->armour) {
         msg("hit!");
         int damage = dice2(sprite->damage);
@@ -507,30 +524,31 @@ void combat(THING* sprite, int atY, int atX) {
     }
 }
 
-void getOpenLocation(WINDOW* win, int *y, int *x) {
-    // take a window and a pair of coords addresses, fill the coords with an open location
+void getOpenLocation(int *y, int *x) {
+    // take a pair of coords addresses, fill the coords with an open location
     int maxy, maxx;
-    getmaxyx(win, maxy, maxx);
-    int ry = random() % maxy;
-    int rx = random() % maxx;
-    while (mvwinch(win, ry, rx) != ' ') {
-        ry = random() % maxy;
-        rx = random() % maxx;
+    getmaxyx(map, maxy, maxx);
+    int ry = rnd(maxy);
+    int rx = rnd(maxx);
+    while (mvwinch(map, ry, rx) != ' ') {
+        ry = rnd(maxy);
+        rx = rnd(maxx);
     }
     *y = ry;
     *x = rx;
 }
 
-THING* addGold(WINDOW* win) {
-    // take a window, place some gold and return it
+THING* addGold() {
+    // place some gold and return it
     int y, x;
-    getOpenLocation(win, &y, &x);
-    THING* t = newThing(win, T_Item, '$', y, x);
-    t->gold = 2 + random() % 14;
+    getOpenLocation(&y, &x);
+    THING* t = newThing(T_Item, '$', y, x);
+    t->gold = 2 + rnd(14);
     return t;
 }
 
-bool getDir(WINDOW* map) {
+void getDir() {
+    // set globals deltaY and deltaX either by input or by chance, if confused
     const char* prompt;
     msg(prompt = "Which direction?");
     bool done = false;
@@ -550,13 +568,12 @@ bool getDir(WINDOW* map) {
         if (!done)
             msg(prompt);
     }
-    if (player->isConfused && random() % 100 + 1 > 80) {
+    if (player->isConfused && rnd(100) + 1 > 80) {
         do {
             deltaY = dice(1, 3) - 1;
             deltaX = dice(1, 3) - 1;
         } while (deltaY == 0 && deltaX == 0);
     }
-    return done;
 }
 
 WINDOW *create_newwin(int height, int width, int starty, int startx) {

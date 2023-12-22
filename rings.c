@@ -8,9 +8,9 @@ const char *ringNames[] = {
     "ring of teleportation",
 };
 
-THING* addRing(WINDOW* win) {
-    // take a window, create a ring and return it
-    int i = random() % NRINGS;
+THING* addRing() {
+    // create a ring and return it
+    int i = rnd(NRINGS);
     const char *descrs[] = {
         "diamond ring",
         "emerald ring",
@@ -19,8 +19,8 @@ THING* addRing(WINDOW* win) {
         "sapphire ring",
     };
     int y, x;
-    getOpenLocation(win, &y, &x);
-    THING* t = newThing(win, T_Item, ':', y, x);
+    getOpenLocation(&y, &x);
+    THING* t = newThing(T_Item, ':', y, x);
     t->descr = descrs[i];
     t->isEquippable = true;
     //TODO if dropped after being identified, should be true

@@ -16,12 +16,12 @@ const char* weaponDamage[] = {
     "2d3",
 };
 
-THING* addWeapon(WINDOW* win) {
+THING* addWeapon() {
     // take a window, create a weapon and return it
-    int i = random() % NWEAPONS;
+    int i = rnd(NWEAPONS);
     int y, x;
-    getOpenLocation(win, &y, &x);
-    THING* t = newThing(win, T_Item, ')', y, x);
+    getOpenLocation(&y, &x);
+    THING* t = newThing(T_Item, ')', y, x);
     t->descr = weaponNames[i];
     t->damage = weaponDamage[i];
     t->typeId = i;

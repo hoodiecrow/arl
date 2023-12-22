@@ -22,13 +22,13 @@ int acValue[] = {
     3
 };
 
-THING* addArmour(WINDOW* win) {
-    // take a window, create an armour and return it
+THING* addArmour() {
+    // create an armour and return it
     // avoid getting the "none" armour
-    int i = random() % (NARMOURS-1) + 1;
+    int i = rnd(NARMOURS-1) + 1;
     int y, x;
-    getOpenLocation(win, &y, &x);
-    THING* t = newThing(win, T_Item, '&', y, x);
+    getOpenLocation(&y, &x);
+    THING* t = newThing(T_Item, '&', y, x);
     t->descr = armourNames[i];
     t->armour = acValue[i];
     t->typeId = i;

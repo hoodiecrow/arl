@@ -19,12 +19,12 @@ const char* scrollNames[] = {
     "scroll of blank paper"
 };
 
-THING* addScroll(WINDOW* win) {
+THING* addScroll() {
     // take a window, create a scroll and return it
-    int i = random() % NSCROLLS;
+    int i = rnd(NSCROLLS);
     int y, x;
-    getOpenLocation(win, &y, &x);
-    THING* t = newThing(win, T_Item, '~', y, x);
+    getOpenLocation(&y, &x);
+    THING* t = newThing(T_Item, '~', y, x);
     t->descr = "a magical scroll";
     t->typeId = i;
     return t;
@@ -99,7 +99,7 @@ void readEffect(int i) {
             // Teleports to a random location on the map.
             mvwaddch(player->room, player->ypos, player->xpos, player->under);
             int y, x;
-            getOpenLocation(player->room, &y, &x);
+            getOpenLocation(&y, &x);
             player->ypos = y;
             player->xpos = x;
             player->under = ' ';
@@ -126,7 +126,7 @@ void readEffect(int i) {
                 dy = dice(1, 3) - 1;
                 dx = dice(1, 3) - 1;
             }
-            addMonsterAt(t->room, 0, player->ypos + dy, player->xpos + dx);
+            addMonsterAt(0, player->ypos + dy, player->xpos + dx);
             break;
         case S_REM_CURS:
             //

@@ -50,7 +50,7 @@ void present(THING* sprite) {
     wrefresh(sprite->room);
 }
 
-THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x) {
+THING* newThing(ThingType type, chtype glyph, int y, int x) {
     // take a window, a thing type, a glyph, and a pair of coords, create a thing and return it
     THING* thing = malloc(sizeof(THING));
     if (thing == NULL) {
@@ -75,7 +75,7 @@ THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x) {
     if (glyph == '@')
         player = thing;
     thing->type = type;
-    thing->room = win;
+    thing->room = map;
     thing->glyph = glyph;
     thing->ypos = y;
     thing->xpos = x;
@@ -128,7 +128,7 @@ THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x) {
     thing->armour = acValue[0];
     thing->next = things;
     things = thing;
-    thing->under = mvwinch(win, thing->ypos, thing->xpos);
+    thing->under = mvwinch(map, thing->ypos, thing->xpos);
     present(thing);
     return thing;
 }

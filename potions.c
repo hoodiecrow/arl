@@ -17,9 +17,9 @@ const char *potionNames[] = {
     "potion of levitation",
 };
 
-THING* addPotion(WINDOW* win) {
-    // take a window, create a potion and return it
-    int i = random() % NPOTIONS;
+THING* addPotion() {
+    // create a potion and return it
+    int i = rnd(NPOTIONS);
     const char *descrs[] = {
         "beige potion",
         "black potion",
@@ -37,11 +37,10 @@ THING* addPotion(WINDOW* win) {
         "yellow potion",
     };
     int y, x;
-    getOpenLocation(win, &y, &x);
-    THING* t = newThing(win, T_Item, '!', y, x);
+    getOpenLocation(&y, &x);
+    THING* t = newThing(T_Item, '!', y, x);
     t->descr = descrs[i];
     t->isPotable = true;
-    //TODO if dropped after being identified, should be true
     t->typeId = i;
     return t;
 }
@@ -58,7 +57,7 @@ void drinkEffect(int i) {
             // Blinds player for 807-892 turns
             // TODO
             player->isBlind = true;
-            player->blindnessDuration = random() % (892-807) + 807;
+            player->blindnessDuration = rnd(892-807) + 807;
             break;
         case P_CONFUS:
             // Confuses the player for 19-21 turns 
@@ -123,7 +122,7 @@ void drinkEffect(int i) {
             // Levitates for 29-32 turns
             mvaddstr(1, 0, "you start to float in the air");
             player->isLevitating = true;
-            player->levitationDuration = random() % (32-29) + 29;
+            player->levitationDuration = rnd(32-29) + 29;
             break;
         case P_POISON:
             // Reduces strength by 1-3 points. Cures hallucination.
