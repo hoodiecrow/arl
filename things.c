@@ -85,7 +85,15 @@ THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x) {
     thing->isAggressive = false;
     thing->isDead = false;
     thing->isConfused = false;
+    thing->isBlind = false;
+    thing->wearingTeleportRing = false;
+    thing->blindnessDuration = 0;
+    thing->isHallucinating = false;
+    thing->hallucinationDuration = 0;
+    thing->wearingTeleportRing = false;
+    thing->teleportationCycle = 0;
     thing->isAsleep = false;
+    thing->isSlowed = false;
     thing->isHasted = false;
     thing->isLevitating = false;
     thing->isInCombat = false;
@@ -120,7 +128,7 @@ THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x) {
     thing->armour = acValue[0];
     thing->next = things;
     things = thing;
-    thing->under = ' ';
+    thing->under = mvwinch(win, thing->ypos, thing->xpos);
     present(thing);
     return thing;
 }

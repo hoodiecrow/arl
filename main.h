@@ -56,7 +56,7 @@ enum SCROLLTYPES {
 	S_IDENTIFY,
 	S_PROT_ARM,
 	S_SCARE_M,
-	S_GOLD_DET,
+	S_FOOD_DET,
 	S_TELEPORT,
 	S_ENCH_WPN,
 	S_CREATE_M,
@@ -129,15 +129,24 @@ typedef struct THING {
     bool isCursed;
     bool isInjured;
     bool isDead;
+    bool isCanceled;
+    bool isInvisible;
     bool isConfused;
     int confusionDuration;
+    bool isBlind;
+    int blindnessDuration;
+    bool isHallucinating;
+    int hallucinationDuration;
     bool canConfuse;
+    bool isSlowed;
     bool isHasted;
     int hasteDuration;
     bool isLevitating;
     int  levitationDuration;
     bool isAsleep;
     int sleepDuration;
+    bool wearingTeleportRing;
+    int teleportationCycle;
     int healingCycle;
     int armour;
     struct THING* next;
@@ -147,6 +156,7 @@ typedef struct THING {
     int wplus;
     chtype under;
     STATS *stats;
+    int ncharges;
 } THING;
 
 typedef struct TILE {
@@ -161,6 +171,7 @@ extern int inventoryFill;
 extern THING* inventory[];
 extern bool allowedIndices[];
 extern THING *things, *worn, *right, *left, *wielded, *player;
+extern int deltaY, deltaX;
 extern int dlevel;
 extern const char* monsterNames[];
 extern const char *armourNames[];
@@ -168,7 +179,8 @@ extern int acValue[];
 
 THING* newThing(WINDOW* win, ThingType type, chtype glyph, int y, int x);
 
-THING* addMonster(WINDOW* win);
+THING* addMonsterAt(WINDOW* win, chtype kind, int y, int x);
+THING* addMonster(WINDOW* win, chtype kind);
 THING* addWeapon(WINDOW* win);
 THING* addArmour(WINDOW* win);
 THING* addWand(WINDOW* win);
@@ -177,6 +189,7 @@ THING* addScroll(WINDOW* win);
 THING* addRing(WINDOW* win);
 THING* addPotion(WINDOW* win);
 THING* addGold(WINDOW* win);
+bool getDir(WINDOW* map);
 void freeObject(THING* o);
 void wieldEffect(int i);
 void zapEffect(int i);
@@ -190,16 +203,15 @@ int dice2(const char* code);
 void msg(const char *msg);
 int expForLevel(int i);
 int hpIncrForLevel(int i);
-int player_act(WINDOW* room, THING* sprite);
-int sprite_act(WINDOW* room, THING* sprite);
+int player_act(THING* sprite);
+int sprite_act(THING* sprite);
 THING* locateThing(int ypos, int xpos);
 THING* locateObject(int ypos, int xpos);
 THING* locateSprite(int ypos, int xpos);
 void drinkEffect(int i);
 void dumpInventory(int i);
 void getOpenLocation(WINDOW* win, int *y, int *x);
-void attemptMove(WINDOW* room, THING* sprite, int incrY, int incrX);
-void stepSprite(WINDOW* room, THING* thing, chtype floor, int toY, int toX);
+void attemptMove(THING* sprite, int incrY, int incrX);
 void combat(THING* thing, int atY, int atX);
 WINDOW* newPopup(int lines);
 chtype endPopup(WINDOW* win);

@@ -47,6 +47,8 @@ void equipEffect(int i) {
             break;
         case R_TELEPORT:
             // When put on, you will be randomly teleported to another location in the current dungeon level every few actions. This is a cursed ring and cannot be removed until uncursed.
+            t->isCursed = true;
+            player->wearingTeleportRing = true;
             break;
     }
 }

@@ -14,6 +14,8 @@ THING* right = NULL;
 THING* left = NULL;
 THING* wielded = NULL;
 THING* player = NULL;
+int deltaY = 0;
+int deltaX = 0;
 
 // https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/index.html
 WINDOW *create_newwin(int height, int width, int starty, int startx);
@@ -151,13 +153,15 @@ int main() {
     addRing(map);
     addWeapon(map);
     addScroll(map);
+    addWand(map);
+    addStaff(map);
     getOpenLocation(map, &y, &x);
     newThing(map, T_Item, '*', y, x);
     addPotion(map);
     getOpenLocation(map, &y, &x);
     newThing(map, T_Structure, '>', y, x);
     for (int n = 0; n < random() % 4 + 2; n++) {
-        addMonster(map);
+        addMonster(map, 0);
     }
     x = 10;
     y =  5;
@@ -177,7 +181,7 @@ int main() {
             player->levitationDuration--;
         }
         if (player->isHasted) {
-            player_act(map, player);
+            player_act(player);
             player->hasteDuration--;
         }
         if (player->isConfused) {
@@ -185,6 +189,24 @@ int main() {
         }
         if (player->isAsleep) {
             player->sleepDuration--;
+        }
+        if (player->isHallucinating) {
+            player->hallucinationDuration--;
+        }
+        if (player->isBlind) {
+            player->blindnessDuration--;
+        }
+        if (player->wearingTeleportRing) {
+            player->teleportationCycle--;
+            if (player->teleportationCycle == 0) {
+                mvwaddch(player->room, player->ypos, player->xpos, player->under);
+                int y, x;
+                getOpenLocation(player->room, &y, &x);
+                player->ypos = y;
+                player->xpos = x;
+                player->under = ' ';
+                present(player);
+            }
         }
         if (player->isInjured) {
             if (player->healingCycle <= 0)
@@ -195,10 +217,10 @@ int main() {
                 player->healingCycle--;
             }
         }
-        ch = player_act(map, player);
+        ch = player_act(player);
         for (THING* thing = things; ch != 'Q' && thing != NULL; thing = thing->next) {
             if (thing->type == T_Sprite && thing != player) {
-                sprite_act(map, thing);
+                sprite_act(thing);
             }
         }
 
@@ -216,6 +238,15 @@ int main() {
         if (player->isAsleep && player->sleepDuration <= 0) {
             player->isAsleep = false;
             mvaddstr(1, 0, "you wake up"); clrtoeol();
+        }
+        if (player->isHallucinating && player->hallucinationDuration <= 0) {
+            player->isHallucinating = false;
+        }
+        if (player->isBlind && player->blindnessDuration <= 0) {
+            player->isBlind = false;
+        }
+        if (player->wearingTeleportRing && player->teleportationCycle <= 0) {
+            player->teleportationCycle = random() % 6 + 1;
         }
         if (player->isInjured) {
             if (player->healingCycle <= 0) {
@@ -236,8 +267,44 @@ int main() {
 	return 0;
 }
 
-int player_act(WINDOW* room, THING* sprite) {
-    // take a window and a thing (which is the player), return a command key
+static void stepSprite(THING* sprite, int toY, int toX) {
+    // take a sprite and a pair of coords, and move there
+    mvwaddch(sprite->room, sprite->ypos, sprite->xpos, sprite->under);
+    chtype floor = mvwinch(sprite->room, toY, toX);
+    if (floor == '$' && sprite == player) {
+        THING* o = locateObject(toY, toX);
+        if (o != NULL) {
+            player->gold += o->gold;
+            freeObject(o);
+        }
+        sprite->under = ' ';
+    } else {
+        sprite->under = floor;
+    }
+    sprite->ypos = toY;
+    sprite->xpos = toX;
+    present(sprite);
+}
+
+void attemptMove(THING* sprite, int incrY, int incrX) {
+    // take a window, a sprite, and a pair of coord modifiers, make a move if possible
+    int toY = sprite->ypos+incrY;
+    int toX = sprite->xpos+incrX;
+    // look at the glyph on the tile
+    chtype floor = mvwinch(sprite->room, toY, toX);
+    if (floor == '@' || isalpha(floor)) {
+        // if it is the player or a monster, fight
+        combat(sprite, toY, toX);
+    } else if (floor == '#') {
+        // a wall
+    } else if (floor == ' ' || ispunct(floor)) {
+        // if it is blank or an object, move
+        stepSprite(sprite, toY, toX);
+    }
+}
+
+int player_act(THING* sprite) {
+    // take a thing (which is the player), return a command key
     chtype ch;
     if (sprite != player) {
         mvaddstr(1, 0, "wrong sprite, expected player");
@@ -249,7 +316,7 @@ int player_act(WINDOW* room, THING* sprite) {
     if (player->isDead)
         return 'Q';
     // get player (user) command
-    ch = wgetch(room);
+    ch = wgetch(player->room);
     if (player->isConfused) {
         ch = 49 + random() % 8;
     }
@@ -269,11 +336,11 @@ int player_act(WINDOW* room, THING* sprite) {
         case 265: ch = 'h'; break; //F1
     }
     // call a handler for the selected action
-    actionHandlers[ch](room, player);
+    actionHandlers[ch](player);
     return ch;
 }
 
-chtype seekPlayer(THING* sprite) {
+static chtype seekPlayer(THING* sprite) {
     // take a sprite, calculate distance and direction to player, return a command to close distance if close enough
     chtype ch;
     int diffy = 0;
@@ -318,14 +385,14 @@ chtype seekPlayer(THING* sprite) {
         else
             ch = '5'; // won't happen
     } else {
-        // player too far away, just wander
+        // player is too far away, just wander
         ch = 49 + random() % 8;
     }
     return ch;
 }
 
-int sprite_act(WINDOW* room, THING* sprite) {
-    // take a window and a sprite, which is not the player, return a command key
+int sprite_act(THING* sprite) {
+    // take a sprite, which is not the player, return a command key
     int ch;
     if (sprite == player) {
         mvaddstr(1, 0, "wrong sprite, did not expect player");
@@ -336,14 +403,16 @@ int sprite_act(WINDOW* room, THING* sprite) {
     // return immediately (with a null command) if sprite is dead
     if (sprite->isDead)
         return 0;
-    if (sprite->isAggressive) {
+    if (sprite->isImmobile || sprite->isAsleep) {
+        ch = '5';
+    } else if (sprite->isAggressive) {
         ch = seekPlayer(sprite);
     } else {
         // not interested in seeking out player
         ch = 49 + random() % 8;
     }
     // call a handler for the selected (movement) action
-    actionHandlers[ch](room, sprite);
+    actionHandlers[ch](sprite);
     return ch;
 }
 
@@ -361,89 +430,6 @@ chtype endPopup(WINDOW* win) {
     return ch;
 }
 
-const char* wandNames[] = {
-    "wand of light",
-    "wand of striking",
-    "wand of lightning",
-    "wand of fire",	
-    "wand of cold",
-    "wand of polymorph",
-    "wand of magic missile",
-    "wand of haste monster",
-    "wand of slow monster",
-    "wand of drain life",
-    "wand of nothing",	
-    "wand of teleport away",
-    "wand of teleport to",
-    "wand of cancellation",
-};
-
-const char* staffNames[] = {
-    "staff of light",
-    "staff of striking",
-    "staff of lightning",
-    "staff of fire",	
-    "staff of cold",
-    "staff of polymorph",
-    "staff of magic missile",
-    "staff of haste monster",
-    "staff of slow monster",
-    "staff of drain life",
-    "staff of nothing",	
-    "staff of teleport away",
-    "staff of teleport to",
-    "staff of cancellation",
-};
-
-void zapEffect(int i) {
-    // take an inventory number, check typeId for that stick and handle effect
-    THING* t = inventory[i];
-    switch (t->typeId) {
-        case WS_LIGHT:
-            // Has 10-19 charges. Illuminates the room.
-            break;
-        case WS_HIT:
-            // W/S of Striking, which normally does 2d8 + 4 damage, or it has a 5% chance of doing 3d8 + 9 damage.
-            break;
-        case WS_ELECT:
-            // Inflicts 6d6 damage for up to 6 tiles. Bounces off walls.
-            break;
-        case WS_FIRE:
-            // Inflicts 6d6 damage for up to 6 tiles. Bounces off walls. Dragons are immune.
-            break;
-        case WS_COLD:
-            // Inflicts 6d6 damage for up to 6 tiles. Bounces off walls. Yetis are immune.
-            break;
-        case WS_POLYMORPH:
-            // Changes a monster type.
-            break;
-        case WS_MISSILE:
-            // Inflicts 1d4 damage on a single target.
-            break;
-        case WS_HASTE_M:
-            // Hastens a monster.
-            break;
-        case WS_SLOW_M:
-            // Slows a monster.
-            break;
-        case WS_DRAIN:
-            // Drains half of the hero's hp, then removes the same amount of health evenly from visible monsters.
-            break;
-        case WS_NOP:
-            // Doesn't do anything.
-            break;
-        case WS_TELAWAY:
-            // Teleports a monster randomly on the map.
-            break;
-        case WS_TELTO:
-            // Causes the monster to teleport next to the player.
-            break;
-        case WS_CANCEL:
-            // Suppresses monster's special abilities.
-            break;
-    }
-}
-
 void msg(const char *msg) {
     mvprintw(1, 0, "%s", msg);
     clrtoeol();
@@ -457,41 +443,6 @@ void dumpInventory(int i) {
         inventory[i] = inventory[j];
     }
     inventoryFill--;
-}
-
-void attemptMove(WINDOW* room, THING* sprite, int incrY, int incrX) {
-    // take a window, a sprite, and a pair of coord modifiers, move if possible
-    int toY = sprite->ypos+incrY;
-    int toX = sprite->xpos+incrX;
-    // look at the glyph on the tile
-    chtype floor = mvwinch(room, toY, toX);
-    if (floor == '@' || isalpha(floor)) {
-        // if it is the player or a monster, fight
-        combat(sprite, toY, toX);
-    } else if (floor == '#') {
-        // a wall
-    } else if (floor == ' ' || ispunct(floor)) {
-        // if it is blank or an object, move
-        stepSprite(room, sprite, floor, toY, toX);
-    }
-}
-
-void stepSprite(WINDOW* room, THING* sprite, chtype floor, int toY, int toX) {
-    // take a window, a sprite, a floor glyph, and a pair of coords, and move there
-    mvwaddch(room, sprite->ypos, sprite->xpos, sprite->under);
-    if (floor == '$' && sprite == player) {
-        THING* o = locateObject(toY, toX);
-        if (o != NULL) {
-            player->gold += o->gold;
-            freeObject(o);
-        }
-        sprite->under = ' ';
-    } else {
-        sprite->under = floor;
-    }
-    sprite->ypos = toY;
-    sprite->xpos = toX;
-    present(sprite);
 }
 
 int dice(int n, int s) {
@@ -527,7 +478,7 @@ void combat(THING* sprite, int atY, int atX) {
         player->isInCombat = true;
     int combatRoll = random() % 20 + 1;
     if (combatRoll+sprite->wplus >= (21-sprite->stats->level)-other->armour) {
-        mvaddstr(1, 0, "hit!");
+        msg("hit!");
         int damage = dice2(sprite->damage);
         other->stats->currHp -= damage;
         if (other == player) {
@@ -552,9 +503,8 @@ void combat(THING* sprite, int atY, int atX) {
         //TODO could attempt to escape instead
         other->isAggressive = true;
     } else {
-        mvaddstr(1, 0, "miss!");
+        msg("miss!");
     }
-    clrtoeol();
 }
 
 void getOpenLocation(WINDOW* win, int *y, int *x) {
@@ -571,99 +521,6 @@ void getOpenLocation(WINDOW* win, int *y, int *x) {
     *x = rx;
 }
 
-/* from init.c of Rogue3.6.3. For inspiration only, delete before release TODO.
-#define ___ 1
-#define _x {1,1}
-struct monster monsters[26] = {
-	// Name		 CARRY	FLAG             str, exp, lvl, amr, hpt, dmg
-	{ "giant ant",	 0,	 ISMEAN,	    { _x, 10,   2,   3, ___, "1d6" } },
-	{ "bat",	     0,	 0,	            { _x,  1,   1,   3, ___, "1d2" } },
-	{ "centaur",	 15, 0,	            { _x, 15,   4,   4, ___, "1d6/1d6" } },
-	{ "dragon",	     100,ISGREED,       { _x,9000, 10,  -1, ___, "1d8/1d8/3d10" } },
-	{ "floating eye",0,	 0,	            { _x,  5,   1,   9, ___, "0d0" } },
-	{ "violet fungi",0,	 ISMEAN,	    { _x, 85,   8,   3, ___, "000d0" } },
-	{ "gnome",	     10, 0,	            { _x,  8,   1,   5, ___, "1d6" } },
-	{ "hobgoblin",	 0,	 ISMEAN,	    { _x,  3,   1,   5, ___, "1d8" } },
-	{ "inv. stalker",0,  ISINVIS,       { _x,120,   8,   3, ___, "4d4" } },
-	{ "jackal",	     0,	 ISMEAN,	    { _x,  2,   1,   7, ___, "1d2" } },
-	{ "kobold",	     0,	 ISMEAN,	    { _x,  1,   1,   7, ___, "1d4" } },
-	{ "leprechaun",	 0,	 0,	            { _x, 10,   3,   8, ___, "1d1" } },
-	{ "mimic",	     30, 0,	            { _x,140,   7,   7, ___, "3d4" } },
-	{ "nymph",	     100,0,	            { _x, 40,   3,   9, ___, "0d0" } },
-	{ "orc",	     15, ISBLOCK,       { _x,  5,   1,   6, ___, "1d8" } },
-	{ "purple worm", 70, 0,	            { _x,7000, 15,   6, ___, "2d12/2d4" } },
-	{ "quasit",	     30, ISMEAN,	    { _x, 35,   3,   2, ___, "1d2/1d2/1d4" } },
-	{ "rust monster",0,	 ISMEAN,	    { _x, 25,   5,   2, ___, "0d0/0d0" } },
-	{ "snake",	     0,	 ISMEAN,	    { _x,  3,   1,   5, ___, "1d3" } },
-	{ "troll",	     50, ISREGEN|ISMEAN,{ _x, 55,   6,   4, ___, "1d8/1d8/2d6" } },
-	{ "umber hulk",	 40, ISMEAN,	    { _x,130,   8,   2, ___, "3d4/3d4/2d5" } },
-	{ "vampire",	 20, ISREGEN|ISMEAN,{ _x,380,   8,   1, ___, "1d10" } },
-	{ "wraith",	     0,	 0,	            { _x, 55,   5,   4, ___, "1d6" } },
-	{ "xorn",	     0,	 ISMEAN,	    { _x,120,   7,  -2, ___, "1d3/1d3/1d3/4d6" } },
-	{ "yeti",	     30, 0,	            { _x, 50,   4,   6, ___, "1d6/1d6" } },
-	{ "zombie",	     0,	 ISMEAN,	    { _x,  7,   2,   8, ___, "1d8" } }
-};
-#undef ___
- */
-
-THING* addWand(WINDOW* win) {
-    // take a window, create a wand and return it
-    int i = random() % NSTICKS;
-    const char *descrs[] = {
-        "aluminium wand",
-        "brass wand",
-        "bronze wand",
-        "copper wand",
-        "gold wand",
-        "iron wand",
-        "lead wand",
-        "nickel wand",
-        "pewter wand",
-        "silver wand",
-        "steel wand",
-        "tin wand",
-        "titanium wand",
-        "zinc wand",
-    };
-    int y, x;
-    getOpenLocation(win, &y, &x);
-    THING* t = newThing(win, T_Item, '/', y, x);
-    t->descr = descrs[i];
-    t->isEquippable = true;
-    t->typeId = i;
-    return t;
-}
-
-THING* addStaff(WINDOW* win) {
-    // take a window, create a staff and return it
-    int i = random() % NSTICKS;
-    const char *descrs[] = {
-        "banyan staff",
-        "birch staff",
-        "cedar staff",
-        "cherry staff",
-        "driftwood staff",
-        "ebony staff",
-        "elm staff",
-        "eucalyptus staff",
-        "ironwood staff",
-        "mahogany staff",
-        "maple staff",
-        "oak staff",
-        "plain staff",
-        "redwood staff",
-        "teak staff",
-        "walnut staff",
-    };
-    int y, x;
-    getOpenLocation(win, &y, &x);
-    THING* t = newThing(win, T_Item, '/', y, x);
-    t->descr = descrs[i];
-    t->isEquippable = true;
-    t->typeId = i;
-    return t;
-}
-
 THING* addGold(WINDOW* win) {
     // take a window, place some gold and return it
     int y, x;
@@ -671,6 +528,35 @@ THING* addGold(WINDOW* win) {
     THING* t = newThing(win, T_Item, '$', y, x);
     t->gold = 2 + random() % 14;
     return t;
+}
+
+bool getDir(WINDOW* map) {
+    const char* prompt;
+    msg(prompt = "Which direction?");
+    bool done = false;
+    chtype ch;
+    while (!done) {
+        ch = wgetch(map);
+        switch (ch) {
+            case '1': deltaY =  1; deltaX = -1; done = true; break;
+            case '2': deltaY =  1; deltaX =  0; done = true; break;
+            case '3': deltaY =  1; deltaX = +1; done = true; break;
+            case '4': deltaY =  0; deltaX = -1; done = true; break;
+            case '6': deltaY =  0; deltaX = +1; done = true; break;
+            case '7': deltaY = -1; deltaX = -1; done = true; break;
+            case '8': deltaY = -1; deltaX =  0; done = true; break;
+            case '9': deltaY = -1; deltaX = +1; done = true; break;
+        }
+        if (!done)
+            msg(prompt);
+    }
+    if (player->isConfused && random() % 100 + 1 > 80) {
+        do {
+            deltaY = dice(1, 3) - 1;
+            deltaX = dice(1, 3) - 1;
+        } while (deltaY == 0 && deltaX == 0);
+    }
+    return done;
 }
 
 WINDOW *create_newwin(int height, int width, int starty, int startx) {

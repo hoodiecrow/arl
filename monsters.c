@@ -29,18 +29,29 @@ const char* monsterNames[26] = {
     "zombie"        // Z
 };
 
-THING* addMonster(WINDOW* win) {
+THING* addMonsterAt(WINDOW* win, chtype kind, int y, int x) {
+    THING* m = addMonster(win, kind);
+    m->ypos = y;
+    m->xpos = x;
+    return m;
+}
+
+THING* addMonster(WINDOW* win, chtype kind) {
     // take a window, create a monster and return it
     int y, x, i;
     getOpenLocation(win, &y, &x);
     THING* t = newThing(win, T_Sprite, 'X', y, x);
     const char *aggr;
-    if (dlevel == 1) 
-        i = random() % 6;
-    else if (dlevel == 2) 
-        i = random() % 7;
-    else
-        i = 0;
+    if (kind == 0) {
+        if (dlevel == 1) 
+            i = random() % 6;
+        else if (dlevel == 2) 
+            i = random() % 7;
+        else
+            i = 0;
+    } else {
+        i = kind - 'A';
+    }
     switch (i) {
         case 0:
             t->descr = "bat";

@@ -32,86 +32,81 @@ ahptr actionHandlers[256] = {
 
 
 
-void ah__(WINDOW* room, THING* sprite) {
-    (void)room;
+void ah__(THING* sprite) {
     (void)sprite;
 }
 
-void ahCS(WINDOW* room, THING* sprite) {
-    (void)room;
+void ahCS(THING* sprite) {
     (void)sprite;
     mvaddstr(1, 0, "save game");
     clrtoeol();
 }
 
-void ah_1(WINDOW* room, THING* sprite) {
-    int maxy = getmaxy(room);
+void ah_1(THING* sprite) {
+    int maxy = getmaxy(sprite->room);
     if (sprite->ypos < maxy-2 && sprite->xpos > 1) {
-        attemptMove(room, sprite, +1, -1);
+        attemptMove(sprite, +1, -1);
     }
 }
 
-void ah_2(WINDOW* room, THING* sprite) {
-    int maxy = getmaxy(room);
+void ah_2(THING* sprite) {
+    int maxy = getmaxy(sprite->room);
     if (sprite->ypos < maxy-2) {
-        attemptMove(room, sprite, +1, +0);
+        attemptMove(sprite, +1, +0);
     }
 }
 
-void ah_3(WINDOW* room, THING* sprite) {
-    int maxy = getmaxy(room);
-    int maxx = getmaxx(room);
+void ah_3(THING* sprite) {
+    int maxy = getmaxy(sprite->room);
+    int maxx = getmaxx(sprite->room);
     if (sprite->ypos < maxy-2 && sprite->xpos < maxx-2) {
-        attemptMove(room, sprite, +1, +1);
+        attemptMove(sprite, +1, +1);
     }
 }
 
-void ah_4(WINDOW* room, THING* sprite) {
+void ah_4(THING* sprite) {
     if (sprite->xpos > 1) {
-        attemptMove(room, sprite, +0, -1);
+        attemptMove(sprite, +0, -1);
     }
 }
 
-void ah_5(WINDOW* room, THING* sprite) {
-    (void)room;
+void ah_5(THING* sprite) {
     present(sprite);
 }
 
-void ah_6(WINDOW* room, THING* sprite) {
-    int maxx = getmaxx(room);
+void ah_6(THING* sprite) {
+    int maxx = getmaxx(sprite->room);
     if (sprite->xpos < maxx-2) {
-        attemptMove(room, sprite, +0, +1);
+        attemptMove(sprite, +0, +1);
     }
 }
 
-void ah_7(WINDOW* room, THING* sprite) {
+void ah_7(THING* sprite) {
     if (sprite->ypos > 1 && sprite->xpos > 1) {
-        attemptMove(room, sprite, -1, -1);
+        attemptMove(sprite, -1, -1);
     }
 }
 
-void ah_8(WINDOW* room, THING* sprite) {
+void ah_8(THING* sprite) {
     if (sprite->ypos > 1) {
-        attemptMove(room, sprite, -1, +0);
+        attemptMove(sprite, -1, +0);
     }
 }
 
-void ah_9(WINDOW* room, THING* sprite) {
-    int maxx = getmaxx(room);
+void ah_9(THING* sprite) {
+    int maxx = getmaxx(sprite->room);
     if (sprite->ypos > 1 && sprite->xpos < maxx-2) {
-        attemptMove(room, sprite, -1, +1);
+        attemptMove(sprite, -1, +1);
     }
 }
 
-void ah_c(WINDOW* room, THING* sprite) {
-    (void)room;
+void ah_c(THING* sprite) {
     (void)sprite;
     mvaddstr(1, 0, "close what?");
     clrtoeol();
 }
 
-void ah_e(WINDOW* room, THING* sprite) {
-    (void)room;
+void ah_e(THING* sprite) {
     (void)sprite;
     WINDOW* invlist = newPopup(inventoryFill+3);
     mvwprintw(invlist, 1, 1, "%s", "What do you want to eat:");
@@ -133,8 +128,7 @@ void ah_e(WINDOW* room, THING* sprite) {
     }
 }
 
-void ah_E(WINDOW* room, THING* sprite) {
-    (void)room;
+void ah_E(THING* sprite) {
     (void)sprite;
     WINDOW* invlist = newPopup(inventoryFill+3);
     mvwprintw(invlist, 1, 1, "%s", "What do you want to equip:");
@@ -177,22 +171,19 @@ void ah_E(WINDOW* room, THING* sprite) {
     }
 }
 
-void ah_g(WINDOW* room, THING* sprite) {
-    (void)room;
+void ah_g(THING* sprite) {
     (void)sprite;
     mvaddstr(1, 0, "get what?");
     clrtoeol();
 }
 
-void ah_h(WINDOW* room, THING* sprite) {
-    (void)room;
+void ah_h(THING* sprite) {
     (void)sprite;
     mvaddstr(1, 0, "help screen");
     clrtoeol();
 }
 
-void ah_i(WINDOW* room, THING* sprite) {
-    (void)room;
+void ah_i(THING* sprite) {
     (void)sprite;
     WINDOW* invlist = newPopup(15+3);
     mvwprintw(invlist, 1, 1, "%s", "You are carrying:");
@@ -202,8 +193,7 @@ void ah_i(WINDOW* room, THING* sprite) {
     endPopup(invlist);
 }
 
-void ah_l(WINDOW* room, THING* sprite) {
-    (void)room;
+void ah_l(THING* sprite) {
     (void)sprite;
     // 1st pass: count the items
     int itemcount = 0;
@@ -223,8 +213,7 @@ void ah_l(WINDOW* room, THING* sprite) {
     endPopup(invlist);
 }
 
-void ah_q(WINDOW* room, THING* sprite) {
-    (void)room;
+void ah_q(THING* sprite) {
     (void)sprite;
     WINDOW* invlist = newPopup(inventoryFill+3);
     mvwprintw(invlist, 1, 1, "%s", "What do you want to drink:");
@@ -246,8 +235,7 @@ void ah_q(WINDOW* room, THING* sprite) {
     }
 }
 
-void ah_r(WINDOW* room, THING* sprite) {
-    (void)room;
+void ah_r(THING* sprite) {
     (void)sprite;
     WINDOW* invlist = newPopup(inventoryFill+3);
     mvwprintw(invlist, 1, 1, "%s", "What do you want to read:");
@@ -269,30 +257,26 @@ void ah_r(WINDOW* room, THING* sprite) {
     }
 }
 
-void ah_s(WINDOW* room, THING* sprite) {
-    (void)room;
+void ah_s(THING* sprite) {
     (void)sprite;
     mvaddstr(1, 0, "you went down a stair");
     clrtoeol();
 }
 
-void ah_S(WINDOW* room, THING* sprite) {
-    (void)room;
+void ah_S(THING* sprite) {
     (void)sprite;
     mvaddstr(1, 0, "you went up a stair");
     clrtoeol();
 }
 
-void ah_u(WINDOW* room, THING* sprite) {
-    (void)room;
+void ah_u(THING* sprite) {
     (void)sprite;
     mvaddstr(1, 0, "use what?");
     clrtoeol();
 }
 
-void ah_w(WINDOW* room, THING* sprite) {
+void ah_w(THING* sprite) {
     // wield a weapon
-    (void)room;
     (void)sprite;
     WINDOW* invlist = newPopup(inventoryFill+3);
     mvwprintw(invlist, 1, 1, "%s", "What do you want to wield:");
@@ -318,8 +302,7 @@ void ah_w(WINDOW* room, THING* sprite) {
     }
 }
 
-void ah_W(WINDOW* room, THING* sprite) {
-    (void)room;
+void ah_W(THING* sprite) {
     (void)sprite;
     WINDOW* invlist = newPopup(inventoryFill+3);
     mvwprintw(invlist, 1, 1, "%s", "What do you want to wear:");
@@ -347,8 +330,7 @@ void ah_W(WINDOW* room, THING* sprite) {
     }
 }
 
-void ah_z(WINDOW* room, THING* sprite) {
-    (void)room;
+void ah_z(THING* sprite) {
     (void)sprite;
     WINDOW* invlist = newPopup(inventoryFill+3);
     mvwprintw(invlist, 1, 1, "%s", "What do you want to zap with:");
@@ -370,8 +352,7 @@ void ah_z(WINDOW* room, THING* sprite) {
     }
 }
 
-void ah_p(WINDOW* room, THING* sprite) {
-    (void)room;
+void ah_p(THING* sprite) {
     (void)sprite;
     if (sprite->under == ' ') {
         mvaddstr(1, 0, "there's nothing to pick up");
@@ -396,8 +377,7 @@ mvprintw(1, 0, "you picked up: %s", t->descr);
     clrtoeol();
 }
 
-void ah_d(WINDOW* room, THING* sprite) {
-    (void)room;
+void ah_d(THING* sprite) {
     (void)sprite;
     WINDOW* invlist = newPopup(inventoryFill+3);
     mvwprintw(invlist, 1, 1, "%s", "What do you want to drop:");
