@@ -180,7 +180,6 @@ extern int acValue[];
 
 THING* newThing(ThingType type, chtype glyph);
 
-THING* addMonsterAt(chtype kind, int y, int x);
 THING* addMonster(chtype kind);
 THING* addWeapon();
 THING* addArmour();
@@ -213,6 +212,7 @@ THING* locateSprite(int ypos, int xpos);
 void drinkEffect(int i);
 void dumpInventory(int i);
 THING* place(THING* thing);
+THING* placeAt(THING* thing, int y, int x);
 void attemptMove(THING* sprite, int incrY, int incrX);
 void combat(THING* thing, int atY, int atX);
 WINDOW* newPopup(int lines);

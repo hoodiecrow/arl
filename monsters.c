@@ -29,17 +29,10 @@ const char* monsterNames[26] = {
     "zombie"        // Z
 };
 
-THING* addMonsterAt(chtype kind, int y, int x) {
-    THING* m = addMonster(kind);
-    m->ypos = y;
-    m->xpos = x;
-    return m;
-}
-
 THING* addMonster(chtype kind) {
     // take a window, create a monster and return it
     int i;
-    THING* t = present(place(newThing(T_Sprite, 'X')));
+    THING* t = newThing(T_Sprite, 'X');
     const char *aggr;
     if (kind == 0) {
         if (dlevel == 1) 

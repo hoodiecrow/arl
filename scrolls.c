@@ -22,7 +22,7 @@ const char* scrollNames[] = {
 THING* addScroll() {
     // take a window, create a scroll and return it
     int i = rnd(NSCROLLS);
-    THING* t = present(place(newThing(T_Item, '~')));
+    THING* t = newThing(T_Item, '~');
     t->descr = "a magical scroll";
     t->typeId = i;
     return t;
@@ -119,7 +119,7 @@ void readEffect(int i) {
                 dy = dice(1, 3) - 1;
                 dx = dice(1, 3) - 1;
             }
-            addMonsterAt(0, player->ypos + dy, player->xpos + dx);
+            placeAt(addMonster(0), player->ypos + dy, player->xpos + dx);
             break;
         case S_REM_CURS:
             //

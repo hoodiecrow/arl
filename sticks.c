@@ -53,7 +53,7 @@ THING* addWand() {
         "titanium wand",
         "zinc wand",
     };
-    THING* t = present(place(newThing(T_Item, '/')));
+    THING* t = newThing(T_Item, '/');
     t->descr = descrs[i];
     t->isEquippable = true;
     t->typeId = i;
@@ -81,7 +81,7 @@ THING* addStaff() {
         "teak staff",
         "walnut staff",
     };
-    THING* t = present(place(newThing(T_Item, '/')));
+    THING* t = newThing(T_Item, '\\');
     t->descr = descrs[i];
     t->isEquippable = true;
     t->ncharges = rnd(5) + 3;
@@ -152,7 +152,7 @@ void zapEffect(int i) {
                     freeObject(other);
                     deltaY = y;
                     deltaX = x;
-                    addMonsterAt(rnd(26) + 'A', deltaY, deltaX);
+                    placeAt(addMonster(rnd(26) + 'A'), deltaY, deltaX);
                     // TODO player knows that it's a W/S of Polymorph unless new kind = old
                 } else if (t->typeId == WS_CANCEL) {
                     other->isCanceled = true;

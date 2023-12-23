@@ -18,7 +18,7 @@ THING* addRing() {
         "opal ring",
         "sapphire ring",
     };
-    THING* t = present(place(newThing(T_Item, ':')));
+    THING* t = newThing(T_Item, ':');
     t->descr = descrs[i];
     t->isEquippable = true;
     //TODO if dropped after being identified, should be true

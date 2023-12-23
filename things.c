@@ -52,6 +52,7 @@ THING* present(THING* sprite) {
 }
 
 THING* place(THING* thing) {
+    // take a thing, place it in a random, open location
     int maxy, maxx;
     getmaxyx(map, maxy, maxx);
     int ry = rnd(maxy);
@@ -63,6 +64,14 @@ THING* place(THING* thing) {
     thing->ypos = ry;
     thing->xpos = rx;
     thing->under = mvwinch(map, ry, rx);
+    return thing;
+}
+
+THING* placeAt(THING* thing, int y, int x) {
+    // take a thing, place it in a given location
+    thing->ypos = y;
+    thing->xpos = x;
+    thing->under = mvwinch(map, y, x);
     return thing;
 }
 

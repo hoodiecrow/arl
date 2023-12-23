@@ -36,7 +36,7 @@ THING* addPotion() {
         "white potion",
         "yellow potion",
     };
-    THING* t = present(place(newThing(T_Item, '!')));
+    THING* t = newThing(T_Item, '!');
     t->descr = descrs[i];
     t->isPotable = true;
     t->typeId = i;

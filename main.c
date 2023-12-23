@@ -189,26 +189,23 @@ int main() {
 }
 
 void initGame() {
-    int y, x;
     for (int n = 0; n < rnd(5) + 1; n++) {
-        addGold(map);
+        present(place(addGold(map)));
     }
-    addRing();
-    addWeapon();
-    addScroll();
-    addWand();
-    addStaff();
+    present(place(addRing()));
+    present(place(addWeapon()));
+    present(place(addScroll()));
+    present(place(addWand()));
+    present(place(addStaff()));
     present(place(newThing(T_Item, '*')));
-    addPotion();
+    present(place(addPotion()));
     present(place(newThing(T_Structure, '>')));
     for (int n = 0; n < rnd(4) + 2; n++) {
-        addMonster(0);
+        present(place(addMonster(0)));
     }
-    x = 10;
-    y =  5;
     present(place(newThing(T_Sprite, '@')));
-    addArmour();
-    addArmour();
+    present(place(addArmour()));
+    present(place(addArmour()));
 }
 
 void runGame() {
@@ -519,8 +516,8 @@ void combat(THING* sprite, int atY, int atX) {
 }
 
 THING* addGold() {
-    // place some gold and return it
-    THING* t = present(place(newThing(T_Item, '$')));
+    // make some gold and return it
+    THING* t = newThing(T_Item, '$');
     t->gold = 2 + rnd(14);
     return t;
 }
