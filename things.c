@@ -46,8 +46,8 @@ void freeObject(THING* o) {
 
 THING* present(THING* sprite) {
     // take a sprite, show its glyph
-    mvwaddch(sprite->room, sprite->ypos, sprite->xpos, sprite->glyph);
-    wrefresh(sprite->room);
+    mvwaddch(map, sprite->ypos, sprite->xpos, sprite->glyph);
+    wrefresh(map);
     return sprite;
 }
 
@@ -64,6 +64,8 @@ THING* place(THING* thing) {
     thing->ypos = ry;
     thing->xpos = rx;
     thing->under = mvwinch(map, ry, rx);
+    mvwaddch(map, thing->ypos, thing->xpos, thing->glyph);
+    wrefresh(map);
     return thing;
 }
 
@@ -72,6 +74,8 @@ THING* placeAt(THING* thing, int y, int x) {
     thing->ypos = y;
     thing->xpos = x;
     thing->under = mvwinch(map, y, x);
+    mvwaddch(map, thing->ypos, thing->xpos, thing->glyph);
+    wrefresh(map);
     return thing;
 }
 

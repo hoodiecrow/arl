@@ -244,27 +244,27 @@ void initGame() {
     initScrolls();
 
     for (int n = 0; n < rnd(5) + 1; n++) {
-        present(place(addGold(map)));
+        place(addGold(map));
     }
     for (int n = 0; n < 9; n++) {
-        present(place(addItem()));
+        place(addItem());
     }
 #if 0
-    present(place(addRing()));
-    present(place(addWeapon()));
-    present(place(addScroll()));
-    present(place(addWand()));
-    present(place(addStaff()));
-    present(place(newThing(T_Item, '*')));
-    present(place(addPotion()));
-    present(place(newThing(T_Structure, '>')));
-    present(place(addArmour()));
-    present(place(addArmour()));
+    place(addRing());
+    place(addWeapon());
+    place(addScroll());
+    place(addWand());
+    place(addStaff());
+    place(newThing(T_Item, '*'));
+    place(addPotion());
+    place(newThing(T_Structure, '>'));
+    place(addArmour());
+    place(addArmour());
 #endif
     for (int n = 0; n < rnd(4) + 2; n++) {
-        present(place(addMonster(0)));
+        place(addMonster(0));
     }
-    player = present(place(newThing(T_Sprite, '@')));
+    player = place(newThing(T_Sprite, '@'));
 
     // player stats
     player->stats->level = 1;
@@ -327,7 +327,6 @@ void runGame() {
             if (player->teleportationCycle == 0) {
                 mvwaddch(player->room, player->ypos, player->xpos, player->under);
                 place(player);
-                present(player);
             }
         }
         if (player->isInjured) {

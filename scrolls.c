@@ -110,7 +110,7 @@ void readEffect(int i) {
             // It teleports you to a random location in the current dungeon level.
             // Teleports to a random location on the map.
             mvwaddch(player->room, player->ypos, player->xpos, player->under);
-            present(place(player));
+            place(player);
             break;
         case S_ENCH_WPN:
             // It increases the bonus on your weapon by +0,+1. If your weapon was cursed, it will no longer be so and the penalty for weilding it will be one less.

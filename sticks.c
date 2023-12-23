@@ -205,7 +205,7 @@ void zapEffect(int i) {
                     other->isInvisible = false;
                 } else if (t->typeId == WS_TELAWAY) {
                     mvwaddch(other->room, other->ypos, other->xpos, other->under);
-                    present(place(other));
+                    place(other);
                 } else if (t->typeId == WS_TELTO) {
                     mvwaddch(other->room, other->ypos, other->xpos, other->under);
                     other->ypos = player->ypos + deltaY;
