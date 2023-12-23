@@ -17,9 +17,14 @@ const char *potionNames[] = {
     "potion of levitation",
 };
 
+int pprobs[NPOTIONS] = {
+    8, 10, 8, 15, 2, 15, 6, 6, 2, 5, 4, 14, 4, 1
+};
+int ppt[NPOTIONS];
+
 THING* addPotion() {
     // create a potion and return it
-    int i = rnd(NPOTIONS);
+    int i = pickOne(ppt, NPOTIONS);
     const char *descrs[] = {
         "beige potion",
         "black potion",
@@ -41,6 +46,15 @@ THING* addPotion() {
     t->isPotable = true;
     t->typeId = i;
     return t;
+}
+
+void initPotions() {
+    // set up potions probability table
+    ppt[0] = pprobs[0];
+    for (int i = 1; i < NTHINGS; i++) {
+        ppt[i] = pprobs[i] + ppt[i-1];
+    }
+    //TODO check total = 100
 }
 
 // TODO needs an overhaul for the wiki info

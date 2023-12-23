@@ -187,10 +187,62 @@ int main() {
 	return 0;
 }
 
+int mpt[NTHINGS];
+
+void initThings() {
+    // set up master probability table
+    int probabilities[] = { 27, 27, 18, 9, 9, 5, 5 };
+    mpt[0] = probabilities[0];
+    for (int i = 1; i < NTHINGS; i++) {
+        mpt[i] = probabilities[i] + mpt[i-1];
+    }
+    //TODO check total = 100
+}
+
+int pickOne(int pt[], int n) {
+    int* start = pt;
+    int* end = &pt[n];
+    for (int i = rnd(100) + 1; pt < end; pt++) {
+        if (i <= *pt)
+            break;
+    }
+    return pt - start;
+}
+
+THING* addThing() {
+    switch (pickOne(mpt, NTHINGS)) {
+        case T_POTION:
+            return addPotion();
+        case T_SCROLL:
+            return addScroll();
+        case T_FOOD:
+            return addFood();
+        case T_WEAPON:
+            return addWeapon();
+        case T_ARMOUR:
+            return addArmour();
+        case T_RING:
+            return addRing();
+        case T_STICK:
+            return addWand(); // TODO staves
+        default:
+            return NULL;
+    }
+}
+
 void initGame() {
+    initThings();
+    initPotions();
+    initScrolls();
+    initArmours();
+
     for (int n = 0; n < rnd(5) + 1; n++) {
         present(place(addGold(map)));
     }
+    for (int n = 0; n < 9; n++) {
+        present(place(addThing()));
+    }
+#if 0
     present(place(addRing()));
     present(place(addWeapon()));
     present(place(addScroll()));
@@ -199,12 +251,13 @@ void initGame() {
     present(place(newThing(T_Item, '*')));
     present(place(addPotion()));
     present(place(newThing(T_Structure, '>')));
+    present(place(addArmour()));
+    present(place(addArmour()));
+#endif
     for (int n = 0; n < rnd(4) + 2; n++) {
         present(place(addMonster(0)));
     }
     player = present(place(newThing(T_Sprite, '@')));
-    present(place(addArmour()));
-    present(place(addArmour()));
 
     // player stats
     player->stats->level = 1;

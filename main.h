@@ -7,6 +7,17 @@
 #include <string.h>
 #include <time.h>
 
+enum THINGTYPES {
+	T_POTION,
+	T_SCROLL,
+	T_FOOD,
+	T_WEAPON,
+	T_ARMOUR,
+	T_RING,
+	T_STICK,
+	NTHINGS
+};
+
 enum STICKTYPES {
 	WS_LIGHT,
 	WS_HIT,
@@ -186,13 +197,17 @@ THING* addWeapon();
 THING* initWeapon(THING* t, int typeId);
 THING* addArmour();
 THING* initArmour(THING* t, int typeId);
+void initArmours();
 THING* addWand();
 THING* addStaff();
 THING* addScroll();
+void initScrolls();
 THING* addRing();
 THING* addPotion();
+void initPotions();
 THING* addGold();
 THING* addFood();
+int pickOne(int pt[], int n);
 void getDir();
 void freeObject(THING* o);
 void wieldEffect(int i);

@@ -22,6 +22,13 @@ THING* addWeapon() {
     THING* t = newThing(T_Item, ')');
     t->descr = weaponNames[i];
     t->damage = weaponDamage[i];
+    int k;
+    if ((k = rnd(100)) < 10) {
+        t->isCursed = true;
+        t->hplus -= rnd(3)+1;
+    } else if (k < 15) {
+        t->hplus += rnd(3)+1;
+    }
     t->typeId = i;
     return t;
 }

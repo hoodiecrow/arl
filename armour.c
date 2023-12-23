@@ -22,13 +22,25 @@ int acValue[] = {
     3
 };
 
+int aprobs[NARMOURS] = {
+    20, 15, 15, 13, 12, 10, 10, 5
+};
+int apt[NARMOURS];
+
 THING* addArmour() {
     // create an armour and return it
     // avoid getting the "none" armour
-    int i = rnd(NARMOURS-1) + 1;
+    int i = pickOne(apt, NARMOURS);
     THING* t = newThing(T_Item, '&');
     t->descr = armourNames[i];
     t->armour = acValue[i];
+    int k;
+    if ((k = rnd(100)) < 20) {
+        t->isCursed = true;
+        t->armour += rnd(3)+1;
+    } else if (k < 28) {
+        t->armour -= rnd(3)+1;
+    }
     t->typeId = i;
     return t;
 }
@@ -38,6 +50,15 @@ THING* initArmour(THING* t, int typeId) {
     t->armour = acValue[typeId];
     t->typeId = typeId;
     return t;
+}
+
+void initArmours() {
+    // set up armours probability table
+    apt[0] = aprobs[0];
+    for (int i = 1; i < NTHINGS; i++) {
+        apt[i] = aprobs[i] + apt[i-1];
+    }
+    //TODO check total = 100
 }
 
 void wearEffect(int i) {

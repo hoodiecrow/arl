@@ -19,6 +19,11 @@ const char* scrollNames[] = {
     "scroll of blank paper"
 };
 
+int sprobs[NSCROLLS] = {
+    8, 5, 10, 2, 5, 8, 21, 4, 4, 7, 10, 5, 8, 1, 1, 1
+};
+int spt[NSCROLLS];
+
 THING* addScroll() {
     // take a window, create a scroll and return it
     int i = rnd(NSCROLLS);
@@ -26,6 +31,15 @@ THING* addScroll() {
     t->descr = "a magical scroll";
     t->typeId = i;
     return t;
+}
+
+void initScrolls() {
+    // set up scrolls probability table
+    spt[0] = sprobs[0];
+    for (int i = 1; i < NTHINGS; i++) {
+        spt[i] = sprobs[i] + spt[i-1];
+    }
+    //TODO check total = 100
 }
 
 void readEffect(int i) {
