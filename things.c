@@ -57,7 +57,7 @@ THING* place(THING* thing) {
     getmaxyx(map, maxy, maxx);
     int ry = rnd(maxy);
     int rx = rnd(maxx);
-    while (mvwinch(map, ry, rx) != ' ') {
+    while (!isFree(mvwinch(map, ry, rx))) {
         ry = rnd(maxy);
         rx = rnd(maxx);
     }
@@ -97,8 +97,6 @@ THING* newThing(ThingType type, chtype glyph) {
         thing->stats->exp = 0;
         thing->stats->fullHp = thing->stats->currHp = 12;
     }
-    if (glyph == '@')
-        player = thing;
     thing->type = type;
     thing->room = map;
     thing->glyph = glyph;
@@ -140,16 +138,12 @@ THING* newThing(ThingType type, chtype glyph) {
             thing->descr = "leg of lamb";
             thing->isEdible = true;
             break;
-        case '@':
-            thing->descr = "the player";
-            thing->attack = 5;
-            thing->stats->currStrength = thing->stats->fullStrength = 12;
-            break;
     }
     thing->gold = 0;
     thing->inInventory = false;
     thing->damage = "1d4";
-    thing->wplus = 0;
+    thing->hplus = 0;
+    thing->dplus = 0;
     thing->armour = acValue[0];
     thing->next = things;
     things = thing;

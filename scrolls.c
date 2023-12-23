@@ -106,7 +106,7 @@ void readEffect(int i) {
                 msg("You feel a strange sense of loss.");
             } else {
                 mvprintw(1, 0, "your %s glows blue for a moment", t->descr);
-                wielded->wplus++;
+                player->hplus = wielded->hplus++;
                 t->isCursed = false;
             }
             break;

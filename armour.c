@@ -33,6 +33,13 @@ THING* addArmour() {
     return t;
 }
 
+THING* initArmour(THING* t, int typeId) {
+    t->descr = armourNames[typeId];
+    t->armour = acValue[typeId];
+    t->typeId = typeId;
+    return t;
+}
+
 void wearEffect(int i) {
     // take an inventory number, set worn to that armour, copy armour value to player
     THING* t = inventory[i];

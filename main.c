@@ -170,7 +170,6 @@ int main() {
     map = create_newwin(37, 72, 2, 0);
     keypad(map, TRUE);
 
-    //genMap(35, 90, 35, 5, 1, 10);
     genMap9(35, 70);
 
     //showMap(map);
@@ -203,9 +202,34 @@ void initGame() {
     for (int n = 0; n < rnd(4) + 2; n++) {
         present(place(addMonster(0)));
     }
-    present(place(newThing(T_Sprite, '@')));
+    player = present(place(newThing(T_Sprite, '@')));
     present(place(addArmour()));
     present(place(addArmour()));
+
+    // player stats
+    player->stats->level = 1;
+    player->stats->exp = 0;
+    player->stats->fullHp = player->stats->currHp = 12;
+    player->stats->currStrength = player->stats->fullStrength = 16;
+    player->armour = 10;
+
+    // equipment for the player
+    THING* w = addWeapon();
+    initWeapon(w, W_MACE);
+    w->hplus = 1;
+    w->dplus = 1;
+    int i = addToInventory(w);
+    if (i >= 0)
+        wieldEffect(i);
+
+    THING* a = addArmour();
+    initArmour(a, A_RINGM);
+    i = addToInventory(a);
+    if (i >= 0)
+        wearEffect(i);
+
+    THING* f = addFood();
+    addToInventory(f);
 }
 
 void runGame() {
@@ -362,11 +386,11 @@ int player_act(THING* sprite) {
     }
     // handle some extended key codes
     switch (ch) {
-        case 258: ch = '2'; break; //down
-        case 259: ch = '8'; break; //up
-        case 260: ch = '4'; break; //left
-        case 261: ch = '5'; break; //right
-        case 265: ch = 'h'; break; //F1
+        case KEY_DOWN:  ch = '2'; break; //down
+        case KEY_UP:    ch = '8'; break; //up
+        case KEY_LEFT:  ch = '4'; break; //left
+        case KEY_RIGHT: ch = '5'; break; //right
+        case KEY_F(1):  ch = 'h'; break; //F1
     }
     // call a handler for the selected action
     actionHandlers[ch](player);
@@ -464,9 +488,19 @@ chtype endPopup(WINDOW* win) {
 }
 
 void msg(const char *msg) {
-    mvprintw(1, 0, "%s", msg);
+    mvprintw(0, 0, "%s", msg);
     clrtoeol();
     refresh();
+}
+
+int addToInventory(THING* t) {
+    // take a thing and add it to the inventory, return the number or -1 on error
+    int i = inventoryFill;
+    if (i==INVENTORY_SIZE)
+        return -1;
+    inventory[inventoryFill++] = t;
+    t->inInventory = true;
+    return i;
 }
 
 void dumpInventory(int i) {
@@ -478,6 +512,16 @@ void dumpInventory(int i) {
     inventoryFill--;
 }
 
+bool isFree(chtype ch) {
+    // take a floor glyph, return whether a sprite can be placed there
+    if (ch == '#') {
+        return false;
+    } else {
+        //return ch == ' ';
+        return !isalpha((char)ch);
+    }
+}
+
 void combat(THING* sprite, int atY, int atX) {
     // take a sprite and a pair of coords, resolve one round of combat there
     THING* other = locateSprite(atY, atX);
@@ -485,9 +529,9 @@ void combat(THING* sprite, int atY, int atX) {
         // note that the player is in combat and not healing
         player->isInCombat = true;
     int combatRoll = rnd(20) + 1;
-    if (combatRoll+sprite->wplus >= (21-sprite->stats->level)-other->armour) {
+    if (combatRoll+sprite->hplus >= (21-sprite->stats->level)-other->armour) {
         msg("hit!");
-        int damage = dice2(sprite->damage);
+        int damage = dice2(sprite->damage)+sprite->dplus;
         other->stats->currHp -= damage;
         if (other == player) {
             player->isInjured = true;
@@ -519,6 +563,12 @@ THING* addGold() {
     // make some gold and return it
     THING* t = newThing(T_Item, '$');
     t->gold = 2 + rnd(14);
+    return t;
+}
+
+THING* addFood() {
+    // make some food and return it
+    THING* t = newThing(T_Item, '*');
     return t;
 }
 

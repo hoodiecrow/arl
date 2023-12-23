@@ -139,7 +139,7 @@ void zapEffect(int i) {
             y = player->ypos;
             x = player->xpos;
             chtype ch;
-            while ((ch = mvwinch(player->room, y, x)) && ch != '#' && !isupper(ch)) {
+            while (isFree(ch = mvwinch(player->room, y, x))) {
                 y += deltaY;
                 x += deltaX;
             }
@@ -177,7 +177,7 @@ void zapEffect(int i) {
             z->ypos = y;
             z->xpos = x;
             for (;;) {
-                if (z->under == '#' || isupper(z->under)) {
+                if (!isFree(z->under)) {
                     if (isupper(z->under)) {
                         //TODO other gets to save vs magic
                         THING* other = locateSprite(y, x);
@@ -202,7 +202,7 @@ void zapEffect(int i) {
             y = player->ypos + deltaY;
             x = player->xpos + deltaX;
             chtype what = mvwinch(player->room, y, x);
-            while (what != '#' && !isupper(what)) {
+            while (isFree(what)) {
                 y += deltaY;
                 x += deltaX;
                 what = mvwinch(player->room, y, x);

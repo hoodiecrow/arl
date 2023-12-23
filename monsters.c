@@ -118,7 +118,8 @@ THING* addMonster(chtype kind) {
             t->expAward = 5;
             break;
     }
-    t->wplus = 0;
+    t->hplus = 0;
+    t->dplus = 0;
     t->stats->currHp = t->stats->fullHp;
     if (strcmp(aggr, "sometimes") == 0) {
         t->isAggressive = rnd(2)==1?true:false;
