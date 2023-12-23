@@ -38,9 +38,8 @@ THING* addMonsterAt(chtype kind, int y, int x) {
 
 THING* addMonster(chtype kind) {
     // take a window, create a monster and return it
-    int y, x, i;
-    getOpenLocation(&y, &x);
-    THING* t = newThing(T_Sprite, 'X', y, x);
+    int i;
+    THING* t = present(place(newThing(T_Sprite, 'X')));
     const char *aggr;
     if (kind == 0) {
         if (dlevel == 1) 

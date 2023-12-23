@@ -22,9 +22,7 @@ const char* scrollNames[] = {
 THING* addScroll() {
     // take a window, create a scroll and return it
     int i = rnd(NSCROLLS);
-    int y, x;
-    getOpenLocation(&y, &x);
-    THING* t = newThing(T_Item, '~', y, x);
+    THING* t = present(place(newThing(T_Item, '~')));
     t->descr = "a magical scroll";
     t->typeId = i;
     return t;
@@ -98,12 +96,7 @@ void readEffect(int i) {
             // It teleports you to a random location in the current dungeon level.
             // Teleports to a random location on the map.
             mvwaddch(player->room, player->ypos, player->xpos, player->under);
-            int y, x;
-            getOpenLocation(&y, &x);
-            player->ypos = y;
-            player->xpos = x;
-            player->under = ' ';
-            present(player);
+            present(place(player));
             break;
         case S_ENCH_WPN:
             // It increases the bonus on your weapon by +0,+1. If your weapon was cursed, it will no longer be so and the penalty for weilding it will be one less.

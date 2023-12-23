@@ -26,9 +26,7 @@ THING* addArmour() {
     // create an armour and return it
     // avoid getting the "none" armour
     int i = rnd(NARMOURS-1) + 1;
-    int y, x;
-    getOpenLocation(&y, &x);
-    THING* t = newThing(T_Item, '&', y, x);
+    THING* t = present(place(newThing(T_Item, '&')));
     t->descr = armourNames[i];
     t->armour = acValue[i];
     t->typeId = i;

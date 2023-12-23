@@ -178,7 +178,7 @@ extern const char* monsterNames[];
 extern const char *armourNames[];
 extern int acValue[];
 
-THING* newThing(ThingType type, chtype glyph, int y, int x);
+THING* newThing(ThingType type, chtype glyph);
 
 THING* addMonsterAt(chtype kind, int y, int x);
 THING* addMonster(chtype kind);
@@ -198,7 +198,7 @@ void readEffect(int i);
 void equipEffect(int i);
 void wearEffect(int i);
 void drinkEffect(int i);
-void present(THING* thing);
+THING* present(THING* thing);
 int rnd(int i);
 int dice(int n, int s);
 int dice2(const char* code);
@@ -212,7 +212,7 @@ THING* locateObject(int ypos, int xpos);
 THING* locateSprite(int ypos, int xpos);
 void drinkEffect(int i);
 void dumpInventory(int i);
-void getOpenLocation(int *y, int *x);
+THING* place(THING* thing);
 void attemptMove(THING* sprite, int incrY, int incrX);
 void combat(THING* thing, int atY, int atX);
 WINDOW* newPopup(int lines);

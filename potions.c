@@ -36,9 +36,7 @@ THING* addPotion() {
         "white potion",
         "yellow potion",
     };
-    int y, x;
-    getOpenLocation(&y, &x);
-    THING* t = newThing(T_Item, '!', y, x);
+    THING* t = present(place(newThing(T_Item, '!')));
     t->descr = descrs[i];
     t->isPotable = true;
     t->typeId = i;

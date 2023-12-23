@@ -44,14 +44,30 @@ void freeObject(THING* o) {
     free(o);
 }
 
-void present(THING* sprite) {
+THING* present(THING* sprite) {
     // take a sprite, show its glyph
     mvwaddch(sprite->room, sprite->ypos, sprite->xpos, sprite->glyph);
     wrefresh(sprite->room);
+    return sprite;
 }
 
-THING* newThing(ThingType type, chtype glyph, int y, int x) {
-    // take a window, a thing type, a glyph, and a pair of coords, create a thing and return it
+THING* place(THING* thing) {
+    int maxy, maxx;
+    getmaxyx(map, maxy, maxx);
+    int ry = rnd(maxy);
+    int rx = rnd(maxx);
+    while (mvwinch(map, ry, rx) != ' ') {
+        ry = rnd(maxy);
+        rx = rnd(maxx);
+    }
+    thing->ypos = ry;
+    thing->xpos = rx;
+    thing->under = mvwinch(map, ry, rx);
+    return thing;
+}
+
+THING* newThing(ThingType type, chtype glyph) {
+    // take a thing type and a glyph, create a thing and return it
     THING* thing = malloc(sizeof(THING));
     if (thing == NULL) {
         mvaddstr(1, 0, "Out of memory, press any key to exit");
@@ -77,8 +93,8 @@ THING* newThing(ThingType type, chtype glyph, int y, int x) {
     thing->type = type;
     thing->room = map;
     thing->glyph = glyph;
-    thing->ypos = y;
-    thing->xpos = x;
+    thing->ypos = -1;
+    thing->xpos = -1;
     thing->isEdible = false;
     thing->isPotable = false;
     thing->isEquippable = false;
@@ -128,8 +144,7 @@ THING* newThing(ThingType type, chtype glyph, int y, int x) {
     thing->armour = acValue[0];
     thing->next = things;
     things = thing;
-    thing->under = mvwinch(map, thing->ypos, thing->xpos);
-    present(thing);
+    thing->under = 0;
     return thing;
 }
 

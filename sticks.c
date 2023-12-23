@@ -53,9 +53,7 @@ THING* addWand() {
         "titanium wand",
         "zinc wand",
     };
-    int y, x;
-    getOpenLocation(&y, &x);
-    THING* t = newThing(T_Item, '/', y, x);
+    THING* t = present(place(newThing(T_Item, '/')));
     t->descr = descrs[i];
     t->isEquippable = true;
     t->typeId = i;
@@ -83,9 +81,7 @@ THING* addStaff() {
         "teak staff",
         "walnut staff",
     };
-    int y, x;
-    getOpenLocation(&y, &x);
-    THING* t = newThing(T_Item, '/', y, x);
+    THING* t = present(place(newThing(T_Item, '/')));
     t->descr = descrs[i];
     t->isEquippable = true;
     t->ncharges = rnd(5) + 3;
@@ -163,12 +159,7 @@ void zapEffect(int i) {
                     other->isInvisible = false;
                 } else if (t->typeId == WS_TELAWAY) {
                     mvwaddch(other->room, other->ypos, other->xpos, other->under);
-                    int y, x;
-                    getOpenLocation(&y, &x);
-                    other->ypos = y;
-                    other->xpos = x;
-                    other->under = ' ';
-                    present(other);
+                    present(place(other));
                 } else if (t->typeId == WS_TELTO) {
                     mvwaddch(other->room, other->ypos, other->xpos, other->under);
                     other->ypos = player->ypos + deltaY;
@@ -182,7 +173,9 @@ void zapEffect(int i) {
             // Inflicts 1d4 damage on a single target.
             y = player->ypos + deltaY;
             x = player->xpos + deltaX;
-            THING* z = newThing(T_Item, '*', y, x);
+            THING* z = newThing(T_Item, '*');
+            z->ypos = y;
+            z->xpos = x;
             for (;;) {
                 if (z->under == '#' || isupper(z->under)) {
                     if (isupper(z->under)) {
@@ -197,6 +190,8 @@ void zapEffect(int i) {
                 mvwaddch(z->room, y, x, z->under);
                 y += deltaY;
                 x += deltaX;
+                z->ypos = y;
+                z->xpos = x;
             }
             // TODO w/s is identified as magic missile
             break;

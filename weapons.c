@@ -19,9 +19,7 @@ const char* weaponDamage[] = {
 THING* addWeapon() {
     // take a window, create a weapon and return it
     int i = rnd(NWEAPONS);
-    int y, x;
-    getOpenLocation(&y, &x);
-    THING* t = newThing(T_Item, ')', y, x);
+    THING* t = present(place(newThing(T_Item, ')')));
     t->descr = weaponNames[i];
     t->damage = weaponDamage[i];
     t->typeId = i;

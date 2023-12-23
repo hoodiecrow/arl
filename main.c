@@ -198,17 +198,15 @@ void initGame() {
     addScroll();
     addWand();
     addStaff();
-    getOpenLocation(&y, &x);
-    newThing(T_Item, '*', y, x);
+    present(place(newThing(T_Item, '*')));
     addPotion();
-    getOpenLocation(&y, &x);
-    newThing(T_Structure, '>', y, x);
+    present(place(newThing(T_Structure, '>')));
     for (int n = 0; n < rnd(4) + 2; n++) {
         addMonster(0);
     }
     x = 10;
     y =  5;
-    newThing(T_Sprite, '@', y, x);
+    present(place(newThing(T_Sprite, '@')));
     addArmour();
     addArmour();
 }
@@ -247,11 +245,7 @@ void runGame() {
             player->teleportationCycle--;
             if (player->teleportationCycle == 0) {
                 mvwaddch(player->room, player->ypos, player->xpos, player->under);
-                int y, x;
-                getOpenLocation(&y, &x);
-                player->ypos = y;
-                player->xpos = x;
-                player->under = ' ';
+                place(player);
                 present(player);
             }
         }
@@ -524,25 +518,9 @@ void combat(THING* sprite, int atY, int atX) {
     }
 }
 
-void getOpenLocation(int *y, int *x) {
-    // take a pair of coords addresses, fill the coords with an open location
-    int maxy, maxx;
-    getmaxyx(map, maxy, maxx);
-    int ry = rnd(maxy);
-    int rx = rnd(maxx);
-    while (mvwinch(map, ry, rx) != ' ') {
-        ry = rnd(maxy);
-        rx = rnd(maxx);
-    }
-    *y = ry;
-    *x = rx;
-}
-
 THING* addGold() {
     // place some gold and return it
-    int y, x;
-    getOpenLocation(&y, &x);
-    THING* t = newThing(T_Item, '$', y, x);
+    THING* t = present(place(newThing(T_Item, '$')));
     t->gold = 2 + rnd(14);
     return t;
 }
