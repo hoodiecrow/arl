@@ -189,7 +189,7 @@ int main() {
 
 int mpt[NTHINGS];
 
-void initThings() {
+void initItems() {
     // set up master probability table
     int probabilities[] = { 27, 27, 18, 9, 9, 5, 5 };
     mpt[0] = probabilities[0];
@@ -231,10 +231,12 @@ THING* addThing() {
 }
 
 void initGame() {
-    initThings();
+    initItems();
     initPotions();
     initScrolls();
     initArmours();
+    initRings();
+    initSticks();
 
     for (int n = 0; n < rnd(5) + 1; n++) {
         present(place(addGold(map)));
@@ -592,10 +594,11 @@ void combat(THING* sprite, int atY, int atX) {
         if (other->stats->currHp <= 0) {
             // other is killed
             if ('A' <= other->glyph && other->glyph <= 'Z') {
-                mvprintw(1, 0, "The %s is killed!", monsterNames[other->glyph-'A']);
+                mvprintw(0, 0, "The %s is killed!", monsterNames[other->glyph-'A']);
             } else {
-                mvprintw(1, 0, "The other is killed!");
+                mvprintw(0, 0, "The other is killed!");
             }
+            clrtoeol();
             other->isDead = true;
             other->glyph = '%';
             present(other);

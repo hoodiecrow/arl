@@ -78,11 +78,19 @@ enum SCROLLTYPES {
 };
 
 enum RINGTYPES {
-	R_ADORN,
-	R_DEXT,
-	R_MNT_ARM,
-	R_SEE_INVIS,
-	R_TELEPORT,
+	R_PROTECT, 
+        R_ADDSTR,
+        R_SUSTSTR, 
+        R_SEARCH,
+        R_SEEINVIS,
+        R_NOP,
+        R_AGGR,
+        R_ADDHIT,
+        R_ADDDAM,
+        R_REGEN,
+        R_DIGEST,
+        R_TELEPORT,
+        R_STEALTH,
 	NRINGS
 };
 
@@ -161,7 +169,7 @@ typedef struct THING {
     int healingCycle;
     int armour;
     struct THING* next;
-    int attack;
+    int intensity;
     int expAward;
     const char* damage;
     int hplus;
@@ -200,9 +208,11 @@ THING* initArmour(THING* t, int typeId);
 void initArmours();
 THING* addWand();
 THING* addStaff();
+void initSticks();
 THING* addScroll();
 void initScrolls();
 THING* addRing();
+void initRings();
 THING* addPotion();
 void initPotions();
 THING* addGold();

@@ -55,7 +55,7 @@ THING* initArmour(THING* t, int typeId) {
 void initArmours() {
     // set up armours probability table
     apt[0] = aprobs[0];
-    for (int i = 1; i < NTHINGS; i++) {
+    for (int i = 1; i < NARMOURS; i++) {
         apt[i] = aprobs[i] + apt[i-1];
     }
     //TODO check total = 100

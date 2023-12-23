@@ -123,7 +123,7 @@ THING* newThing(ThingType type, chtype glyph) {
     thing->isCursed = false;
     thing->isInjured = false;
     thing->healingCycle = 0;
-    thing->attack = 0;
+    thing->intensity = 0;
     thing->descr = NULL;
     thing->ident = NULL;
     thing->typeId = -1;

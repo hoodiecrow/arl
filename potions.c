@@ -51,7 +51,7 @@ THING* addPotion() {
 void initPotions() {
     // set up potions probability table
     ppt[0] = pprobs[0];
-    for (int i = 1; i < NTHINGS; i++) {
+    for (int i = 1; i < NPOTIONS; i++) {
         ppt[i] = pprobs[i] + ppt[i-1];
     }
     //TODO check total = 100

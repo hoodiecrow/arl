@@ -36,7 +36,7 @@ THING* addScroll() {
 void initScrolls() {
     // set up scrolls probability table
     spt[0] = sprobs[0];
-    for (int i = 1; i < NTHINGS; i++) {
+    for (int i = 1; i < NSCROLLS; i++) {
         spt[i] = sprobs[i] + spt[i-1];
     }
     //TODO check total = 100

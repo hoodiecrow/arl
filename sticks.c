@@ -60,9 +60,14 @@ THING* addWand() {
     return t;
 }
 
+int wsprobs[NSTICKS] = {
+    12, 9, 3, 3, 3, 15, 10, 9, 11, 9, 1, 5, 5, 5
+};
+int wspt[NSTICKS];
+
 THING* addStaff() {
     // create a staff and return it
-    int i = rnd(NSTICKS);
+    int i = pickOne(wspt, NSTICKS);
     const char *descrs[] = {
         "banyan staff",
         "birch staff",
@@ -87,6 +92,15 @@ THING* addStaff() {
     t->ncharges = rnd(5) + 3;
     t->typeId = i;
     return t;
+}
+
+void initSticks() {
+    // set up sticks probability table
+    wspt[0] = wsprobs[0];
+    for (int i = 1; i < NSTICKS; i++) {
+        wspt[i] = wsprobs[i] + wspt[i-1];
+    }
+    //TODO check total = 100
 }
 
 void zapEffect(int i) {
