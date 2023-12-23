@@ -17,32 +17,46 @@ const char *potionNames[] = {
     "potion of levitation",
 };
 
+const char* p_colours[NPOTIONS];
+
 int pprobs[NPOTIONS] = {
     8, 10, 8, 15, 2, 15, 6, 6, 2, 5, 4, 14, 4, 1
 };
 int ppt[NPOTIONS];
 
+char *rainbow[] = {
+    "red",
+    "blue",
+    "green",
+    "yellow",
+    "black",
+    "brown",
+    "orange",
+    "pink",
+    "purple",
+    "grey",
+    "white",
+    "silver",
+    "gold",
+    "violet",
+    "clear",
+    "vermilion",
+    "ecru",
+    "turquoise",
+    "magenta",
+    "amber",
+    "topaz",
+    "plaid",
+    "tan",
+    "tangerine"
+};
+#define NCOLOURS (24)
+
 THING* addPotion() {
     // create a potion and return it
     int i = pickOne(ppt, NPOTIONS);
-    const char *descrs[] = {
-        "beige potion",
-        "black potion",
-        "blue potion",
-        "brown potion",
-        "burgundy potion",
-        "clear potion",
-        "green potion",
-        "grey potion",
-        "pink potion",
-        "plaid potion",
-        "purple potion",
-        "red potion",
-        "white potion",
-        "yellow potion",
-    };
     THING* t = newThing(T_Item, '!');
-    t->descr = descrs[i];
+    snprintf(t->descr, sizeof t->descr, "%s %s", p_colours[i], "potion");
     t->isPotable = true;
     t->typeId = i;
     return t;
@@ -55,6 +69,20 @@ void initPotions() {
         ppt[i] = pprobs[i] + ppt[i-1];
     }
     //TODO check total = 100
+    // match potion types with colours
+    int j;
+    bool used[NCOLOURS];
+    for (int i = 0; i < NCOLOURS; i++)
+        used[i] = false;
+    for (int i = 0; i < NPOTIONS; i++) {
+        do
+            j = rnd(NCOLOURS);
+        while (used[j]);
+        used[j] = true;
+        p_colours[i] = rainbow[j];
+        //p_know[i] = false;
+        //p_guess[i] = NULL;
+    }
 }
 
 // TODO needs an overhaul for the wiki info

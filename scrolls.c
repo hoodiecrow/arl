@@ -26,9 +26,9 @@ int spt[NSCROLLS];
 
 THING* addScroll() {
     // take a window, create a scroll and return it
-    int i = rnd(NSCROLLS);
+    int i = pickOne(spt, NSCROLLS);
     THING* t = newThing(T_Item, '~');
-    t->descr = "a magical scroll";
+    snprintf(t->descr, sizeof t->descr, "%s", "a magical scroll");
     t->typeId = i;
     return t;
 }

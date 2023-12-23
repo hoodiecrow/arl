@@ -133,7 +133,7 @@ typedef struct THING {
     WINDOW* room;
     int ypos;
     int xpos;
-    const char* descr;
+    char descr[60];
     const char* ident;
     int typeId;
     int gold;
@@ -167,6 +167,7 @@ typedef struct THING {
     bool wearingTeleportRing;
     int teleportationCycle;
     int healingCycle;
+    bool regenerates;
     int armour;
     struct THING* next;
     int intensity;
@@ -206,8 +207,7 @@ THING* initWeapon(THING* t, int typeId);
 THING* addArmour();
 THING* initArmour(THING* t, int typeId);
 void initArmours();
-THING* addWand();
-THING* addStaff();
+THING* addStick();
 void initSticks();
 THING* addScroll();
 void initScrolls();

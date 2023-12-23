@@ -123,19 +123,20 @@ THING* newThing(ThingType type, chtype glyph) {
     thing->isCursed = false;
     thing->isInjured = false;
     thing->healingCycle = 0;
+    thing->regenerates = false;
     thing->intensity = 0;
-    thing->descr = NULL;
+    thing->descr[0] = 0;;
     thing->ident = NULL;
     thing->typeId = -1;
     switch (glyph) {
         case '<':
-            thing->descr = "stair";
+            snprintf(thing->descr, sizeof thing->descr, "%s", "stair");
             break;
         case '>':
-            thing->descr = "stair";
+            snprintf(thing->descr, sizeof thing->descr, "%s", "stair");
             break;
         case '*':
-            thing->descr = "leg of lamb";
+            snprintf(thing->descr, sizeof thing->descr, "%s", "leg of lamb");
             thing->isEdible = true;
             break;
     }

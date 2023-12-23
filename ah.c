@@ -38,7 +38,7 @@ void ah__(THING* sprite) {
 
 void ahCS(THING* sprite) {
     (void)sprite;
-    mvaddstr(1, 0, "save game");
+    msg("save game");
     clrtoeol();
 }
 
@@ -102,7 +102,7 @@ void ah_9(THING* sprite) {
 
 void ah_c(THING* sprite) {
     (void)sprite;
-    mvaddstr(1, 0, "close what?");
+    msg("close what?");
     clrtoeol();
 }
 
@@ -124,7 +124,7 @@ void ah_e(THING* sprite) {
         //TODO eatEffect();
         dumpInventory(i);
     } else {
-        mvaddstr(1, 0, "you can't eat that"); clrtoeol(); refresh();
+        msg("you can't eat that"); clrtoeol(); refresh();
     }
 }
 
@@ -144,7 +144,7 @@ void ah_E(THING* sprite) {
     int i = ch-'a';
     if (allowedIndices[i]) {
         if (inventory[i]->glyph == ':') {
-            mvaddstr(1, 0, "wear on right hand (R) or left hand (L)?");
+            msg("wear on right hand (R) or left hand (L)?");
             clrtoeol();
             refresh();
             switch (getch()) {
@@ -167,19 +167,19 @@ void ah_E(THING* sprite) {
             }
         }
     } else {
-        mvaddstr(1, 0, "you can't equip that"); clrtoeol(); refresh();
+        msg("you can't equip that"); clrtoeol(); refresh();
     }
 }
 
 void ah_g(THING* sprite) {
     (void)sprite;
-    mvaddstr(1, 0, "get what?");
+    msg("get what?");
     clrtoeol();
 }
 
 void ah_h(THING* sprite) {
     (void)sprite;
-    mvaddstr(1, 0, "help screen");
+    msg("help screen");
     clrtoeol();
 }
 
@@ -231,7 +231,7 @@ void ah_q(THING* sprite) {
         drinkEffect(i);
         dumpInventory(i);
     } else {
-        mvaddstr(1, 0, "you can't drink that"); clrtoeol(); refresh();
+        msg("you can't drink that"); clrtoeol(); refresh();
     }
 }
 
@@ -253,25 +253,25 @@ void ah_r(THING* sprite) {
         readEffect(i);
         dumpInventory(i);
     } else {
-        mvaddstr(1, 0, "you can't read that"); clrtoeol(); refresh();
+        msg("you can't read that"); clrtoeol(); refresh();
     }
 }
 
 void ah_s(THING* sprite) {
     (void)sprite;
-    mvaddstr(1, 0, "you went down a stair");
+    msg("you went down a stair");
     clrtoeol();
 }
 
 void ah_S(THING* sprite) {
     (void)sprite;
-    mvaddstr(1, 0, "you went up a stair");
+    msg("you went up a stair");
     clrtoeol();
 }
 
 void ah_u(THING* sprite) {
     (void)sprite;
-    mvaddstr(1, 0, "use what?");
+    msg("use what?");
     clrtoeol();
 }
 
@@ -298,7 +298,7 @@ void ah_w(THING* sprite) {
         wieldEffect(i);
         dumpInventory(i);
     } else {
-        mvaddstr(1, 0, "you can't wield that"); clrtoeol(); refresh();
+        msg("you can't wield that"); clrtoeol(); refresh();
     }
 }
 
@@ -326,7 +326,7 @@ void ah_W(THING* sprite) {
         wearEffect(i);
         dumpInventory(i);
     } else {
-        mvaddstr(1, 0, "you can't wear that"); clrtoeol(); refresh();
+        msg("you can't wear that"); clrtoeol(); refresh();
     }
 }
 
@@ -348,25 +348,25 @@ void ah_z(THING* sprite) {
         // TODO find a target as well
         zapEffect(i);
     } else {
-        mvaddstr(1, 0, "you can't wear that"); clrtoeol(); refresh();
+        msg("you can't wear that"); clrtoeol(); refresh();
     }
 }
 
 void ah_p(THING* sprite) {
     (void)sprite;
     if (sprite->under == ' ') {
-        mvaddstr(1, 0, "there's nothing to pick up");
+        msg("there's nothing to pick up");
     } else if (inventoryFill == INVENTORY_SIZE) {
-        mvaddstr(1, 0, "you can't carry more items");
+        msg("you can't carry more items");
     } else {
         THING* t = locateObject(sprite->ypos, sprite->xpos);
         if (t == NULL) {
-            mvaddstr(1, 0, "there's nothing to pick up");
+            msg("there's nothing to pick up");
         } else if (t->type == T_Structure) {
-            mvaddstr(1, 0, "you can't pick that up");
+            msg("you can't pick that up");
         } else {
             inventory[inventoryFill++] = t;
-mvprintw(1, 0, "you picked up: %s", t->descr);
+            mvprintw(0, 0, "you picked up: %s", t->descr);
             //TODO multiple items in same space
             sprite->under = ' ';
             t->inInventory = true;

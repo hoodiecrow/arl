@@ -34,62 +34,65 @@ const char* staffNames[] = {
     "staff of cancellation",
 };
 
-THING* addWand() {
-    // create a wand and return it
-    int i = rnd(NSTICKS);
-    const char *descrs[] = {
-        "aluminium wand",
-        "brass wand",
-        "bronze wand",
-        "copper wand",
-        "gold wand",
-        "iron wand",
-        "lead wand",
-        "nickel wand",
-        "pewter wand",
-        "silver wand",
-        "steel wand",
-        "tin wand",
-        "titanium wand",
-        "zinc wand",
-    };
-    THING* t = newThing(T_Item, '/');
-    t->descr = descrs[i];
-    t->isEquippable = true;
-    t->typeId = i;
-    return t;
-}
+#define NMETAL (14)
+const char* metal[NMETAL] = {
+    "aluminium",
+    "brass",
+    "bronze",
+    "copper",
+    "gold",
+    "iron",
+    "lead",
+    "nickel",
+    "pewter",
+    "silver",
+    "steel",
+    "tin",
+    "titanium",
+    "zinc"
+};
+
+#define NWOOD (16)
+const char* wood[NWOOD] = {
+    "banyan",
+    "birch",
+    "cedar",
+    "cherry",
+    "driftwood",
+    "ebony",
+    "elm",
+    "eucalyptus",
+    "ironwood",
+    "mahogany",
+    "maple",
+    "oak",
+    "plain",
+    "redwood",
+    "teak",
+    "walnut",
+};
+
+const char* ws_made[NSTICKS];
+const char* ws_type[NSTICKS];
 
 int wsprobs[NSTICKS] = {
     12, 9, 3, 3, 3, 15, 10, 9, 11, 9, 1, 5, 5, 5
 };
 int wspt[NSTICKS];
 
-THING* addStaff() {
-    // create a staff and return it
+THING* addStick() {
+    // create a wand and return it
     int i = pickOne(wspt, NSTICKS);
-    const char *descrs[] = {
-        "banyan staff",
-        "birch staff",
-        "cedar staff",
-        "cherry staff",
-        "driftwood staff",
-        "ebony staff",
-        "elm staff",
-        "eucalyptus staff",
-        "ironwood staff",
-        "mahogany staff",
-        "maple staff",
-        "oak staff",
-        "plain staff",
-        "redwood staff",
-        "teak staff",
-        "walnut staff",
-    };
-    THING* t = newThing(T_Item, '\\');
-    t->descr = descrs[i];
+    THING* t;
+    if (strcmp("wand", ws_type[i]) == 0) {
+        t = newThing(T_Item, '/');
+        snprintf(t->descr, sizeof t->descr, "%s %s", ws_made[i], "wand");
+    } else {
+        t = newThing(T_Item, '\\');
+        snprintf(t->descr, sizeof t->descr, "%s %s", ws_made[i], "staff");
+        t->ncharges = rnd(5) + 3;
+    }
     t->isEquippable = true;
-    t->ncharges = rnd(5) + 3;
     t->typeId = i;
     return t;
 }
@@ -101,13 +104,42 @@ void initSticks() {
         wspt[i] = wsprobs[i] + wspt[i-1];
     }
     //TODO check total = 100
+    int i, j;
+    bool woodused[NWOOD];
+    bool metused[NMETAL];
+    for (i = 0; i < NWOOD; i++)
+        woodused[i] = false;
+    for (i = 0; i < NMETAL; i++)
+        metused[i] = false;
+    for (i = 0; i < NSTICKS; i++) {
+        for (;;)
+            if (rnd(2)) {
+                j = rnd(NMETAL);
+                if (!metused[j]) {
+                    metused[j] = true;
+                    ws_made[i] = metal[j];
+                    ws_type[i] = "wand";
+                    break;
+                }
+            } else {
+                j = rnd(NWOOD);
+                if (!woodused[j]) {
+                    woodused[j] = true;
+                    ws_made[i] = wood[j];
+                    ws_type[i] = "staff";
+                    break;
+                }
+            }
+        //ws_know[i] = FALSE;
+        //ws_guess[i] = NULL;
+    }
 }
 
 void zapEffect(int i) {
     int x, y;
     // take an inventory number, check typeId for that stick and handle effect
     THING* t = inventory[i];
-    if (t->glyph != '/') {
+    if (t->glyph != '/' && t->glyph != '\\') {
         msg("You can't zap with that");
         return;
     }

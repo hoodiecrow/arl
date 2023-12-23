@@ -20,7 +20,7 @@ THING* addWeapon() {
     // take a window, create a weapon and return it
     int i = rnd(NWEAPONS);
     THING* t = newThing(T_Item, ')');
-    t->descr = weaponNames[i];
+    snprintf(t->descr, sizeof t->descr, "%s", weaponNames[i]);
     t->damage = weaponDamage[i];
     int k;
     if ((k = rnd(100)) < 10) {
@@ -34,7 +34,7 @@ THING* addWeapon() {
 }
 
 THING* initWeapon(THING* t, int typeId) {
-    t->descr = weaponNames[typeId];
+    snprintf(t->descr, sizeof t->descr, "%s", weaponNames[typeId]);
     t->damage = weaponDamage[typeId];
     t->typeId = typeId;
     return t;

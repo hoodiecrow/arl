@@ -200,6 +200,7 @@ void initItems() {
 }
 
 int pickOne(int pt[], int n) {
+    // make a selection based on probability slices
     int* start = pt;
     int* end = &pt[n];
     for (int i = rnd(100) + 1; pt < end; pt++) {
@@ -209,7 +210,8 @@ int pickOne(int pt[], int n) {
     return pt - start;
 }
 
-THING* addThing() {
+THING* addItem() {
+    // choose a kind of item to add
     switch (pickOne(mpt, NTHINGS)) {
         case T_POTION:
             return addPotion();
@@ -224,25 +226,28 @@ THING* addThing() {
         case T_RING:
             return addRing();
         case T_STICK:
-            return addWand(); // TODO staves
+            return addStick();
         default:
             return NULL;
     }
 }
 
 void initGame() {
+    // setup the game
     initItems();
     initPotions();
     initScrolls();
     initArmours();
     initRings();
     initSticks();
+    initPotions();
+    initScrolls();
 
     for (int n = 0; n < rnd(5) + 1; n++) {
         present(place(addGold(map)));
     }
     for (int n = 0; n < 9; n++) {
-        present(place(addThing()));
+        present(place(addItem()));
     }
 #if 0
     present(place(addRing()));

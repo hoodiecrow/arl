@@ -32,7 +32,7 @@ THING* addArmour() {
     // avoid getting the "none" armour
     int i = pickOne(apt, NARMOURS);
     THING* t = newThing(T_Item, '&');
-    t->descr = armourNames[i];
+    snprintf(t->descr, sizeof t->descr, "%s", armourNames[i]);
     t->armour = acValue[i];
     int k;
     if ((k = rnd(100)) < 20) {
@@ -46,7 +46,7 @@ THING* addArmour() {
 }
 
 THING* initArmour(THING* t, int typeId) {
-    t->descr = armourNames[typeId];
+    snprintf(t->descr, sizeof t->descr, "%s", armourNames[typeId]);
     t->armour = acValue[typeId];
     t->typeId = typeId;
     return t;

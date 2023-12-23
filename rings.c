@@ -21,23 +21,43 @@ int rprobs[NRINGS] = {
 };
 int rpt[NRINGS];
 
+const char* r_stones[NRINGS];
+
 THING* addRing() {
     // create a ring and return it
-    int i = rnd(NRINGS);
-    const char *descrs[] = {
-        "diamond ring",
-        "emerald ring",
-        "ruby ring",
-        "opal ring",
-        "sapphire ring",
-    };
+    int i = pickOne(rpt, NRINGS);
     THING* t = newThing(T_Item, ':');
-    t->descr = descrs[i];
+    snprintf(t->descr, sizeof t->descr, "%s %s", r_stones[i], "ring");
     t->isEquippable = true;
-    //TODO if dropped after being identified, should be true
     t->typeId = i;
     return t;
 }
+
+char *stones[] = {
+    "agate",
+    "alexandrite",
+    "amethyst",
+    "carnelian",
+    "diamond",
+    "emerald",
+    "granite",
+    "jade",
+    "kryptonite",
+    "lapus lazuli",
+    "moonstone",
+    "obsidian",
+    "onyx",
+    "opal",
+    "pearl",
+    "ruby",
+    "saphire",
+    "tiger eye",
+    "topaz",
+    "turquoise",
+};
+#define NSTONES (20)
+
+bool used[NSTONES];
 
 void initRings() {
     // set up rings probability table
@@ -46,6 +66,19 @@ void initRings() {
         rpt[i] = rprobs[i] + rpt[i-1];
     }
     //TODO check total = 100
+    register int i, j;
+    // match up ring types with stones
+    for (i = 0; i < NSTONES; i++)
+        used[i] = false;
+    for (i = 0; i < NRINGS; i++) {
+        do
+            j = rnd(NSTONES);
+        while (used[j]);
+        used[j] = true;
+        r_stones[i] = stones[j];
+        //r_know[i] = FALSE;
+        //r_guess[i] = NULL;
+    }
 }
 
 void equipEffect(int i) {
