@@ -269,7 +269,7 @@ void initGame() {
     // player stats
     player->stats->level = 1;
     player->stats->exp = 0;
-    player->stats->fullHp = player->stats->currHp = 12;
+    player->stats->currHp = player->stats->fullHp = 12;
     player->stats->currStrength = player->stats->fullStrength = 16;
     player->armour = 10;
 
@@ -387,18 +387,34 @@ static void stepSprite(THING* sprite, int toY, int toX) {
     // take a sprite and a pair of coords, and move there
     mvwaddch(sprite->room, sprite->ypos, sprite->xpos, sprite->under);
     chtype floor = mvwinch(sprite->room, toY, toX);
-    if (floor == '$' && sprite == player) {
-        THING* o = locateObject(toY, toX);
-        if (o != NULL) {
-            player->gold += o->gold;
-            freeObject(o);
-        }
-        sprite->under = ' ';
-    } else {
-        sprite->under = floor;
-    }
     sprite->ypos = toY;
     sprite->xpos = toX;
+    THING* o;
+    player->under = floor;
+    if (sprite == player) {
+        switch (floor) {
+            case '*': // gold
+                o = locateObject(toY, toX);
+                if (o != NULL) {
+                    player->gold += o->gold;
+                    freeObject(o);
+                }
+                player->under = ' ';
+                break;
+            case ')': // weapon
+            case ']': // armour
+            case '!': // potion
+            case '?': // scroll
+            case '=': // ring
+            case '/': // wand
+            case '\\':// staff
+            case ':': // food
+                pickUpObject(player);
+                break;
+            default:
+                ;
+        }
+    }
     present(sprite);
 }
 
@@ -481,7 +497,7 @@ static chtype seekPlayer(THING* sprite) {
         diffx = sprite->xpos - player->xpos;
         dirx = -1;
     }
-    if (diffy < 3 && diffx < 3) {
+    if (diffy < 3 && diffx < 6) {
         if (diry == 1 && dirx == -1)
             ch = '1';
         else if (diry == 1 && dirx == 0)
@@ -581,6 +597,62 @@ bool isFree(chtype ch) {
     }
 }
 
+void pickUpObject(THING* sprite) {
+    // take a sprite, pick up an object on the sprite's tile
+    // used to be an action, now it's automatic
+    if (sprite->under == ' ') {
+        msg("there's nothing to pick up");
+    } else if (inventoryFill == INVENTORY_SIZE) {
+        msg("you can't carry more items");
+    } else {
+        THING* t = locateObject(sprite->ypos, sprite->xpos);
+        if (t == NULL) {
+            msg("there's nothing to pick up");
+        } else if (t->type == T_Structure) {
+            msg("you can't pick that up");
+        } else {
+            inventory[inventoryFill++] = t;
+            mvprintw(0, 0, "you picked up: %s", t->descr);
+            //TODO multiple items in same space
+            sprite->under = ' ';
+            t->inInventory = true;
+            t->ypos = -1;
+            t->xpos = -1;
+        }
+    }
+    clrtoeol();
+}
+
+int addToHit(int str) {
+    if (str >= 18)
+        return 2;
+    else if (str >= 17)
+        return 1;
+    else if (str > 6)
+        return 0;
+    else
+        return str - 7;
+}
+
+int addToDam(int str) {
+    if (str > 15)
+        return 2;
+    else if (str > 15)
+        return 1;
+    else if (str > 6)
+        return 0;
+    else
+        return str - 7;
+}
+
+void raiseLevel() {
+    player->stats->level++;
+    int hpIncr = dice(1, 10);
+    player->stats->fullHp += hpIncr;
+    player->stats->currHp += hpIncr;
+    mvprintw(0, 0, "You're now level %d", player->stats->level); clrtoeol();
+}
+
 void combat(THING* sprite, int atY, int atX) {
     // take a sprite and a pair of coords, resolve one round of combat there
     THING* other = locateSprite(atY, atX);
@@ -588,9 +660,11 @@ void combat(THING* sprite, int atY, int atX) {
         // note that the player is in combat and not healing
         player->isInCombat = true;
     int combatRoll = rnd(20) + 1;
-    if (combatRoll+sprite->hplus >= (21-sprite->stats->level)-other->armour) {
+    combatRoll += addToHit(sprite->stats->currStrength);
+    if (combatRoll + sprite->hplus >= (21-sprite->stats->level) - other->armour) {
         msg("hit!");
-        int damage = dice2(sprite->damage)+sprite->dplus;
+        int damage = dice2(sprite->damage) + sprite->dplus;
+        damage += addToDam(sprite->stats->currStrength);
         other->stats->currHp -= damage;
         if (other == player) {
             player->isInjured = true;
@@ -608,8 +682,7 @@ void combat(THING* sprite, int atY, int atX) {
             present(other);
             sprite->stats->exp += other->expAward;
             if (sprite == player && player->stats->exp >= expForLevel(player->stats->level + 1)) {
-                player->stats->level++;
-                player->stats->fullHp += hpIncrForLevel(player->stats->level);
+                raiseLevel();
             }
         }
         //TODO could attempt to escape instead
@@ -621,14 +694,14 @@ void combat(THING* sprite, int atY, int atX) {
 
 THING* addGold() {
     // make some gold and return it
-    THING* t = newThing(T_Item, '$');
+    THING* t = newThing(T_Item, '*');
     t->gold = 2 + rnd(14);
     return t;
 }
 
 THING* addFood() {
     // make some food and return it
-    THING* t = newThing(T_Item, '*');
+    THING* t = newThing(T_Item, ':');
     return t;
 }
 

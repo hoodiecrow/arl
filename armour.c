@@ -31,7 +31,7 @@ THING* addArmour() {
     // create an armour and return it
     // avoid getting the "none" armour
     int i = pickOne(apt, NARMOURS);
-    THING* t = newThing(T_Item, '&');
+    THING* t = newThing(T_Item, ']');
     snprintf(t->descr, sizeof t->descr, "%s", armourNames[i]);
     t->armour = acValue[i];
     int k;

@@ -100,6 +100,7 @@ THING* newThing(ThingType type, chtype glyph) {
         thing->stats->level = 1;
         thing->stats->exp = 0;
         thing->stats->fullHp = thing->stats->currHp = 12;
+        thing->stats->fullStrength = thing->stats->currStrength = 12;
     }
     thing->type = type;
     thing->room = map;
@@ -129,7 +130,7 @@ THING* newThing(ThingType type, chtype glyph) {
     thing->healingCycle = 0;
     thing->regenerates = false;
     thing->intensity = 0;
-    thing->descr[0] = 0;;
+    thing->descr[0] = 0;
     thing->ident = NULL;
     thing->typeId = -1;
     switch (glyph) {
@@ -139,7 +140,7 @@ THING* newThing(ThingType type, chtype glyph) {
         case '>':
             snprintf(thing->descr, sizeof thing->descr, "%s", "stair");
             break;
-        case '*':
+        case ':':
             snprintf(thing->descr, sizeof thing->descr, "%s", "leg of lamb");
             thing->isEdible = true;
             break;

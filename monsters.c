@@ -239,7 +239,7 @@ THING* addMonster(chtype kind) {
             t->glyph = 'C';
             aggr = "no";
             t->stats->fullHp = dice(4, 8);
-            t->damage = "1d6";
+            t->damage = "1d6/1d6";
             t->armour = 4;
             t->expAward = 15;
             break;
@@ -248,7 +248,7 @@ THING* addMonster(chtype kind) {
             t->glyph = 'R';
             aggr = "yes";
             t->stats->fullHp = dice(5, 8);
-            t->damage = "1d6";
+            t->damage = "0d0/0d0";
             t->armour = 2;
             t->expAward = 25;
             break;
@@ -257,7 +257,7 @@ THING* addMonster(chtype kind) {
             t->glyph = 'Q';
             aggr = "yes";
             t->stats->fullHp = dice(3, 8);
-            t->damage = "1d2";
+            t->damage = "1d2/1d2/1d4";
             t->armour = 2;
             t->expAward = 35;
             break;
@@ -275,7 +275,7 @@ THING* addMonster(chtype kind) {
             t->glyph = 'Y';
             aggr = "no";
             t->stats->fullHp = dice(4, 8);
-            t->damage = "1d6";
+            t->damage = "1d6/1d6";
             t->armour = 6;
             t->expAward = 50;
             break;
@@ -284,7 +284,7 @@ THING* addMonster(chtype kind) {
             t->glyph = 'T';
             aggr = "yes";
             t->stats->fullHp = dice(6, 8);
-            t->damage = "1d8";
+            t->damage = "1d8/1d8/2d6";
             t->armour = 4;
             t->regenerates = true;
             t->expAward = 55;
@@ -312,7 +312,7 @@ THING* addMonster(chtype kind) {
             t->glyph = 'X';
             aggr = "yes";
             t->stats->fullHp = dice(7, 8);
-            t->damage = "1d3";
+            t->damage = "1d3/1d3/1d3/4d6";
             t->armour = 2;
             t->expAward = 120;
             break;
@@ -321,7 +321,7 @@ THING* addMonster(chtype kind) {
             t->glyph = 'U';
             aggr = "yes";
             t->stats->fullHp = dice(8, 8);
-            t->damage = "3d4";
+            t->damage = "3d4/3d4/2d5";
             t->armour = 2;
             t->expAward = 130;
             break;
@@ -348,7 +348,7 @@ THING* addMonster(chtype kind) {
             t->glyph = 'D';
             aggr = "no";
             t->stats->fullHp = dice(10, 8);
-            t->damage = "1d8";
+            t->damage = "1d8/1d8/3d10";
             t->armour = -1;
             t->expAward = 9000;
             break;
@@ -357,7 +357,7 @@ THING* addMonster(chtype kind) {
             t->glyph = 'P';
             aggr = "no";
             t->stats->fullHp = dice(15, 8);
-            t->damage = "2d12";
+            t->damage = "2d12/2d4";
             t->armour = 6;
             t->expAward = 7000;
             break;

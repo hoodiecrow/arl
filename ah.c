@@ -353,28 +353,7 @@ void ah_z(THING* sprite) {
 }
 
 void ah_p(THING* sprite) {
-    (void)sprite;
-    if (sprite->under == ' ') {
-        msg("there's nothing to pick up");
-    } else if (inventoryFill == INVENTORY_SIZE) {
-        msg("you can't carry more items");
-    } else {
-        THING* t = locateObject(sprite->ypos, sprite->xpos);
-        if (t == NULL) {
-            msg("there's nothing to pick up");
-        } else if (t->type == T_Structure) {
-            msg("you can't pick that up");
-        } else {
-            inventory[inventoryFill++] = t;
-            mvprintw(0, 0, "you picked up: %s", t->descr);
-            //TODO multiple items in same space
-            sprite->under = ' ';
-            t->inInventory = true;
-            t->ypos = -1;
-            t->xpos = -1;
-        }
-    }
-    clrtoeol();
+    pickUpObject(sprite);
 }
 
 void ah_d(THING* sprite) {

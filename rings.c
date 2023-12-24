@@ -26,7 +26,7 @@ const char* r_stones[NRINGS];
 THING* addRing() {
     // create a ring and return it
     int i = pickOne(rpt, NRINGS);
-    THING* t = newThing(T_Item, ':');
+    THING* t = newThing(T_Item, '=');
     snprintf(t->descr, sizeof t->descr, "%s %s", r_stones[i], "ring");
     t->isEquippable = true;
     t->typeId = i;

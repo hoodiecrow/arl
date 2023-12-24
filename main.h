@@ -243,6 +243,7 @@ void drinkEffect(int i);
 void dumpInventory(int i);
 THING* place(THING* thing);
 int addToInventory(THING* t);
+void pickUpObject(THING* sprite);
 THING* placeAt(THING* thing, int y, int x);
 void attemptMove(THING* sprite, int incrY, int incrX);
 void combat(THING* thing, int atY, int atX);
