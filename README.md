@@ -51,6 +51,7 @@ Just like with symbols, command keys were hard to keep up with and I decided to 
 - `z` zap
 - `<` climb a stair*
 - `>` go down a stair
+- 
 *) not in Rogue, may be removed
 
 
