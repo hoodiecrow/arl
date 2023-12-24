@@ -17,26 +17,42 @@ Move around with keypad
 ## Actions
 Bolded commands have some kind of mechanism to them.
 
-- `c` close
-- `e` **eat**
-- `E` **equip**
-- `g` get
-- `i` **show inventory**
-- `l` **look**
-- `q` **drink**
+Just like with symbols, command keys were hard to keep up with and I decided to use Rogue keys.
+
+- `1` **sw**
+- `2` **s**
+- `3` **se**
+- `4` **w**
+- `5` **rest**
+- `6` **e**
+- `7` **nw**
+- `8` **n**
+- `9` **ne**
+- `E` **equip***
+- `P` put on ring
+- `Q` **quit game**
+- `R` remove ring
+- `S` save game
+- `T` take off armour
+- `c` close smth*
+- `d` **drop, also .**
+- `e` eat
+- `g` get*
+- `h` **help screen, also ? and F1**
+- `i` **inventory**
+- `l` **look around (broken)** *
+- `p` zap/dir
+- `q` **quaff**
 - `r` **read**
-- `u` use
+- `s` search for hidden things
+- `u` use*
 - `w` **wield**
 - `W` **wear**
 - `z` zap
-- `,` **pick up**
-- `.` **drop**
-- `<` climb a stair
+- `<` climb a stair*
 - `>` go down a stair
-- `@` show character screen
-- `CTRL-S` save game
-- `F1` show help screen
-- `Q` **quit**
+*) not in Rogue, may be removed
+
 
 ## Objects
 In playtesting the original Rogue for comparison, differences in symbols kept tripping me up. Solution: set my symbol set to that of Rogue (almost completely).
