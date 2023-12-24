@@ -225,7 +225,7 @@ int pickOne(int pt[], int n);
 void getDir();
 void freeObject(THING* o);
 void wieldEffect(int i);
-void zapEffect(int i);
+void zapEffect(int i, bool hasDir);
 void readEffect(int i);
 void equipEffect(int i);
 void wearEffect(int i);

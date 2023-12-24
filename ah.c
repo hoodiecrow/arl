@@ -495,16 +495,34 @@ void ah_z(THING* sprite) {
     int i = ch-'a';
     if (allowedIndices[i]) {
         // this is targetless zap
-        zapEffect(i);
+        zapEffect(i, false);
     } else {
         msg("you can't zap with that"); clrtoeol(); refresh();
     }
 }
 
 void ah_p(THING* sprite) {
-    (void)sprite;
     // TODO use sprite to zap in a direction
-    //pickUpObject(sprite);
+    // set deltaY/deltaX and then go to zapEffect
+    getDir(sprite->room);
+    WINDOW* invlist = newPopup(inventoryFill+3);
+    mvwprintw(invlist, 1, 1, "%s", "What do you want to zap with:");
+    for (int i = 0; i < inventoryFill; i++) {
+        if (inventory[i]->glyph == '\\' || inventory[i]->glyph == '/') {
+            mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
+            allowedIndices[i] = true;
+        } else {
+            allowedIndices[i] = false;
+        }
+    }
+    chtype ch = endPopup(invlist);
+    int i = ch-'a';
+    if (allowedIndices[i]) {
+        // this is targetless zap
+        zapEffect(i, true);
+    } else {
+        msg("you can't zap with that"); clrtoeol(); refresh();
+    }
 }
 
 void ah_d(THING* sprite) {

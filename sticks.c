@@ -135,7 +135,7 @@ void initSticks() {
     }
 }
 
-void zapEffect(int i) {
+void zapEffect(int i, bool hasDir) {
     int x, y;
     // take an inventory number, check typeId for that stick and handle effect
     THING* t = inventory[i];
@@ -147,7 +147,12 @@ void zapEffect(int i) {
         msg("Nothing happens");
         return; 
     }
-    getDir(t->room);
+    if (!hasDir) {
+        do {
+            deltaY = rnd(3) - 1;
+            deltaX = rnd(3) - 1;
+        } while (deltaY == 0 && deltaX == 0);
+    }
     switch (t->typeId) {
         case WS_LIGHT:
             // Has 10-19 charges. Illuminates the room.
