@@ -199,6 +199,10 @@ extern const char* monsterNames[];
 extern const char *armourNames[];
 extern int acValue[];
 
+// https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/index.html
+WINDOW *create_newwin(int height, int width, int starty, int startx);
+void destroy_win(WINDOW *local_win);
+
 THING* newThing(ThingType type, chtype glyph);
 
 THING* addMonster(chtype kind);
