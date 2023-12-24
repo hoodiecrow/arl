@@ -15,9 +15,9 @@ Move around with keypad
 (5 is rest)
 
 ## Actions
-Bolded commands have some kind of mechanism to them.
-
 Just like with symbols, command keys were hard to keep up with and I decided to use Rogue keys.
+
+Bolded commands have some kind of mechanism to them.
 
 - `1` **sw**
 - `2` **s**
@@ -29,6 +29,7 @@ Just like with symbols, command keys were hard to keep up with and I decided to 
 - `8` **n**
 - `9` **ne**
 - `E` **equip***
+- `I` identify object (also /)
 - `P` put on ring
 - `Q` **quit game**
 - `R` remove ring
@@ -37,6 +38,7 @@ Just like with symbols, command keys were hard to keep up with and I decided to 
 - `c` close smth*
 - `d` **drop, also .**
 - `e` eat
+- `f` forward until reach something
 - `g` get*
 - `h` **help screen, also ? and F1**
 - `i` **inventory**
@@ -45,6 +47,7 @@ Just like with symbols, command keys were hard to keep up with and I decided to 
 - `q` **quaff**
 - `r` **read**
 - `s` search for hidden things
+- `t` throw something
 - `u` use*
 - `w` **wield**
 - `W` **wear**
