@@ -43,7 +43,7 @@ Bolded commands have some kind of mechanism to them.
 - `h` **help screen, also ? and F1**
 - `i` **inventory**
 - `l` **look around (broken)** *
-- `p` zap/dir
+- `p` **zap in a given direction**
 - `q` **quaff**
 - `r` **read**
 - `s` search for hidden things
@@ -51,7 +51,7 @@ Bolded commands have some kind of mechanism to them.
 - `u` use*
 - `w` **wield**
 - `W` **wear**
-- `z` zap
+- `z` **zap**
 - `<` climb a stair*
 - `>` go down a stair
 - 
