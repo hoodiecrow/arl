@@ -61,7 +61,7 @@ Bolded commands have some kind of mechanism to them.
 - `z` **zap**
 - `<` climb a stair*
 - `>` go down a stair
-- 
+
 *) not in Rogue, may be removed
 
 
