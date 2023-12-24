@@ -5,16 +5,23 @@ I have no plan and little knowledge, but I'm going to see how far I can get on j
 
 2023-12-21: Tomorrow it will be a week of working on this. State of the code: a mess. State of the game: just barely playable. Tomorrow I can claim a 7DRL (seven day roguelike challenge) and pack it up. I think I will keep at it for some time, though.
 
-## Controls
-Move around with keypad
-```
-7  8  9
-4  5  6
-1  2  3
-```
-(5 is rest)
+## Objects
+In playtesting the original Rogue for comparison, differences in symbols kept tripping me up. Solution: set my symbol set to that of Rogue (almost completely).
+- `!` potion or drink
+- `*` gold
+- `]` armour
+- `)` weapon
+- `:` food
+- `/` wand
+- `=` ring
+- `\` staff
+- `?` scroll
+- `<` stair (up)
+- `>` stair (down)
+- `_` carcass
 
-## Actions
+
+## Controls
 Just like with symbols, command keys were hard to keep up with and I decided to use Rogue keys.
 
 Bolded commands have some kind of mechanism to them.
@@ -57,21 +64,6 @@ Bolded commands have some kind of mechanism to them.
 - 
 *) not in Rogue, may be removed
 
-
-## Objects
-In playtesting the original Rogue for comparison, differences in symbols kept tripping me up. Solution: set my symbol set to that of Rogue (almost completely).
-- `!` potion or drink
-- `*` gold
-- `]` armour
-- `)` weapon
-- `:` food
-- `/` wand
-- `=` ring
-- `\` staff
-- `?` scroll
-- `<` stair (up)
-- `>` stair (down)
-- `_` carcass
 
 ## Time management
 To keep it simple for now, time management is Player-centric. The rest of the world acts when the player moves (including resting). Maybe some other actions will let the world act as well.
