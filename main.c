@@ -678,7 +678,7 @@ void combat(THING* sprite, int atY, int atX) {
             }
             clrtoeol();
             other->isDead = true;
-            other->glyph = '%';
+            other->glyph = '_';
             present(other);
             sprite->stats->exp += other->expAward;
             if (sprite == player && player->stats->exp >= expForLevel(player->stats->level + 1)) {
