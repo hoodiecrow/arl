@@ -39,34 +39,19 @@ Bolded commands have some kind of mechanism to them.
 - `Q` **quit**
 
 ## Objects
-Still figuring these out...
+In playtesting the original Rogue for comparison, differences in symbols kept tripping me up. Solution: set my symbol set to that of Rogue (almost completely).
 - `!` potion or drink
-- `"`
-- `$` gold
-- `%` carcass
-- `&` garments or armour
-- `'`
-- `(` 
+- `*` gold
+- `]` armour
 - `)` weapon
-- `*` food
-- `+`
-- `-`
+- `:` food
 - `/` wand
-- `:` ring
-- `;` amulet
-- `<` stair (up)
-- `=` book
-- `>` stair (down)
-- `?`
-- `[`
+- `=` ring
 - `\` staff
-- `]`
-- `^`
-- `_`
-- `{`
-- `|` rod
-- `}`
-- `~` scroll
+- `?` scroll
+- `<` stair (up)
+- `>` stair (down)
+- `_` carcass
 
 ## Time management
 To keep it simple for now, time management is Player-centric. The rest of the world acts when the player moves (including resting). Maybe some other actions will let the world act as well.
