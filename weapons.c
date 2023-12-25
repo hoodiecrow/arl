@@ -35,6 +35,7 @@ THING* addWeapon() {
 
 THING* initWeapon(THING* t, int typeId) {
     snprintf(t->descr, sizeof t->descr, "%s", weaponNames[typeId]);
+    t->isCursed = false;
     t->damage = weaponDamage[typeId];
     t->typeId = typeId;
     return t;

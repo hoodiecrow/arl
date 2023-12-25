@@ -47,6 +47,7 @@ THING* addArmour() {
 
 THING* initArmour(THING* t, int typeId) {
     snprintf(t->descr, sizeof t->descr, "%s", armourNames[typeId]);
+    t->isCursed = false;
     t->armour = acValue[typeId];
     t->typeId = typeId;
     return t;
