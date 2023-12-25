@@ -186,8 +186,12 @@ typedef struct TILE {
 } TILE;
 
 struct monster {
-    char name[20];
-    char aggr[10];
+    char* name;
+    char* aggr;
+    int expawd;
+    int level;
+    int armour;
+    char* damage;
 };
 
 #define INVENTORY_SIZE 15
