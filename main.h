@@ -50,9 +50,9 @@ enum WEAPONTYPES {
 
 /* adapted from Rogue3.6.3 */
 enum ARMOURTYPES {
-	A_NONE,
 	A_LEATH,
 	A_RINGM,
+	A_STUDDED,
 	A_SCALE,
 	A_CHAIN,
 	A_SPLINT,
