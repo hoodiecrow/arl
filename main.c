@@ -700,7 +700,7 @@ void combat(THING* sprite, int atY, int atX) {
         if (other->stats->currHp <= 0) {
             // other is killed
             if ('A' <= other->glyph && other->glyph <= 'Z') {
-                mvprintw(0, 0, "The %s is killed!", monsterNames[other->glyph-'A']);
+                mvprintw(0, 0, "The %s is killed!", monsters[other->glyph-'A'].name);
             } else {
                 mvprintw(0, 0, "The other is killed!");
             }

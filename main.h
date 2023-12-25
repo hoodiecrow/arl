@@ -202,7 +202,6 @@ extern THING *things, *worn, *right, *left, *wielded, *player;
 extern int deltaY, deltaX;
 extern int dlevel;
 extern WINDOW* map;
-extern const char* monsterNames[];
 extern struct monster monsters[];
 extern const char *armourNames[];
 extern int acValue[];

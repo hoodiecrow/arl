@@ -1,9 +1,10 @@
 #include "main.h"
 
+/* adapted from Rogue3.6.3 */
 const char *armourNames[] = {
-    "none",
     "leather armour",
     "ring mail",
+    "studded leather armor",
     "scale mail",
     "chain mail",
     "splint mail",
@@ -12,8 +13,8 @@ const char *armourNames[] = {
 };
 
 int acValue[] = {
-    10,
     8,
+    7,
     7,
     6,
     5,

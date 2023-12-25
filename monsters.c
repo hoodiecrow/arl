@@ -1,34 +1,5 @@
 #include "main.h"
 
-const char* monsterNames[26] = {
-    "giant ant",    // A
-    "bat",          // B
-    "centaur",      // C
-    "dragon",       // D
-    "floating eye", // E
-    "violet fungi", // F
-    "goblin",       // G
-    "hobgoblin",    // H
-    "ice monster",  // I
-    "jackal",       // J
-    "kobold",       // K
-    "leprechaun",   // L
-    "mimic",        // M
-    "nymph",        // N
-    "orc",          // O
-    "purple worm",  // P
-    "quasit",       // Q
-    "rust monster", // R
-    "snake",        // S
-    "troll",        // T
-    "umber hulk",   // U
-    "vampire",      // V
-    "wraith",       // W
-    "xorn",         // X
-    "yeti",         // Y
-    "zombie"        // Z
-};
-
 /* flags: Flying Mean Regenerating Invisible
 Name	    Treasure	Flags	Exp	HP  AC	Damage	    Range	Notes	        Original Name
 Aquator	        0	    M	    20	5    2	0d0/0d0	    9-16	Rusts armor	        Rust Monster
@@ -65,35 +36,6 @@ Zombie	        0	    M	    6	2 	8	1d8	        4-13
 
 **** Level draining removes 1d10 of the player's max HP. Being level drained with 0 exp results in death. If the player is at experience level 1 with >0 exp, exp is reduced to 0.
 
-*/
-
-	/* Name	     CARRY	FLAG        str,    exp, lvl, amr, hpt, dmg *//*
-"giant ant",     0, 	ISMEAN,	    { _x,    10,   2,   3, ___, "1d6" } },
-"bat",	         0, 	0,	        { _x,     1,   1,   3, ___, "1d2" } },
-"centaur",	     15,	0,	        { _x,    15,   4,   4, ___, "1d6/1d6" } },
-"dragon",	    100,	ISGREED,    { _x,   9000, 10,  -1, ___, "1d8/1d8/3d10" } },
-"floating eye",  0, 	0,	        { _x,     5,   1,   9, ___, "0d0" } },
-"violet fungi",  0, 	ISMEAN,	    { _x,    85,   8,   3, ___, "000d0" } },
-"gnome",	     10,	0,	        { _x,     8,   1,   5, ___, "1d6" } },
-"hobgoblin",	 0, 	ISMEAN,	    { _x,     3,   1,   5, ___, "1d8" } },
-"invisible stalker",0,  ISINVIS,    { _x,   120,   8,   3, ___, "4d4" } },
-"jackal",	     0, 	ISMEAN,	    { _x,     2,   1,   7, ___, "1d2" } },
-"kobold",	     0, 	ISMEAN,	    { _x,     1,   1,   7, ___, "1d4" } },
-"leprechaun",	 0, 	0,	        { _x,    10,   3,   8, ___, "1d1" } },
-"mimic",	     30,	0,	        { _x,   140,   7,   7, ___, "3d4" } },
-"nymph",	     100,	0,	        { _x,    40,   3,   9, ___, "0d0" } },
-"orc",	         15,	ISBLOCK,    { _x,     5,   1,   6, ___, "1d8" } },
-"purple worm",   70,	0,	        { _x,   7000, 15,   6, ___, "2d12/2d4" } },
-"quasit",	     30,	ISMEAN, 	{ _x,    35,   3,   2, ___, "1d2/1d2/1d4" } },
-"rust monster",  0, 	ISMEAN, 	{ _x,    25,   5,   2, ___, "0d0/0d0" } },
-"snake",	     0, 	ISMEAN,	    { _x,     3,   1,   5, ___, "1d3" } },
-"troll",	     50,	ISREGEN|ISMEAN,{ _x, 55,   6,   4, ___, "1d8/1d8/2d6" } },
-"umber hulk",	 40,	ISMEAN, 	{ _x,   130,   8,   2, ___, "3d4/3d4/2d5" } },
-"vampire",	     20,	ISREGEN|ISMEAN,{ _x,380,   8,   1, ___, "1d10" } },
-"wraith",	     0, 	0,	        { _x,    55,   5,   4, ___, "1d6" } },
-"xorn",	         0, 	ISMEAN, 	{ _x,   120,   7,  -2, ___, "1d3/1d3/1d3/4d6" } },
-"yeti",	         30,	0,	        { _x,    50,   4,   6, ___, "1d6/1d6" } },
-"zombie",	     0, 	ISMEAN,	    { _x,     7,   2,   8, ___, "1d8" } }
 */
 
 struct monster monsters[26] = {
