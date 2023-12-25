@@ -571,7 +571,10 @@ void ah_p(THING* sprite) {
 }
 
 void ah_d(THING* sprite) {
-    (void)sprite;
+    if (sprite->under != ' ') {
+        msg("there is already something lying on this tile");
+        return;
+    }
     WINDOW* invlist = newPopup(inventoryFill+3);
     mvwprintw(invlist, 1, 1, "%s", "What do you want to drop:");
     for (int i = 0; i < inventoryFill; i++) {
@@ -581,10 +584,17 @@ void ah_d(THING* sprite) {
     int i = ch-'a';
     if (i >= 0 && i < inventoryFill) {
         THING* t = inventory[i];
-        if (t == wielded)
-            wielded = NULL;
-        if (t == worn)
-            worn = NULL;
+        if (t == wielded) {
+            if (wielded->isCursed) {
+                msg("you can't");
+                return;
+            } else
+                wielded = NULL;
+        }
+        if (t == worn) {
+            msg("you must take that off first");
+            return;
+        }
         dumpInventory(i);
         sprite->under = t->glyph;
         t->ypos = sprite->ypos;
