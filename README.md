@@ -54,7 +54,7 @@ Bolded commands have some kind of mechanism to them.
 - `p` **zap in a given direction**
 - `q` **quaff**
 - `r` **read**
-- `s` search for hidden things
+- `s` **search for hidden things**
 - `t` throw something
 - `u` use*
 - `w` **wield**
