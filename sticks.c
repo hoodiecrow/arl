@@ -1,5 +1,6 @@
 #include "main.h"
 
+/* adapted from Rogue3.6.3 */
 const char* wandNames[] = {
     "wand of light",
     "wand of striking",
@@ -17,6 +18,7 @@ const char* wandNames[] = {
     "wand of cancellation",
 };
 
+/* adapted from Rogue3.6.3 */
 const char* staffNames[] = {
     "staff of light",
     "staff of striking",
@@ -34,6 +36,7 @@ const char* staffNames[] = {
     "staff of cancellation",
 };
 
+/* from Rogue3.6.3 */
 #define NMETAL (14)
 const char* metal[NMETAL] = {
     "aluminium",
@@ -52,6 +55,7 @@ const char* metal[NMETAL] = {
     "zinc"
 };
 
+/* from Rogue3.6.3 */
 #define NWOOD (16)
 const char* wood[NWOOD] = {
     "banyan",

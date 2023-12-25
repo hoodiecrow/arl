@@ -1,5 +1,6 @@
 #include "main.h"
 
+/* adapted from Rogue3.6.3 */
 const char *potionNames[] = {
     "potion of confusion",
     "potion of hallucination",
@@ -24,6 +25,7 @@ int pprobs[NPOTIONS] = {
 };
 int ppt[NPOTIONS];
 
+/* from Rogue3.6.3 */
 char *rainbow[] = {
     "red",
     "blue",
@@ -50,6 +52,7 @@ char *rainbow[] = {
     "tan",
     "tangerine"
 };
+
 #define NCOLOURS (24)
 
 THING* addPotion() {

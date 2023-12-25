@@ -1,5 +1,6 @@
 #include "main.h"
 
+/* adapted from Rogue3.6.3 */
 const char *ringNames[] = {
     "ring of protection",		 
     "ring of add strength",	 
@@ -33,6 +34,7 @@ THING* addRing() {
     return t;
 }
 
+/* from Rogue3.6.3 */
 char *stones[] = {
     "agate",
     "alexandrite",

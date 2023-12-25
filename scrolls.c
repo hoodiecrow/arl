@@ -1,5 +1,6 @@
 #include "main.h"
 
+/* adapted from Rogue3.6.3 */
 const char* scrollNames[] = {
     "scroll of confuse monster",
     "scroll of magic mapping",
