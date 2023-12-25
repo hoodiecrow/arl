@@ -253,6 +253,8 @@ void initRings();
 THING* addPotion();
 void initPotions();
 THING* addTrap();
+THING *trapAt(int y, int x);
+char *trapName(int typeId);
 void initTraps();
 THING* addGold();
 THING* addFood();

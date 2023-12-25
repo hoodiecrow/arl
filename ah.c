@@ -305,36 +305,6 @@ void ah_r(THING* sprite) {
 }
 
 /* adapted from Rogue3.6.3 */
-THING *trapAt(int y, int x) {
-    THING** tp;
-    THING** ep;
-    ep = &traps[ntraps];
-    for (tp = traps; tp < ep; tp++)
-        if ((*tp)->ypos == y && (*tp)->xpos == x)
-            break;
-    return *tp;
-}
-
-char *trapName(int typeId) {
-    switch (typeId) {
-        case TRAPDOOR:
-            return "You found a trapdoor.";
-        case BEARTRAP:
-            return "You found a beartrap.";
-        case SLEEPTRAP:
-            return "You found a sleeping gas trap.";
-        case ARROWTRAP:
-            return "You found an arrow trap.";
-        case TELTRAP:
-            return "You found a teleport trap.";
-        case DARTTRAP:
-            return "You found a poison dart trap.";
-        default:
-            return NULL;
-    }
-}
-
-/* adapted from Rogue3.6.3 */
 void ah_s(THING* sprite) {
     //TODO search for hidden things, using sprite for position
     int x, y;
