@@ -91,6 +91,8 @@ THING* addStick() {
     if (strcmp("wand", ws_type[i]) == 0) {
         t = newThing(T_Item, '/');
         snprintf(t->descr, sizeof t->descr, "%s %s", ws_made[i], "wand");
+        // guess
+        t->ncharges = rnd(4) + 1;
     } else {
         t = newThing(T_Item, '\\');
         snprintf(t->descr, sizeof t->descr, "%s %s", ws_made[i], "staff");

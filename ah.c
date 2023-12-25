@@ -102,18 +102,27 @@ void ah_c(THING* sprite) {
     clrtoeol();
 }
 
-void ah_e(THING* sprite) {
-    (void)sprite;
-    WINDOW* invlist = newPopup(inventoryFill+3);
-    mvwprintw(invlist, 1, 1, "%s", "What do you want to eat:");
+void buildList(WINDOW* list, bool (*f)(THING* t), const char* prompt) {
+    // take a window, a predicate, and a prompt, fill window from inventory with selected items
+    mvwprintw(list, 1, 1, "%s", prompt);
     for (int i = 0; i < inventoryFill; i++) {
-        if (inventory[i]->glyph == ':') {
-            mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
+        if (f(inventory[i])) {
+            mvwprintw(list, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
             allowedIndices[i] = true;
         } else {
             allowedIndices[i] = false;
         }
     }
+}
+
+bool foodPred(THING* t) {
+    return t->glyph == ':';
+}
+
+void ah_e(THING* sprite) {
+    (void)sprite;
+    WINDOW* invlist = newPopup(inventoryFill+3);
+    buildList(invlist, foodPred, "What do you want to eat:");
     chtype ch = endPopup(invlist);
     int i = ch-'a';
     if (allowedIndices[i]) {
@@ -253,18 +262,14 @@ void ah_l(THING* sprite) {
     endPopup(invlist);
 }
 
+bool potionPred(THING* t) {
+    return t->glyph == '!';
+}
+
 void ah_q(THING* sprite) {
     (void)sprite;
     WINDOW* invlist = newPopup(inventoryFill+3);
-    mvwprintw(invlist, 1, 1, "%s", "What do you want to drink:");
-    for (int i = 0; i < inventoryFill; i++) {
-        if (inventory[i]->glyph == '!') {
-            mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
-            allowedIndices[i] = true;
-        } else {
-            allowedIndices[i] = false;
-        }
-    }
+    buildList(invlist, potionPred, "What do you want to drink:");
     chtype ch = endPopup(invlist);
     int i = ch-'a';
     if (allowedIndices[i]) {
@@ -275,18 +280,14 @@ void ah_q(THING* sprite) {
     }
 }
 
+bool scrollPred(THING* t) {
+    return t->glyph == '?';
+}
+
 void ah_r(THING* sprite) {
     (void)sprite;
     WINDOW* invlist = newPopup(inventoryFill+3);
-    mvwprintw(invlist, 1, 1, "%s", "What do you want to read:");
-    for (int i = 0; i < inventoryFill; i++) {
-        if (inventory[i]->glyph == '?') {
-            mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
-            allowedIndices[i] = true;
-        } else {
-            allowedIndices[i] = false;
-        }
-    }
+    buildList(invlist, scrollPred, "What do you want to read:");
     chtype ch = endPopup(invlist);
     int i = ch-'a';
     if (allowedIndices[i]) {
@@ -379,19 +380,15 @@ void ah_I(THING* sprite) {
     clrtoeol();
 }
 
+bool ringOnPred(THING* t) {
+    return t->glyph == '=';
+}
+
 void ah_P(THING* sprite) {
     (void)sprite;
     //TODO put on a ring
     WINDOW* invlist = newPopup(inventoryFill+3);
-    mvwprintw(invlist, 1, 1, "%s", "What do you want to put on:");
-    for (int i = 0; i < inventoryFill; i++) {
-        if (inventory[i]->glyph == '=') {
-            mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
-            allowedIndices[i] = true;
-        } else {
-            allowedIndices[i] = false;
-        }
-    }
+    buildList(invlist, ringOnPred, "What do you want to put on:");
     chtype ch = endPopup(invlist);
     int i = ch-'a';
     if (allowedIndices[i]) {
@@ -422,20 +419,15 @@ void ah_Q(THING* sprite) {
     clrtoeol();
 }
 
+bool ringOffPred(THING* t) {
+    return t->glyph == '=' && (t == right || t == left);
+}
+
 void ah_R(THING* sprite) {
     (void)sprite;
     //TODO remove a ring, if possible
     WINDOW* invlist = newPopup(inventoryFill+3);
-    mvwprintw(invlist, 1, 1, "%s", "What do you want to equip:");
-    for (int i = 0; i < inventoryFill; i++) {
-        if (inventory[i]->glyph == '=' && (inventory[i] == right ||
-                    inventory[i] == left)) {
-            mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
-            allowedIndices[i] = true;
-        } else {
-            allowedIndices[i] = false;
-        }
-    }
+    buildList(invlist, ringOffPred, "What do you want to equip:");
     chtype ch = endPopup(invlist);
     int i = ch-'a';
     if (allowedIndices[i]) {
@@ -478,19 +470,15 @@ void ah_u(THING* sprite) {
     clrtoeol();
 }
 
+bool weaponPred(THING* t) {
+    return t->glyph == ')';
+}
+
 void ah_w(THING* sprite) {
     // wield a weapon
     (void)sprite;
     WINDOW* invlist = newPopup(inventoryFill+3);
-    mvwprintw(invlist, 1, 1, "%s", "What do you want to wield:");
-    for (int i = 0; i < inventoryFill; i++) {
-        if (inventory[i]->glyph == ')') {
-            mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
-            allowedIndices[i] = true;
-        } else {
-            allowedIndices[i] = false;
-        }
-    }
+    buildList(invlist, weaponPred, "What do you want to wield:");
     chtype ch = endPopup(invlist);
     int i = ch-'a';
     if (allowedIndices[i]) {
@@ -500,6 +488,10 @@ void ah_w(THING* sprite) {
     }
 }
 
+bool armourPred(THING* t) {
+    return t->glyph == ']';
+}
+
 void ah_W(THING* sprite) {
     (void)sprite;
     if (worn != NULL) {
@@ -507,15 +499,7 @@ void ah_W(THING* sprite) {
         return;
     }
     WINDOW* invlist = newPopup(inventoryFill+3);
-    mvwprintw(invlist, 1, 1, "%s", "What do you want to wear:");
-    for (int i = 0; i < inventoryFill; i++) {
-        if (inventory[i]->glyph == ']') {
-            mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
-            allowedIndices[i] = true;
-        } else {
-            allowedIndices[i] = false;
-        }
-    }
+    buildList(invlist, armourPred, "What do you want to wear:");
     chtype ch = endPopup(invlist);
     int i = ch-'a';
     if (allowedIndices[i]) {
@@ -525,18 +509,14 @@ void ah_W(THING* sprite) {
     }
 }
 
+bool stickPred(THING* t) {
+    return t->glyph == '/' || t->glyph == '\\';
+}
+
 void ah_z(THING* sprite) {
     (void)sprite;
     WINDOW* invlist = newPopup(inventoryFill+3);
-    mvwprintw(invlist, 1, 1, "%s", "What do you want to zap with:");
-    for (int i = 0; i < inventoryFill; i++) {
-        if (inventory[i]->glyph == '\\' || inventory[i]->glyph == '/') {
-            mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
-            allowedIndices[i] = true;
-        } else {
-            allowedIndices[i] = false;
-        }
-    }
+    buildList(invlist, stickPred, "What do you want to zap with:");
     chtype ch = endPopup(invlist);
     int i = ch-'a';
     if (allowedIndices[i]) {
@@ -551,23 +531,20 @@ void ah_p(THING* sprite) {
     //TODO shares a lot of code with ah_z
     getDir(sprite->room);
     WINDOW* invlist = newPopup(inventoryFill+3);
-    mvwprintw(invlist, 1, 1, "%s", "What do you want to zap with:");
-    for (int i = 0; i < inventoryFill; i++) {
-        if (inventory[i]->glyph == '\\' || inventory[i]->glyph == '/') {
-            mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
-            allowedIndices[i] = true;
-        } else {
-            allowedIndices[i] = false;
-        }
-    }
+    buildList(invlist, stickPred, "What do you want to zap with:");
     chtype ch = endPopup(invlist);
     int i = ch-'a';
     if (allowedIndices[i]) {
-        // this is targetless zap
+        // this is targeted zap
         zapEffect(i, true);
     } else {
         msg("you can't zap with that"); clrtoeol(); refresh();
     }
+}
+
+bool allPred(THING* t) {
+    (void)t;
+    return true;
 }
 
 void ah_d(THING* sprite) {
@@ -576,10 +553,7 @@ void ah_d(THING* sprite) {
         return;
     }
     WINDOW* invlist = newPopup(inventoryFill+3);
-    mvwprintw(invlist, 1, 1, "%s", "What do you want to drop:");
-    for (int i = 0; i < inventoryFill; i++) {
-        mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
-    }
+    buildList(invlist, allPred, "What do you want to drop:");
     chtype ch = endPopup(invlist);
     int i = ch-'a';
     if (i >= 0 && i < inventoryFill) {
