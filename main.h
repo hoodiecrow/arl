@@ -241,6 +241,7 @@ int pickOne(int pt[], int n);
 void getDir();
 void freeObject(THING* o);
 void wieldEffect(int i);
+void unwield();
 void zapEffect(int i, bool hasDir);
 void readEffect(int i);
 void ringEffect(int i);

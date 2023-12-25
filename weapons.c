@@ -50,3 +50,9 @@ void wieldEffect(int i) {
     player->dplus = wielded->dplus;
 }
 
+void unwield() {
+    wielded = NULL;
+    player->damage = "1d4";
+    player->hplus = 0;
+    player->dplus = 0;
+}

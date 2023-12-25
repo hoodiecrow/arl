@@ -588,8 +588,9 @@ void ah_d(THING* sprite) {
             if (wielded->isCursed) {
                 msg("you can't");
                 return;
-            } else
-                wielded = NULL;
+            } else {
+                unwield();
+            }
         }
         if (t == worn) {
             msg("you must take that off first");
