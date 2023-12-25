@@ -316,7 +316,6 @@ void ah_I(THING* sprite) {
     //TODO
     char ch;
     const char* str;
-
     msg("What do you want identified? ");
     ch = getch();
     if (ch == 27) {
@@ -383,7 +382,7 @@ void ah_P(THING* sprite) {
     (void)sprite;
     //TODO put on a ring
     WINDOW* invlist = newPopup(inventoryFill+3);
-    mvwprintw(invlist, 1, 1, "%s", "What do you want to equip:");
+    mvwprintw(invlist, 1, 1, "%s", "What do you want to put on:");
     for (int i = 0; i < inventoryFill; i++) {
         if (inventory[i]->glyph == '=') {
             mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
