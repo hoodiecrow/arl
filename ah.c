@@ -186,7 +186,6 @@ void ah_E(THING* sprite) {
                     }
                     right = inventory[i];
                     equipEffect(i);
-                    dumpInventory(i);
                     break;
                 case 'l': case 'L':
                     if (left != NULL) {
@@ -194,7 +193,6 @@ void ah_E(THING* sprite) {
                     }
                     left = inventory[i];
                     equipEffect(i);
-                    dumpInventory(i);
                     break;
             }
         }
@@ -457,7 +455,6 @@ void ah_w(THING* sprite) {
         }
         wielded = inventory[i];
         wieldEffect(i);
-        dumpInventory(i);
     } else {
         msg("you can't wield that"); clrtoeol(); refresh();
     }
@@ -546,6 +543,10 @@ void ah_d(THING* sprite) {
     int i = ch-'a';
     if (i >= 0 && i < inventoryFill) {
         THING* t = inventory[i];
+        if (t = wielded)
+            wielded = NULL;
+        if (t = worn)
+            worn = NULL;
         dumpInventory(i);
         sprite->under = t->glyph;
         t->ypos = sprite->ypos;
