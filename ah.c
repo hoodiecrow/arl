@@ -294,6 +294,10 @@ void ah_i(THING* sprite) {
     mvwprintw(invlist, 1, 1, "%s", "You are carrying:");
     for (int i = 0; i < inventoryFill; i++) {
         mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
+        if (inventory[i] == wielded)
+            waddstr(invlist, " (wielded)");
+        if (inventory[i] == worn)
+            waddstr(invlist, " (worn)");
     }
     endPopup(invlist);
 }
@@ -414,8 +418,16 @@ void ah_S(THING* sprite) {
 void ah_T(THING* sprite) {
     (void)sprite;
     //TODO take off armour, if possible
-    msg("remove armour");
-    clrtoeol();
+    if (worn == NULL) {
+        msg("you're not wearing armour");
+        return;
+    }
+    if (worn->isCursed) {
+        msg("you can't");
+        return;
+    }
+    msg("you take your armour off");
+    worn = NULL;
 }
 
 void ah_u(THING* sprite) {
@@ -456,7 +468,7 @@ void ah_W(THING* sprite) {
     WINDOW* invlist = newPopup(inventoryFill+3);
     mvwprintw(invlist, 1, 1, "%s", "What do you want to wear:");
     for (int i = 0; i < inventoryFill; i++) {
-        if (inventory[i]->glyph == '&') {
+        if (inventory[i]->glyph == ']') {
             mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
             allowedIndices[i] = true;
         } else {
@@ -473,7 +485,6 @@ void ah_W(THING* sprite) {
         }
         worn = inventory[i];
         wearEffect(i);
-        dumpInventory(i);
     } else {
         msg("you can't wear that"); clrtoeol(); refresh();
     }
@@ -502,8 +513,7 @@ void ah_z(THING* sprite) {
 }
 
 void ah_p(THING* sprite) {
-    // TODO use sprite to zap in a direction
-    // set deltaY/deltaX and then go to zapEffect
+    //TODO shares a lot of code with ah_z
     getDir(sprite->room);
     WINDOW* invlist = newPopup(inventoryFill+3);
     mvwprintw(invlist, 1, 1, "%s", "What do you want to zap with:");
