@@ -63,9 +63,9 @@ void initArmours() {
 }
 
 void wearEffect(int i) {
-    // take an inventory number, set worn to that armour, copy armour value to player
-    THING* t = inventory[i];
-    worn = t;
+    // take an inventory number, set worn to that armour
+    worn = inventory[i];
+    // copy worn armour value to player
     player->armour = worn->armour;
     // TODO lesser or greater quality variants
 }

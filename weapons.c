@@ -44,8 +44,7 @@ THING* initWeapon(THING* t, int typeId) {
 void wieldEffect(int i) {
     // take an inventory number, set wielded to that weapon
     //TODO
-    THING* t = inventory[i];
-    wielded = t;
+    wielded = inventory[i];
     player->damage = wielded->damage;
     player->hplus = wielded->hplus;
     player->dplus = wielded->dplus;

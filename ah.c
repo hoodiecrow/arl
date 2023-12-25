@@ -493,10 +493,6 @@ void ah_w(THING* sprite) {
     chtype ch = endPopup(invlist);
     int i = ch-'a';
     if (allowedIndices[i]) {
-        if (wielded != NULL) {
-            wielded->inInventory = true;
-        }
-        wielded = inventory[i];
         wieldEffect(i);
     } else {
         msg("you can't wield that"); clrtoeol(); refresh();
@@ -505,6 +501,10 @@ void ah_w(THING* sprite) {
 
 void ah_W(THING* sprite) {
     (void)sprite;
+    if (worn != NULL) {
+        msg("you are already wearing armour");
+        return;
+    }
     WINDOW* invlist = newPopup(inventoryFill+3);
     mvwprintw(invlist, 1, 1, "%s", "What do you want to wear:");
     for (int i = 0; i < inventoryFill; i++) {
@@ -518,12 +518,6 @@ void ah_W(THING* sprite) {
     chtype ch = endPopup(invlist);
     int i = ch-'a';
     if (allowedIndices[i]) {
-        if (worn != NULL) {
-            sprite->under = worn->glyph;
-            worn->ypos = sprite->ypos;
-            worn->xpos = sprite->xpos;
-        }
-        worn = inventory[i];
         wearEffect(i);
     } else {
         msg("you can't wear that"); clrtoeol(); refresh();
