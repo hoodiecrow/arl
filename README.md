@@ -41,7 +41,7 @@ Bolded commands have some kind of mechanism to them.
 - `Q` **quit game**
 - `R` remove ring
 - `S` save game
-- `T` take off armour
+- `T` **take off armour**
 - `c` close smth*
 - `d` **drop, also .**
 - `e` eat
