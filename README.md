@@ -36,7 +36,7 @@ Bolded commands have some kind of mechanism to them.
 - `8` **n**
 - `9` **ne**
 - `E` equip*
-- `I` identify object (also /)
+- `I` **identify object (also /)**
 - `P` **put on ring**
 - `Q` **quit game**
 - `R` **remove ring**
