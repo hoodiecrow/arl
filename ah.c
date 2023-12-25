@@ -311,6 +311,7 @@ void ah_t(THING* sprite) {
     clrtoeol();
 }
 
+/* adapted from Rogue3.6.3 */
 void ah_I(THING* sprite) {
     (void)sprite;
     //TODO
@@ -410,7 +411,7 @@ void ah_P(THING* sprite) {
                 break;
         }
     } else {
-        msg("you can't equip that"); clrtoeol(); refresh();
+        msg("you can't put that on"); clrtoeol(); refresh();
     }
 }
 
@@ -457,7 +458,6 @@ void ah_S(THING* sprite) {
 }
 
 void ah_T(THING* sprite) {
-    (void)sprite;
     //TODO take off armour, if possible
     if (worn == NULL) {
         msg("you're not wearing armour");
@@ -469,6 +469,7 @@ void ah_T(THING* sprite) {
     }
     msg("you take your armour off");
     worn = NULL;
+    sprite->armour = 10;
 }
 
 void ah_u(THING* sprite) {
