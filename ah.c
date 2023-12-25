@@ -162,43 +162,8 @@ void ah_e(THING* sprite) {
 
 void ah_E(THING* sprite) {
     (void)sprite;
-    WINDOW* invlist = newPopup(inventoryFill+3);
-    mvwprintw(invlist, 1, 1, "%s", "What do you want to equip:");
-    for (int i = 0; i < inventoryFill; i++) {
-        if (inventory[i]->isEquippable) {
-            mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
-            allowedIndices[i] = true;
-        } else {
-            allowedIndices[i] = false;
-        }
-    }
-    chtype ch = endPopup(invlist);
-    int i = ch-'a';
-    if (allowedIndices[i]) {
-        if (inventory[i]->glyph == ':') {
-            msg("wear on right hand (R) or left hand (L)?");
-            clrtoeol();
-            refresh();
-            switch (getch()) {
-                case 'r': case 'R':
-                    if (right != NULL) {
-                        right->inInventory = true;
-                    }
-                    right = inventory[i];
-                    equipEffect(i);
-                    break;
-                case 'l': case 'L':
-                    if (left != NULL) {
-                        left->inInventory = true;
-                    }
-                    left = inventory[i];
-                    equipEffect(i);
-                    break;
-            }
-        }
-    } else {
-        msg("you can't equip that"); clrtoeol(); refresh();
-    }
+    //TODO
+    msg("equip something");
 }
 
 void ah_f(THING* sprite) {
@@ -296,6 +261,10 @@ void ah_i(THING* sprite) {
             waddstr(invlist, " (wielded)");
         if (inventory[i] == worn)
             waddstr(invlist, " (worn)");
+        if (inventory[i] == right)
+            waddstr(invlist, " (on right hand)");
+        if (inventory[i] == left)
+            waddstr(invlist, " (on left hand)");
     }
     endPopup(invlist);
 }
@@ -388,8 +357,37 @@ void ah_I(THING* sprite) {
 void ah_P(THING* sprite) {
     (void)sprite;
     //TODO remove a ring, if possible
-    msg("put on a ring");
-    clrtoeol();
+    WINDOW* invlist = newPopup(inventoryFill+3);
+    mvwprintw(invlist, 1, 1, "%s", "What do you want to equip:");
+    for (int i = 0; i < inventoryFill; i++) {
+        if (inventory[i]->glyph == '=') {
+            mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
+            allowedIndices[i] = true;
+        } else {
+            allowedIndices[i] = false;
+        }
+    }
+    chtype ch = endPopup(invlist);
+    int i = ch-'a';
+    if (allowedIndices[i]) {
+        msg("wear on right hand (R) or left hand (L)?");
+        switch (getch()) {
+            case 'r': case 'R':
+                if (right == NULL) {
+                    right = inventory[i];
+                    ringEffect(i);
+                }
+                break;
+            case 'l': case 'L':
+                if (left == NULL) {
+                    left = inventory[i];
+                    ringEffect(i);
+                }
+                break;
+        }
+    } else {
+        msg("you can't equip that"); clrtoeol(); refresh();
+    }
 }
 
 void ah_Q(THING* sprite) {
@@ -543,9 +541,9 @@ void ah_d(THING* sprite) {
     int i = ch-'a';
     if (i >= 0 && i < inventoryFill) {
         THING* t = inventory[i];
-        if (t = wielded)
+        if (t == wielded)
             wielded = NULL;
-        if (t = worn)
+        if (t == worn)
             worn = NULL;
         dumpInventory(i);
         sprite->under = t->glyph;

@@ -81,7 +81,7 @@ void initRings() {
     }
 }
 
-void equipEffect(int i) {
+void ringEffect(int i) {
     // take an inventory number, check typeId for that ring and handle effect
     // TODO Rings may be worn on either the left or right hand with no change in effect. While worn, however, they will make you hungrier quicker.
     THING* t = inventory[i];
