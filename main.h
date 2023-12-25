@@ -7,6 +7,7 @@
 #include <string.h>
 #include <time.h>
 
+/* adapted from Rogue3.6.3 */
 enum THINGTYPES {
 	T_POTION,
 	T_SCROLL,
@@ -18,6 +19,7 @@ enum THINGTYPES {
 	NTHINGS
 };
 
+/* adapted from Rogue3.6.3 */
 enum STICKTYPES {
 	WS_LIGHT,
 	WS_HIT,
@@ -36,6 +38,7 @@ enum STICKTYPES {
 	NSTICKS
 };
 
+/* adapted from Rogue3.6.3 */
 enum WEAPONTYPES {
 	W_MACE,
 	W_LONG,
@@ -45,6 +48,7 @@ enum WEAPONTYPES {
 	NWEAPONS
 };
 
+/* adapted from Rogue3.6.3 */
 enum ARMOURTYPES {
 	A_NONE,
 	A_LEATH,
@@ -57,6 +61,7 @@ enum ARMOURTYPES {
 	NARMOURS
 };
 
+/* adapted from Rogue3.6.3 */
 enum SCROLLTYPES {
 	S_CONFUSE_M,
 	S_MAGIC_MAP,
@@ -77,6 +82,7 @@ enum SCROLLTYPES {
 	NSCROLLS
 };
 
+/* adapted from Rogue3.6.3 */
 enum RINGTYPES {
 	R_PROTECT, 
         R_ADDSTR,
@@ -94,6 +100,7 @@ enum RINGTYPES {
 	NRINGS
 };
 
+/* adapted from Rogue3.6.3 */
 enum POTIONTYPES {
 	P_CONFUS,
 	P_HALLUC,
@@ -118,6 +125,7 @@ typedef enum {
     T_Structure,
 } ThingType;
 
+/* adapted from Rogue3.6.3 */
 typedef struct STATS {
     int currStrength;
     int fullStrength;
@@ -184,6 +192,7 @@ typedef struct TILE {
 	THING *item;
 } TILE;
 
+/* adapted from Rogue3.6.3 */
 struct monster {
     char* name;
     char* aggr;
