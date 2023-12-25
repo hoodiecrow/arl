@@ -322,7 +322,7 @@ void initGame() {
 
 void runGame() {
     chtype ch = 0;
-    while (ch != 'Q') {
+    for (;;) {
         // status line
         mvprintw(LINES-1, 0, "Level: %d  Gold: %-5d  HP: %d(%d)  Str: %-2d  AC: %-2d  Level/Exp: %d/%ld",
                 dlevel, player->gold, player->stats->currHp, player->stats->fullHp, 
@@ -334,8 +334,6 @@ void runGame() {
         }
         if (player->isHasted) {
             ch = player_act(player);
-            if (ch == 'Q')
-                break;
             player->hasteDuration--;
         }
         if (player->isConfused) {
@@ -367,7 +365,7 @@ void runGame() {
             }
         }
         ch = player_act(player);
-        for (THING* thing = things; ch != 'Q' && thing != NULL; thing = thing->next) {
+        for (THING* thing = things; thing != NULL; thing = thing->next) {
             if (thing->type == T_Sprite && thing != player) {
                 sprite_act(thing);
             }
@@ -472,24 +470,25 @@ int player_act(THING* sprite) {
         getch();
         exit(1);
     }
-    // return immediately (with a quit command) if player is dead
-    if (player->isDead)
-        return 'Q';
-    // get player (user) command
-    ch = wgetch(player->room);
-    if (player->isConfused) {
-        ch = 49 + rnd(8);
-    }
-    if (player->isAsleep) {
-        ch = '5';
-    }
-    // handle some extended key codes
-    switch (ch) {
-        case KEY_DOWN:  ch = '2'; break; //down
-        case KEY_UP:    ch = '8'; break; //up
-        case KEY_LEFT:  ch = '4'; break; //left
-        case KEY_RIGHT: ch = '5'; break; //right
-        case KEY_F(1):  ch = 'h'; break; //F1
+    if (player->isDead) {
+        ch = 'Q';
+    } else {
+        // get player (user) command
+        ch = wgetch(player->room);
+        if (player->isConfused) {
+            ch = 49 + rnd(8);
+        }
+        if (player->isAsleep) {
+            ch = '5';
+        }
+        // handle some extended key codes
+        switch (ch) {
+            case KEY_DOWN:  ch = '2'; break; //down
+            case KEY_UP:    ch = '8'; break; //up
+            case KEY_LEFT:  ch = '4'; break; //left
+            case KEY_RIGHT: ch = '5'; break; //right
+            case KEY_F(1):  ch = 'h'; break; //F1
+        }
     }
     // call a handler for the selected action
     actionHandlers[ch](player);

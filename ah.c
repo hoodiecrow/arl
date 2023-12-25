@@ -158,7 +158,7 @@ void ah_g(THING* sprite) {
     clrtoeol();
 }
 
-// help string apparatus copied from Rogue3.6.3 source.
+// help string apparatus more or less copied from Rogue3.6.3 source.
 // it was just too pretty to resist.
 struct h_list {
     char h_ch;
@@ -191,9 +191,9 @@ struct h_list helpstr[] = {
     { 0, 0 }
 };
 
+// adapted from the code in Rogue 3.6.3
 void ah_h(THING* sprite) {
     // show a single help line, or all of them
-    // adapted from the code in Rogue 3.6.3
     (void)sprite;
     register struct h_list *strp = helpstr;
     msg("Character you want help for (* for all): ");
@@ -232,7 +232,7 @@ void ah_h(THING* sprite) {
 
 void ah_i(THING* sprite) {
     (void)sprite;
-    WINDOW* invlist = newPopup(15+3);
+    WINDOW* invlist = newPopup(INVENTORY_SIZE+3);
     mvwprintw(invlist, 1, 1, "%s", "You are carrying:");
     for (int i = 0; i < inventoryFill; i++) {
         mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
@@ -306,7 +306,7 @@ void ah_r(THING* sprite) {
 
 /* adapted from Rogue3.6.3 */
 void ah_s(THING* sprite) {
-    //TODO search for hidden things, using sprite for position
+    // take a sprite, search for hidden things
     int x, y;
     chtype ch;
     if (sprite->isBlind)
@@ -445,8 +445,6 @@ void ah_P(THING* sprite) {
 void ah_Q(THING* sprite) {
     (void)sprite;
     //TODO 
-    msg("quit game");
-    clrtoeol();
     endwin();
     exit(0);
 }
