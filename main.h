@@ -206,7 +206,6 @@ struct monster {
 
 extern int inventoryFill;
 extern THING* inventory[];
-extern bool allowedIndices[];
 extern THING *things, *worn, *right, *left, *wielded, *player;
 extern int deltaY, deltaX;
 extern int dlevel;

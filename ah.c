@@ -102,9 +102,15 @@ void ah_c(THING* sprite) {
     clrtoeol();
 }
 
+bool allowedIndices[INVENTORY_SIZE];
+
 void buildList(WINDOW* list, bool (*f)(THING* t), const char* prompt) {
     // take a window, a predicate, and a prompt, fill window from inventory with selected items
     mvwprintw(list, 1, 1, "%s", prompt);
+    // clear the indices array
+    for (int i = 0; i < INVENTORY_SIZE; i++) {
+        allowedIndices[i] = false;
+    }
     for (int i = 0; i < inventoryFill; i++) {
         if (f(inventory[i])) {
             mvwprintw(list, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);

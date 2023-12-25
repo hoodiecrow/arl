@@ -39,7 +39,6 @@ THING* things = NULL; // top pointer for thing linked list
 
 THING* inventory[INVENTORY_SIZE];
 int inventoryFill = 0;
-bool allowedIndices[INVENTORY_SIZE];
 
 THING* worn = NULL;
 THING* right = NULL;
@@ -482,10 +481,6 @@ int player_act(THING* sprite) {
     }
     if (player->isAsleep) {
         ch = '5';
-    }
-    // clear the indices array for selecting inventory objects
-    for (int i = 0; i < INVENTORY_SIZE; i++) {
-        allowedIndices[i] = false;
     }
     // handle some extended key codes
     switch (ch) {
