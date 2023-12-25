@@ -356,7 +356,7 @@ void ah_I(THING* sprite) {
 
 void ah_P(THING* sprite) {
     (void)sprite;
-    //TODO remove a ring, if possible
+    //TODO put on a ring
     WINDOW* invlist = newPopup(inventoryFill+3);
     mvwprintw(invlist, 1, 1, "%s", "What do you want to equip:");
     for (int i = 0; i < inventoryFill; i++) {
@@ -400,8 +400,29 @@ void ah_Q(THING* sprite) {
 void ah_R(THING* sprite) {
     (void)sprite;
     //TODO remove a ring, if possible
-    msg("remove a ring");
-    clrtoeol();
+    WINDOW* invlist = newPopup(inventoryFill+3);
+    mvwprintw(invlist, 1, 1, "%s", "What do you want to equip:");
+    for (int i = 0; i < inventoryFill; i++) {
+        if (inventory[i]->glyph == '=' && (inventory[i] == right ||
+                    inventory[i] == left)) {
+            mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
+            allowedIndices[i] = true;
+        } else {
+            allowedIndices[i] = false;
+        }
+    }
+    chtype ch = endPopup(invlist);
+    int i = ch-'a';
+    if (allowedIndices[i]) {
+        if (inventory[i]->isCursed) {
+            msg("you can't");
+            return;
+        }
+        if (inventory[i] == right)
+            right = NULL;
+        if (inventory[i] == left)
+            left = NULL;
+    }
 }
 
 void ah_S(THING* sprite) {
