@@ -3,8 +3,9 @@
 #include "ah.h"
 #include "map9.h"
 
+/* Copyright (C) 2023 Peter Lewerin except for fragments marked Rogue3.6.3 */
 
-/* This source code contains fragments of the Rogue 3.6.3 source code, which is
+/* Such fragments are
 
     Copyright (C) 2005 Nicholas J. Kisseberth
     All rights reserved.
@@ -33,8 +34,6 @@
     OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
     SUCH DAMAGE.
 */
-
-/* Except for such fragments, this code is Copyright (C) 2023 Peter Lewerin */
 
 THING* things = NULL; // top pointer for thing linked list
 
@@ -115,7 +114,7 @@ int dice2(const char* code) {
     int n, s;
     int r = sscanf(code, "%dd%d", &n, &s);
     if (r != 2) {
-        mvprintw(1, 0, "can't scan \"%s\"", code);
+        mvprintw(0, 0, "can't scan \"%s\"", code);
         clrtoeol();
         refresh();
         getch();

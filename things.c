@@ -107,7 +107,6 @@ THING* newThing(ThingType type, chtype glyph) {
     thing->glyph = glyph;
     thing->ypos = -1;
     thing->xpos = -1;
-    thing->isEdible = false;
     thing->isPotable = false;
     thing->isEquippable = false;
     thing->isAggressive = false;
@@ -142,7 +141,6 @@ THING* newThing(ThingType type, chtype glyph) {
             break;
         case ':':
             snprintf(thing->descr, sizeof thing->descr, "%s", "leg of lamb");
-            thing->isEdible = true;
             break;
     }
     thing->gold = 0;

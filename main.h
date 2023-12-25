@@ -138,7 +138,6 @@ typedef struct THING {
     int typeId;
     int gold;
     bool inInventory;
-    bool isEdible;
     bool isPotable;
     bool isEquippable;
     bool isIdentified;

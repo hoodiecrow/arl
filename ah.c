@@ -1,38 +1,6 @@
 #include "main.h"
 #include "ah.h"
 
-/* This source code contains fragments of the Rogue 3.6.3 source code (noted in comment), which is
-
-    Copyright (C) 2005 Nicholas J. Kisseberth
-    All rights reserved.
-
-    Redistribution and use in source and binary forms, with or without
-    modification, are permitted provided that the following conditions
-    are met:
-    1. Redistributions of source code must retain the above copyright
-       notice, this list of conditions and the following disclaimer.
-    2. Redistributions in binary form must reproduce the above copyright
-       notice, this list of conditions and the following disclaimer in the
-       documentation and/or other materials provided with the distribution.
-    3. Neither the name(s) of the author(s) nor the names of other contributors
-       may be used to endorse or promote products derived from this software
-       without specific prior written permission.
-
-    THIS SOFTWARE IS PROVIDED BY THE AUTHOR(S) AND CONTRIBUTORS ``AS IS'' AND
-    ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-    ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR(S) OR CONTRIBUTORS BE LIABLE
-    FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-    DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-    OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-    HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-    LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-    OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
-    SUCH DAMAGE.
-*/
-
-/* Except for such fragments, this code is Copyright (C) 2023 Peter Lewerin */
-
 ahptr actionHandlers[256] = {
    /*0x*/&ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, 
    /*1x*/&ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, 
@@ -66,12 +34,6 @@ ahptr actionHandlers[256] = {
 
 void ah__(THING* sprite) {
     (void)sprite;
-}
-
-void ahCS(THING* sprite) {
-    (void)sprite;
-    msg("save game");
-    clrtoeol();
 }
 
 void ah_1(THING* sprite) {
@@ -143,7 +105,7 @@ void ah_e(THING* sprite) {
     WINDOW* invlist = newPopup(inventoryFill+3);
     mvwprintw(invlist, 1, 1, "%s", "What do you want to eat:");
     for (int i = 0; i < inventoryFill; i++) {
-        if (inventory[i]->isEdible) {
+        if (inventory[i]->glyph == ':') {
             mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
             allowedIndices[i] = true;
         } else {
