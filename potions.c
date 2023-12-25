@@ -57,7 +57,6 @@ THING* addPotion() {
     int i = pickOne(ppt, NPOTIONS);
     THING* t = newThing(T_Item, '!');
     snprintf(t->descr, sizeof t->descr, "%s %s", p_colours[i], "potion");
-    t->isPotable = true;
     t->typeId = i;
     return t;
 }

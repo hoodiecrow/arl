@@ -34,6 +34,8 @@ ahptr actionHandlers[256] = {
 
 void ah__(THING* sprite) {
     (void)sprite;
+    msg("unknown command");
+    clrtoeol();
 }
 
 void ah_1(THING* sprite) {
@@ -256,7 +258,7 @@ void ah_q(THING* sprite) {
     WINDOW* invlist = newPopup(inventoryFill+3);
     mvwprintw(invlist, 1, 1, "%s", "What do you want to drink:");
     for (int i = 0; i < inventoryFill; i++) {
-        if (inventory[i]->isPotable) {
+        if (inventory[i]->glyph == '!') {
             mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
             allowedIndices[i] = true;
         } else {
@@ -278,7 +280,7 @@ void ah_r(THING* sprite) {
     WINDOW* invlist = newPopup(inventoryFill+3);
     mvwprintw(invlist, 1, 1, "%s", "What do you want to read:");
     for (int i = 0; i < inventoryFill; i++) {
-        if ((inventory[i]->glyph == '~' || inventory[i]->glyph == '=')) {
+        if (inventory[i]->glyph == '?') {
             mvwprintw(invlist, i+2, 1, "%c) %s", i+'a', inventory[i]->descr);
             allowedIndices[i] = true;
         } else {

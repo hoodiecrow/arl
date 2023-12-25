@@ -107,7 +107,6 @@ THING* newThing(ThingType type, chtype glyph) {
     thing->glyph = glyph;
     thing->ypos = -1;
     thing->xpos = -1;
-    thing->isPotable = false;
     thing->isEquippable = false;
     thing->isAggressive = false;
     thing->isDead = false;
