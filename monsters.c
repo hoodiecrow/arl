@@ -96,6 +96,35 @@ Zombie	        0	    M	    6	2 	8	1d8	        4-13
 "zombie",	     0, 	ISMEAN,	    { _x,     7,   2,   8, ___, "1d8" } }
 */
 
+struct monster monsters[26] = {
+    { "giant ant",  "yes" },  
+    { "bat",        "no" },	      
+    { "centaur",    "no" },	  
+    { "dragon",     "no" },	  
+    { "floating eye","sometimes" },
+    { "violet fungi","yes" },
+    { "goblin",     "sometimes" },	  
+    { "hobgoblin",  "yes" },  
+    { "ice monster","no" },
+    { "jackal",     "yes" },	  
+    { "kobold",     "yes" },	  
+    { "leprechaun", "no" }, 
+    { "mimic",      "no" },	  
+    { "nymph",      "no" },	  
+    { "orc",        "yes" },	      
+    { "purple worm","no" },
+    { "quasit",     "yes" },	  
+    { "rust monster","yes" },
+    { "snake",      "yes" },	  
+    { "troll",      "yes" },	  
+    { "umber hulk", "yes" }, 
+    { "vampire",    "yes" },	  
+    { "wraith",     "no" },	  
+    { "xorn",       "yes" },	      
+    { "yeti",       "no" },	      
+    { "zombie",     "yes" },	  
+};
+
 char lvltable[] = "KJBSGHEAOZLCRQNYTWFIXUMVDP";
 char wmtable[] =  "KJBSGH AOZ CRQ Y W IXU V  ";
 
@@ -115,19 +144,20 @@ chtype randomMonster(bool wanderer) {
 
 THING* addMonster(chtype kind) {
     // take a species code, create a monster and return it
-    chtype i;
+    chtype k;
     THING* t = newThing(T_Sprite, 'X');
     const char *aggr;
     if (kind == 0) {
-        i = randomMonster(false);
+        k = randomMonster(false);
     } else {
-        i = kind;
+        k = kind;
     }
-    switch (i) {
+    int i = k - 'A';
+    switch (k) {
         case 'K':
-            snprintf(t->descr, sizeof t->descr, "%s", "kobold");
-            t->glyph = 'K';
-            aggr = "yes";
+            snprintf(t->descr, sizeof t->descr, "%s", monsters[i].name);
+            t->glyph = k;
+            aggr = monsters[i].aggr;
             t->stats->fullHp = dice(1, 8);
             t->damage = "1d4";
             t->armour = 7;

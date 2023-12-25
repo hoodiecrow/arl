@@ -6,7 +6,7 @@ ahptr actionHandlers[256] = {
    /*1x*/&ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, 
    /*2x*/&ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, 
    /*3x*/&ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, 
-   /*4x*/&ah__, &ah__, &ah__, &ah__, &ah_p, &ah__, &ah_d, &ah__, &ah__, &ah_1,
+   /*4x*/&ah__, &ah__, &ah__, &ah__, &ah_p, &ah__, &ah_d, &ah_I, &ah__, &ah_1,
    /*5x*/&ah_2, &ah_3, &ah_4, &ah_5, &ah_6, &ah_7, &ah_8, &ah_9, &ah__, &ah__,
    /*6x*/&ah__, &ah__, &ah__, &ah_h, &ah__, &ah__, &ah__, &ah__, &ah__, &ah_E, 
    /*7x*/&ah__, &ah__, &ah__, &ah_I, &ah__, &ah__, &ah__, &ah__, &ah__, &ah__, 
@@ -304,7 +304,7 @@ void ah_s(THING* sprite) {
 
 void ah_t(THING* sprite) {
     (void)sprite;
-    //TODO search for hidden things, using sprite for position
+    //TODO throw something
     msg("throw something");
     clrtoeol();
 }
@@ -312,7 +312,68 @@ void ah_t(THING* sprite) {
 void ah_I(THING* sprite) {
     (void)sprite;
     //TODO
-    msg("identify object (also /)");
+    char ch;
+    const char* str;
+
+    msg("What do you want identified? ");
+    ch = getch();
+    if (ch == 27) {
+        msg("");
+        return;
+    }
+    if (isupper(ch))
+        str = monsters[ch-'A'].name;
+    else
+        switch(ch) {
+            case '#':
+                str = "wall of a room";
+                break;
+            case '*':
+                str = "gold";
+                break;
+            case '>':
+                str = "passage leading down";
+                break;
+            case '+':
+                str = "door";
+                break;
+            case ' ':
+                str = "room or corridor floor";
+                break;
+            case '@':
+                str = "you";
+                break;
+            case '^':
+                str = "trap";
+                break;
+            case '!':
+                str = "potion";
+                break;
+            case '?':
+                str = "scroll";
+                break;
+            case ':':
+                str = "food";
+                break;
+            case ')':
+                str = "weapon";
+                break;
+            case ']':
+                str = "armour";
+                break;
+            case '=':
+	            str = "ring";
+                break;
+            case '/':
+                str = "wand";
+                break;
+            case '\\':
+                str = "staff";
+                break;
+	        default:
+                str = "unknown character";
+    }
+    mvprintw(0, 0, "'%c' : %s", ch, str);
     clrtoeol();
 }
 

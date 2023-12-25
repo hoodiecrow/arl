@@ -185,6 +185,11 @@ typedef struct TILE {
 	THING *item;
 } TILE;
 
+struct monster {
+    char name[20];
+    char aggr[10];
+};
+
 #define INVENTORY_SIZE 15
 
 extern int inventoryFill;
@@ -195,6 +200,7 @@ extern int deltaY, deltaX;
 extern int dlevel;
 extern WINDOW* map;
 extern const char* monsterNames[];
+extern struct monster monsters[];
 extern const char *armourNames[];
 extern int acValue[];
 
