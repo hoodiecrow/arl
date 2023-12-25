@@ -269,6 +269,7 @@ void initGame() {
     initSticks();
     initPotions();
     initScrolls();
+    initTraps();
 
     for (int n = 0; n < rnd(5) + 1; n++) {
         place(addGold(map));

@@ -7,6 +7,18 @@
 #include <string.h>
 #include <time.h>
 
+
+/* adapted from Rogue3.6.3 */
+enum TRAPS {
+	TRAPDOOR,
+	ARROWTRAP,
+	SLEEPTRAP,
+	BEARTRAP,
+	TELTRAP,
+	DARTTRAP,
+	NTRAPS
+};
+
 /* adapted from Rogue3.6.3 */
 enum THINGTYPES {
 	T_POTION,
@@ -156,6 +168,7 @@ typedef struct THING {
     bool isDead;
     bool isCanceled;
     bool isInvisible;
+    bool isFound;
     bool isConfused;
     int confusionDuration;
     bool isBlind;
@@ -202,6 +215,11 @@ struct monster {
     char* damage;
 };
 
+// store all traps
+#define MAXTRAPS 10
+extern THING* traps[];
+extern int ntraps;
+
 #define INVENTORY_SIZE 15
 
 extern int inventoryFill;
@@ -234,6 +252,8 @@ THING* addRing();
 void initRings();
 THING* addPotion();
 void initPotions();
+THING* addTrap();
+void initTraps();
 THING* addGold();
 THING* addFood();
 int pickOne(int pt[], int n);

@@ -124,6 +124,7 @@ THING* newThing(ThingType type, chtype glyph) {
     thing->isLevitating = false;
     thing->isInCombat = false;
     thing->isCursed = false;
+    thing->isFound = false;
     thing->isInjured = false;
     thing->healingCycle = 0;
     thing->regenerates = false;

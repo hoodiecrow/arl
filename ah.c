@@ -304,11 +304,65 @@ void ah_r(THING* sprite) {
     }
 }
 
+/* adapted from Rogue3.6.3 */
+THING *trapAt(int y, int x) {
+    THING** tp;
+    THING** ep;
+    ep = &traps[ntraps];
+    for (tp = traps; tp < ep; tp++)
+        if ((*tp)->ypos == y && (*tp)->xpos == x)
+            break;
+    return *tp;
+}
+
+char *trapName(int typeId) {
+    switch (typeId) {
+        case TRAPDOOR:
+            return "You found a trapdoor.";
+        case BEARTRAP:
+            return "You found a beartrap.";
+        case SLEEPTRAP:
+            return "You found a sleeping gas trap.";
+        case ARROWTRAP:
+            return "You found an arrow trap.";
+        case TELTRAP:
+            return "You found a teleport trap.";
+        case DARTTRAP:
+            return "You found a poison dart trap.";
+        default:
+            return NULL;
+    }
+}
+
+/* adapted from Rogue3.6.3 */
 void ah_s(THING* sprite) {
-    (void)sprite;
     //TODO search for hidden things, using sprite for position
-    msg("search hidden");
-    clrtoeol();
+    int x, y;
+    chtype ch;
+    if (sprite->isBlind)
+        return;
+    for (x = sprite->xpos - 1; x <= sprite->xpos + 1; x++)
+        for (y = sprite->ypos - 1; y <= sprite->ypos + 1; y++) {
+            ch = mvwinch(sprite->room, y, x);
+            switch (ch) {
+                case '&': // secret door
+                    if (rnd(100) < 20) {
+                        mvaddch(y, x, '+'); // door
+                    }
+                    break;
+                case '^': // trap
+                    ;
+                    THING* tp;
+                    if (mvwinch(sprite->room, y, x) == '^')
+                        break;
+                    if (rnd(100) > 50)
+                        break;
+                    tp = trapAt(y, x);
+                    tp->isFound = true;
+                    mvwaddch(sprite->room, y, x, '^');
+                    msg(trapName(tp->typeId));
+            }
+        }
 }
 
 void ah_t(THING* sprite) {
@@ -423,6 +477,8 @@ void ah_Q(THING* sprite) {
     //TODO 
     msg("quit game");
     clrtoeol();
+    endwin();
+    exit(0);
 }
 
 bool ringOffPred(THING* t) {
