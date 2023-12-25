@@ -16,6 +16,7 @@ In playtesting the original Rogue for comparison, differences in symbols kept tr
 - `=` ring
 - `\` staff
 - `?` scroll
+- `^` trap
 - `<` stair (up)
 - `>` stair (down)
 - `_` carcass
