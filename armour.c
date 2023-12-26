@@ -4,7 +4,7 @@
 const char *armourNames[] = {
     "leather armour",
     "ring mail",
-    "studded leather armor",
+    "studded leather armour",
     "scale mail",
     "chain mail",
     "splint mail",
