@@ -239,10 +239,9 @@ void destroy_win(WINDOW *local_win);
 THING* newThing(ThingType type, chtype glyph);
 
 THING* addMonster(chtype kind);
-THING* addWeapon();
-THING* initWeapon(THING* t, int typeId);
-THING* addArmour();
-THING* initArmour(THING* t, int typeId);
+THING* addWeapon(int typeId);
+void  initWeapons();
+THING* addArmour(int typeId);
 void initArmours();
 THING* addStick();
 void initSticks();

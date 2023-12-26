@@ -445,6 +445,7 @@ void ah_P(THING* sprite) {
 void ah_Q(THING* sprite) {
     (void)sprite;
     //TODO 
+    destroy_win(map);
     endwin();
     exit(0);
 }

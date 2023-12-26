@@ -28,26 +28,20 @@ int aprobs[NARMOURS] = {
 };
 int apt[NARMOURS];
 
-THING* addArmour() {
-    // create an armour and return it
-    int i = pickOne(apt, NARMOURS);
+THING* addArmour(int typeId) {
+    // take a typeId, create a (random, if -1) armour and return it
     THING* t = newThing(T_Item, ']');
-    snprintf(t->descr, sizeof t->descr, "%s", armourNames[i]);
-    t->armour = acValue[i];
-    int k;
-    if ((k = rnd(100)) < 20) {
-        t->isCursed = true;
-        t->armour += rnd(3)+1;
-    } else if (k < 28) {
-        t->armour -= rnd(3)+1;
+    if (typeId < 0) {
+        typeId = pickOne(apt, NARMOURS);
+        int k;
+        if ((k = rnd(100)) < 20) {
+            t->isCursed = true;
+            t->armour += rnd(3)+1;
+        } else if (k < 28) {
+            t->armour -= rnd(3)+1;
+        }
     }
-    t->typeId = i;
-    return t;
-}
-
-THING* initArmour(THING* t, int typeId) {
     snprintf(t->descr, sizeof t->descr, "%s", armourNames[typeId]);
-    t->isCursed = false;
     t->armour = acValue[typeId];
     t->typeId = typeId;
     return t;

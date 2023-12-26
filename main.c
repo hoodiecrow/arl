@@ -247,9 +247,9 @@ THING* addItem() {
         case T_FOOD:
             return addFood();
         case T_WEAPON:
-            return addWeapon();
+            return addWeapon(-1);
         case T_ARMOUR:
-            return addArmour();
+            return addArmour(-1);
         case T_RING:
             return addRing();
         case T_STICK:
@@ -257,6 +257,31 @@ THING* addItem() {
         default:
             return NULL;
     }
+}
+
+void initPlayer() {
+    // player stats
+    player->stats->level = 1;
+    player->stats->exp = 0;
+    player->stats->currHp = player->stats->fullHp = 12;
+    player->stats->currStrength = player->stats->fullStrength = 16;
+    player->armour = 10;
+
+    // equipment for the player
+    THING* w = addWeapon(W_MACE);
+    w->hplus = 1;
+    w->dplus = 1;
+    int i = addToInventory(w);
+    if (i >= 0)
+        wieldEffect(i);
+
+    THING* a = addArmour(A_RINGM);
+    i = addToInventory(a);
+    if (i >= 0)
+        wearEffect(i);
+
+    THING* f = addFood();
+    addToInventory(f);
 }
 
 void initGame() {
@@ -294,30 +319,7 @@ void initGame() {
     }
     player = place(newThing(T_Sprite, '@'));
 
-    // player stats
-    player->stats->level = 1;
-    player->stats->exp = 0;
-    player->stats->currHp = player->stats->fullHp = 12;
-    player->stats->currStrength = player->stats->fullStrength = 16;
-    player->armour = 10;
-
-    // equipment for the player
-    THING* w = addWeapon();
-    initWeapon(w, W_MACE);
-    w->hplus = 1;
-    w->dplus = 1;
-    int i = addToInventory(w);
-    if (i >= 0)
-        wieldEffect(i);
-
-    THING* a = addArmour();
-    initArmour(a, A_RINGM);
-    i = addToInventory(a);
-    if (i >= 0)
-        wearEffect(i);
-
-    THING* f = addFood();
-    addToInventory(f);
+    initPlayer();
 }
 
 void runGame() {
@@ -541,7 +543,7 @@ static chtype seekPlayer(THING* sprite) {
             ch = '5'; // won't happen
     } else {
         // player is too far away, just wander
-        ch = 49 + rnd(8);
+        ch = 49 + rnd(9);
     }
     return ch;
 }
@@ -564,7 +566,7 @@ int sprite_act(THING* sprite) {
         ch = seekPlayer(sprite);
     } else {
         // not interested in seeking out player
-        ch = 49 + rnd(8);
+        ch = 49 + rnd(9);
     }
     // call a handler for the selected (movement) action
     actionHandlers[ch](sprite);
